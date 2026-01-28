@@ -19,6 +19,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
     : Array.from({ length: totalSections }).map((_, i) => `Section ${i + 1}`);
 
   const progressPct = totalSections <= 1 ? 0 : (activeIndex / (totalSections - 1)) * 100;
+  const progressScale = Math.max(0, Math.min(1, progressPct / 100));
 
   const getDotColor = (index: number) => {
     // Static sections: Intro, Benefits, StarterKit, Research How-To (Hero)
@@ -51,8 +52,8 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       {/* Track */}
       <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45" />
       <div
-        className="absolute top-4 left-1/2 -translate-x-1/2 w-px bg-[#F36F21]"
-        style={{ height: `${progressPct}%` }}
+        className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-[#F36F21] rounded-full"
+        style={{ transform: `scaleY(${progressScale})`, transformOrigin: 'top' }}
       />
 
       <div className="relative flex flex-col items-center gap-1.5 lg:gap-2">
