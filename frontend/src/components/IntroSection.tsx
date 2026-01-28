@@ -4,9 +4,10 @@ import { ThemeColors } from '../types';
 
 interface IntroSectionProps {
   onStartClick: () => void;
+  onLearnMoreClick: () => void;
 }
 
-const IntroSection: React.FC<IntroSectionProps> = ({ onStartClick }) => {
+const IntroSection: React.FC<IntroSectionProps> = ({ onStartClick, onLearnMoreClick }) => {
   return (
     <section className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-slate-50 to-white px-4 pt-32 overflow-hidden shrink-0">
       {/* Background Decor */}
@@ -41,7 +42,10 @@ const IntroSection: React.FC<IntroSectionProps> = ({ onStartClick }) => {
             <ArrowRight className="group-hover:translate-x-1 transition-transform" />
           </button>
           
-          <button className="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-bold rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 text-lg flex items-center justify-center gap-2">
+          <button
+            onClick={onLearnMoreClick}
+            className="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-bold rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 text-lg flex items-center justify-center gap-2"
+          >
             Tìm hiểu thêm
           </button>
         </div>

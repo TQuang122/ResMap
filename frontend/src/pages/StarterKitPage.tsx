@@ -1,9 +1,11 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import { FULL_STARTER_KIT } from '../data/fullStarterKit';
-import { Download } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 
 const StarterKitPage: React.FC = () => {
+  const driveUrl = import.meta.env.VITE_STARTER_KIT_DRIVE_URL || 'https://drive.google.com/drive/folders/REPLACE_ME';
+
   return (
     <div className="flex-1 w-full overflow-y-scroll no-scrollbar bg-slate-50 flex flex-col">
       <div className="pt-32 pb-20 px-4 max-w-6xl mx-auto w-full flex-1">
@@ -13,8 +15,20 @@ const StarterKitPage: React.FC = () => {
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Bộ công cụ, biểu mẫu và tài liệu hướng dẫn chuẩn hóa dành cho sinh viên FPT.
-            Tải về và bắt đầu hành trình nghiên cứu của bạn ngay hôm nay.
+            Mỗi mục bên dưới sẽ mở thư mục Google Drive (nơi lưu template/tài liệu).
           </p>
+        </div>
+
+        <div className="flex justify-center mb-10">
+          <a
+            href={driveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:border-[#F36F21] hover:text-[#F36F21] hover:bg-orange-50 transition-colors"
+          >
+            <ExternalLink size={18} />
+            Mở thư mục Google Drive
+          </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -31,10 +45,15 @@ const StarterKitPage: React.FC = () => {
                 <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-1">
                   {item.description}
                 </p>
-                <button className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-bold text-sm hover:border-[#F36F21] hover:text-[#F36F21] hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
+                <a
+                  href={driveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-bold text-sm hover:border-[#F36F21] hover:text-[#F36F21] hover:bg-orange-50 transition-all flex items-center justify-center gap-2"
+                >
                   <Download size={18} />
                   Tải về
-                </button>
+                </a>
               </div>
             );
           })}

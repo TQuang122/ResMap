@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import IntroSection from '../components/IntroSection';
 import BenefitsSection from '../components/BenefitsSection';
 import HeroSection from '../components/HeroSection';
@@ -14,7 +14,6 @@ import Step4Planning from '../components/steps/Step4Planning';
 import Step5Analysis from '../components/steps/Step5Analysis';
 import Step6Ethics from '../components/steps/Step6Ethics';
 import { ThemeColors } from '../types';
-import ToolsSection from '../components/ToolsSection';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 
 // Map step IDs to their corresponding components
@@ -30,9 +29,21 @@ const STEP_COMPONENTS: Record<string, React.FC<{ theme: ThemeColors }>> = {
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
-  // Intro, Benefits, Hero, StarterKit, Tools = 5 sections
-  const INITIAL_SECTIONS_COUNT = 5;
+  // Intro, Benefits, StarterKit, Research How-To (Hero) = 4 sections
+  const INITIAL_SECTIONS_COUNT = 4;
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  const scrollToSection = useCallback((index: number) => {
+    if (containerRef.current) {
+      const children = Array.from(containerRef.current.children) as HTMLElement[];
+      if (children[index]) {
+        children[index].scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -58,21 +69,26 @@ const HomePage: React.FC = () => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (index: number) => {
-    if (containerRef.current) {
-      const children = Array.from(containerRef.current.children) as HTMLElement[];
-      if (children[index]) {
-        children[index].scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
-    }
-  };
+  useEffect(() => {
+    if (!selectedTopic) return;
+
+    // After selecting a major group, auto-scroll to the first detailed step.
+    // Steps are rendered after the 4 static sections.
+    const timeoutId = window.setTimeout(() => {
+      scrollToSection(INITIAL_SECTIONS_COUNT);
+    }, 50);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [selectedTopic, scrollToSection]);
 
   const handleStartClick = () => {
-    // Scroll to Topic Selection (HeroSection is now 3rd, index 2)
-    scrollToSection(2); 
+    // Scroll to Research How-To + Major Selection (HeroSection is now 4th, index 3)
+    scrollToSection(3);
+  };
+
+  const handleLearnMoreClick = () => {
+    // Scroll to Benefits (2nd section, index 1)
+    scrollToSection(1);
   };
 
   return (
@@ -82,21 +98,18 @@ const HomePage: React.FC = () => {
         className="flex-1 w-full overflow-y-scroll no-scrollbar scroll-smooth"
       >
         {/* 1. Intro Banner */}
-        <IntroSection onStartClick={handleStartClick} />
+        <IntroSection onStartClick={handleStartClick} onLearnMoreClick={handleLearnMoreClick} />
 
         {/* 2. Benefits */}
         <BenefitsSection />
 
-        {/* 3. Topic Selection (Original Hero) */}
-        <HeroSection selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
-
-        {/* 4. Starter Kit (Summary) */}
+        {/* 3. Starter Kit (Summary) */}
         <StarterKitSection selectedTopic={selectedTopic} />
 
-        {/* 5. Tools Section */}
-        <ToolsSection />
+        {/* 4. Research How-To + Major Selection */}
+        <HeroSection selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
 
-        {/* 6+. Steps (Only if topic selected) */}
+        {/* 5+. Steps (Only if topic selected) */}
         {selectedTopic && (
           <>
             {STEPS_DATA.map((step) => {
@@ -121,22 +134,21 @@ const HomePage: React.FC = () => {
 
       <ChatbotWidget />
 
-      <SidebarDots 
-        activeIndex={activeSection} 
-        totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + STEPS_DATA.length : INITIAL_SECTIONS_COUNT} 
-        sectionLabels={selectedTopic
-          ? [
-              'Giới thiệu',
-              'Lợi ích',
-              'Khối ngành',
-              'Starter Kit',
-              'Công cụ',
-              ...STEPS_DATA.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
-            ]
-          : ['Giới thiệu', 'Lợi ích', 'Khối ngành', 'Starter Kit', 'Công cụ']
-        }
-        scrollToSection={scrollToSection} 
-      />
+        <SidebarDots 
+          activeIndex={activeSection} 
+          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + STEPS_DATA.length : INITIAL_SECTIONS_COUNT} 
+          sectionLabels={selectedTopic
+            ? [
+                'Giới thiệu',
+                'Lợi ích',
+                'Starter Kit',
+                'Research How-To',
+                ...STEPS_DATA.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
+              ]
+            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
+          }
+          scrollToSection={scrollToSection} 
+        />
     </>
   );
 };

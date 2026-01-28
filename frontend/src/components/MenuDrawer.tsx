@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Home, FolderOpen, ChevronRight } from 'lucide-react';
+import { X, Home, FolderOpen, Quote, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
@@ -100,12 +100,27 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
             </div>
             {location.pathname === '/starter-kit' && <ChevronRight size={16} />}
           </Link>
+
+          <Link 
+            to="/citation-check" 
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              location.pathname === '/citation-check' 
+              ? 'bg-orange-50 text-[#F36F21] font-bold' 
+              : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Quote size={18} />
+              <span>APA/IEEE Checker</span>
+            </div>
+            {location.pathname === '/citation-check' && <ChevronRight size={16} />}
+          </Link>
         </nav>
 
         {/* Footer */}
         <div className="p-5 border-t border-gray-100 bg-slate-50">
           <p className="text-xs text-slate-400 text-center">
-            © 2024 FPT University
+            © 2026 FPT University
           </p>
         </div>
       </div>

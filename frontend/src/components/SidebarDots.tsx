@@ -21,8 +21,8 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
   const progressPct = totalSections <= 1 ? 0 : (activeIndex / (totalSections - 1)) * 100;
 
   const getDotColor = (index: number) => {
-    // Static sections: Intro, Benefits, Hero, StarterKit, Tools
-    const STATIC_SECTIONS = 5;
+    // Static sections: Intro, Benefits, StarterKit, Research How-To (Hero)
+    const STATIC_SECTIONS = 4;
     if (index < STATIC_SECTIONS) return 'bg-gray-500';
 
     const stepKeys = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'];
@@ -35,32 +35,27 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       className={
         `
         fixed z-40 pointer-events-auto transition-all duration-300
-        bottom-6 left-1/2 -translate-x-1/2
-        rounded-full bg-white/55 backdrop-blur-md border border-white/40 shadow-lg shadow-black/5
-        px-4 py-3
+        right-2 top-1/2 -translate-y-1/2
+        rounded-full
+        bg-gradient-to-b from-white/40 to-white/15
+        backdrop-blur-xl backdrop-saturate-150
+        border border-white/25 shadow-lg shadow-black/8
+        px-2 py-2
         
-        lg:right-8 lg:top-1/2 lg:-translate-y-1/2 lg:left-auto lg:bottom-auto lg:translate-x-0
-        lg:rounded-full lg:px-3 lg:py-4
+        lg:right-8 lg:px-2.5 lg:py-3
       `
       }
       role="navigation"
       aria-label="Section navigation"
     >
-      {/* Mobile track */}
-      <div className="lg:hidden absolute left-5 right-5 top-1/2 -translate-y-1/2 h-px bg-slate-200/80" />
+      {/* Track */}
+      <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45" />
       <div
-        className="lg:hidden absolute left-5 top-1/2 -translate-y-1/2 h-px bg-[#F36F21]"
-        style={{ width: `${progressPct}%` }}
-      />
-
-      {/* Desktop track */}
-      <div className="hidden lg:block absolute top-6 bottom-6 left-1/2 -translate-x-1/2 w-px bg-slate-200/80" />
-      <div
-        className="hidden lg:block absolute top-6 left-1/2 -translate-x-1/2 w-px bg-[#F36F21]"
+        className="absolute top-4 left-1/2 -translate-x-1/2 w-px bg-[#F36F21]"
         style={{ height: `${progressPct}%` }}
       />
 
-      <div className="relative flex items-center gap-2 lg:flex-col lg:gap-3">
+      <div className="relative flex flex-col items-center gap-1.5 lg:gap-2">
         {Array.from({ length: totalSections }).map((_, index) => {
           const isActive = activeIndex === index;
           const isVisited = index < activeIndex;
@@ -74,7 +69,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
               className={
                 `
                 group relative
-                h-10 w-10 rounded-full
+                h-8 w-8 rounded-full
                 flex items-center justify-center
                 transition-transform duration-200
                 hover:scale-105 active:scale-95
@@ -88,7 +83,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                 className={
                   `
                   rounded-full transition-all duration-250 ease-out
-                  ${isActive ? 'w-3.5 h-3.5' : 'w-2.5 h-2.5'}
+                  ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
                   ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
                   ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
                   ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}

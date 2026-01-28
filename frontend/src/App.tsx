@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Navigation from './components/Navigation';
 import HomePage from './pages/HomePage';
 import StarterKitPage from './pages/StarterKitPage';
+import CitationCheckPage from './pages/CitationCheckPage';
 
 // Wrapper to handle scroll state for Navigation across pages
 const AppContent: React.FC = () => {
@@ -49,6 +50,7 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/starter-kit" element={<StarterKitPage />} />
+        <Route path="/citation-check" element={<CitationCheckPage />} />
       </Routes>
     </div>
   );
