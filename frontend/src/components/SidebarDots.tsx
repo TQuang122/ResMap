@@ -50,11 +50,12 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       aria-label="Section navigation"
     >
       {/* Track */}
-      <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45" />
-      <div
-        className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-[#F36F21] rounded-full"
-        style={{ transform: `scaleY(${progressScale})`, transformOrigin: 'top' }}
-      />
+      <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full">
+        <div
+          className="absolute inset-0 bg-[#F36F21] origin-top rounded-full"
+          style={{ transform: `scaleY(${progressScale})` }}
+        />
+      </div>
 
       <div className="relative flex flex-col items-center gap-1.5 lg:gap-2">
         {Array.from({ length: totalSections }).map((_, index) => {

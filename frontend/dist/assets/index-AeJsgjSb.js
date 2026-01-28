@@ -356,7 +356,7 @@ Please change the parent <Route path="${k}"> to <Route path="${k==="/"?"*":`${k}
         px-2 py-2
         
         lg:right-8 lg:px-2.5 lg:py-3
-      `,role:"navigation","aria-label":"Section navigation",children:[f.jsx("div",{className:"absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45"}),f.jsx("div",{className:"absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-[#F36F21] rounded-full",style:{transform:`scaleY(${p})`,transformOrigin:"top"}}),f.jsx("div",{className:"relative flex flex-col items-center gap-1.5 lg:gap-2",children:Array.from({length:c}).map((y,g)=>{const N=i===g,E=g<i,C=x(g),B=d[g];return f.jsxs("button",{onClick:()=>o(g),className:`
+      `,role:"navigation","aria-label":"Section navigation",children:[f.jsx("div",{className:"absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full",children:f.jsx("div",{className:"absolute inset-0 bg-[#F36F21] origin-top rounded-full",style:{transform:`scaleY(${p})`}})}),f.jsx("div",{className:"relative flex flex-col items-center gap-1.5 lg:gap-2",children:Array.from({length:c}).map((y,g)=>{const N=i===g,E=g<i,C=x(g),B=d[g];return f.jsxs("button",{onClick:()=>o(g),className:`
                 group relative
                 h-8 w-8 rounded-full
                 flex items-center justify-center
