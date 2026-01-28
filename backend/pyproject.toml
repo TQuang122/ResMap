@@ -1,7 +1,18 @@
 [project]
-name = "resmap"
+name = "resmap-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backend for FPTU ResMap"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+    "openai>=1.12.0" 
+]
+
+[tool.setuptools]
+packages = ["app"]
