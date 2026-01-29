@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import HomePage from './pages/HomePage';
 import StarterKitPage from './pages/StarterKitPage';
 import CitationCheckPage from './pages/CitationCheckPage';
+import PlagiarismCheckPage from './pages/PlagiarismCheckPage';
 
 // Wrapper to handle scroll state for Navigation across pages
 const AppContent: React.FC = () => {
@@ -51,6 +52,7 @@ const AppContent: React.FC = () => {
         <Route path="/home" element={<HomePage />} />
         <Route path="/starter-kit" element={<StarterKitPage />} />
         <Route path="/citation-check" element={<CitationCheckPage />} />
+        <Route path="/plagiarism-check" element={<PlagiarismCheckPage />} />
       </Routes>
     </div>
   );

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api import health
-from app.api.endpoints import topic, citation
+from app.api.endpoints import topic, citation, plagiarism
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -19,6 +19,7 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(topic.router, prefix="/api/chat", tags=["chat"])
 app.include_router(citation.router, prefix="/api/tools", tags=["tools"])
+app.include_router(plagiarism.router, prefix="/api/tools", tags=["tools"])
 
 
 @app.get("/")
