@@ -1,22 +1,26 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 import traceback
 
 from app.schemas.writing import WritingAssistRequest, WritingAssistResponse
 from app.services.writing_service import writing_service
+from app.core.limiter import limiter
 
 
 router = APIRouter()
 
 
 @router.post("/writing", response_model=WritingAssistResponse)
-async def writing_assistant(request: WritingAssistRequest) -> WritingAssistResponse:
+@limiter.limit("5/minute")
+async def writing_assistant(
+    request: Request, payload: WritingAssistRequest
+) -> WritingAssistResponse:
     """Summarize or rewrite text for academic use."""
     try:
         result = await writing_service.assist(
-            text=request.text,
-            task=request.task,
-            tone=request.tone,
-            output_language=request.output_language,
+            text=payload.text,
+            task=payload.task,
+            tone=payload.tone,
+            output_language=payload.output_language,
         )
         return WritingAssistResponse(result=result)
     except RuntimeError as e:

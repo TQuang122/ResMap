@@ -4,6 +4,7 @@ import re
 from typing import List, Optional
 
 from google import genai
+from async_lru import alru_cache
 
 from app.core.config import settings
 from app.schemas.topic import TopicSuggestion
@@ -66,6 +67,7 @@ class LLMService:
 
         return None
 
+    @alru_cache(maxsize=128, ttl=3600)
     async def suggest_topics(
         self, major: str, keywords: str | None
     ) -> List[TopicSuggestion]:

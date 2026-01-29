@@ -2,10 +2,11 @@
 Plagiarism Checker API Endpoints
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from app.schemas.plagiarism import PlagiarismCheckRequest, PlagiarismCheckResponse
 from app.services.plagiarism import check_plagiarism
+from app.core.limiter import limiter
 
 router = APIRouter()
 
@@ -25,7 +26,10 @@ router = APIRouter()
     **Note:** This process may take 10-60 seconds depending on text length.
     """,
 )
-async def plagiarism_check(request: PlagiarismCheckRequest) -> PlagiarismCheckResponse:
+@limiter.limit("3/minute")
+async def plagiarism_check(
+    request: Request, payload: PlagiarismCheckRequest
+) -> PlagiarismCheckResponse:
     """
     Check text for plagiarism.
 
@@ -34,7 +38,7 @@ async def plagiarism_check(request: PlagiarismCheckRequest) -> PlagiarismCheckRe
     - **max_sentences**: Maximum number of sentences to check (1-50, default 20)
     """
     try:
-        result = await check_plagiarism(request)
+        result = await check_plagiarism(payload)
         return result
     except Exception as e:
         raise HTTPException(
