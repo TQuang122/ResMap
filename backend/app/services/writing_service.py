@@ -1,6 +1,7 @@
 import asyncio
 
 from google import genai
+from google.genai import errors as genai_errors
 
 from app.core.config import settings
 
@@ -43,21 +44,36 @@ Input text:
         prompt = prompt + "\n" + text.strip() + "\n"
 
         def _run() -> str:
-            resp = self._client.models.generate_content(
-                model=self.model, contents=prompt
-            )
-            text = getattr(resp, "text", None)
-            if isinstance(text, str):
-                return text.strip()
+            try:
+                resp = self._client.models.generate_content(
+                    model=self.model, contents=prompt
+                )
+            except genai_errors.APIError as e:
+                # Map upstream API errors to a RuntimeError so the endpoint can return 503.
+                raise RuntimeError(f"Gemini API error: {e}")
+
+            # Extract text safely; some responses can be blocked or empty.
+            try:
+                t = getattr(resp, "text", None)
+                if isinstance(t, str) and t.strip():
+                    return t.strip()
+            except Exception:
+                # Accessing .text can raise if the response has no candidates.
+                pass
+
             cand = getattr(resp, "candidates", None)
             if isinstance(cand, list) and cand:
                 content = getattr(cand[0], "content", None)
                 parts = getattr(content, "parts", None) if content else None
                 if isinstance(parts, list) and parts:
-                    t = getattr(parts[0], "text", None)
-                    if isinstance(t, str):
-                        return t.strip()
-            return ""
+                    p0 = parts[0]
+                    t2 = getattr(p0, "text", None)
+                    if isinstance(t2, str) and t2.strip():
+                        return t2.strip()
+
+            raise RuntimeError(
+                "Gemini returned an empty/blocked response. Please try different wording."
+            )
 
         return await asyncio.to_thread(_run)
 

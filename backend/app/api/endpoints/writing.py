@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+import traceback
 
 from app.schemas.writing import WritingAssistRequest, WritingAssistResponse
 from app.services.writing_service import writing_service
@@ -21,6 +22,8 @@ async def writing_assistant(request: WritingAssistRequest) -> WritingAssistRespo
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
+        print("Writing assistant error:")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=500, detail=f"Writing assistant failed: {str(e)}"
         )

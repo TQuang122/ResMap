@@ -10,7 +10,19 @@ export async function postData(endpoint: string, data: any) {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    let detail = '';
+    try {
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const body = await response.json();
+        if (body?.detail) detail = String(body.detail);
+      } else {
+        detail = await response.text();
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(detail ? `API Error: ${detail}` : `API Error: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
