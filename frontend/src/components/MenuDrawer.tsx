@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Home, FolderOpen, Quote, Search, Sparkles, ChevronRight } from 'lucide-react';
+import { X, Home, FolderOpen, Quote, Search, Sparkles, ChevronRight, User, IdCard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
@@ -144,6 +144,36 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
               <span>AI Assistant</span>
             </div>
             {location.pathname === '/ai-assistant' && <ChevronRight size={16} />}
+          </Link>
+
+          <Link
+            to="/auth"
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              location.pathname === '/auth'
+                ? 'bg-orange-50 text-[#F36F21] font-bold'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <User size={18} />
+              <span>Đăng nhập</span>
+            </div>
+            {location.pathname === '/auth' && <ChevronRight size={16} />}
+          </Link>
+
+          <Link
+            to="/profile"
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              location.pathname === '/profile'
+                ? 'bg-orange-50 text-[#F36F21] font-bold'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <IdCard size={18} />
+              <span>Hồ sơ</span>
+            </div>
+            {location.pathname === '/profile' && <ChevronRight size={16} />}
           </Link>
         </nav>
 

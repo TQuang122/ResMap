@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Lightbulb, Loader2, Sparkles } from 'lucide-react';
 import { postData } from '../../utils/api';
+import { supabase } from '../../lib/supabase';
+import { logHistory } from '../../utils/logger';
 
 type TopicSuggestion = {
   title: string;
@@ -14,6 +16,8 @@ const TopicGenerator: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [topics, setTopics] = useState<TopicSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!major.trim()) return;
@@ -27,12 +31,50 @@ const TopicGenerator: React.FC = () => {
         keywords: keywords.trim() || null,
       });
       setTopics(res.topics || []);
+      await logHistory({
+        tool: 'topic',
+        request: { major, keywords: keywords.trim() || null },
+        response: { topics: res.topics || [] },
+      });
     } catch (e) {
       console.error(e);
       setError('Không thể tạo gợi ý lúc này. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSave = async (topic: TopicSuggestion) => {
+    if (!supabase) {
+      setError('Supabase chưa được cấu hình.');
+      return;
+    }
+    if (savingId === topic.title) return;
+
+    setSavingId(topic.title);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
+    if (!userId) {
+      setError('Bạn cần đăng nhập để lưu đề tài.');
+      setSavingId(null);
+      return;
+    }
+
+    const { error: saveError } = await supabase.from('saved_topics').insert({
+      user_id: userId,
+      title: topic.title,
+      description: topic.description,
+      difficulty: topic.difficulty,
+    });
+
+    if (saveError) {
+      setError('Không thể lưu đề tài. Vui lòng thử lại.');
+      setSavingId(null);
+      return;
+    }
+
+    setSavedIds((prev) => ({ ...prev, [topic.title]: true }));
+    setSavingId(null);
   };
 
   const difficultyClass = (d: string) => {
@@ -99,6 +141,15 @@ const TopicGenerator: React.FC = () => {
                   <span className={`shrink-0 text-xs font-bold px-2 py-1 rounded-full border ${difficultyClass(t.difficulty)}`}>
                     {t.difficulty}
                   </span>
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={() => handleSave(t)}
+                    disabled={savingId === t.title || savedIds[t.title]}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full border border-orange-200 text-orange-600 hover:bg-orange-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {savedIds[t.title] ? 'Đã lưu' : savingId === t.title ? 'Đang lưu...' : 'Lưu đề tài'}
+                  </button>
                 </div>
               </div>
             ))}

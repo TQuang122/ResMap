@@ -15,6 +15,7 @@ import Step5Analysis from '../components/steps/Step5Analysis';
 import Step6Ethics from '../components/steps/Step6Ethics';
 import { ThemeColors } from '../types';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Map step IDs to their corresponding components
 const STEP_COMPONENTS: Record<string, React.FC<{ theme: ThemeColors }>> = {
@@ -29,6 +30,9 @@ const STEP_COMPONENTS: Record<string, React.FC<{ theme: ThemeColors }>> = {
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   // Intro, Benefits, StarterKit, Research How-To (Hero) = 4 sections
   const INITIAL_SECTIONS_COUNT = 4;
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -81,6 +85,17 @@ const HomePage: React.FC = () => {
     return () => window.clearTimeout(timeoutId);
   }, [selectedTopic, scrollToSection]);
 
+  useEffect(() => {
+    const state = location.state as { authSuccess?: boolean; authMessage?: string } | null;
+    if (state?.authSuccess) {
+      setAuthNotice(state.authMessage || 'Đăng nhập thành công.');
+      navigate(location.pathname, { replace: true, state: {} });
+      const timeoutId = window.setTimeout(() => setAuthNotice(null), 2000);
+      return () => window.clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [location.pathname, location.state, navigate]);
+
   const handleStartClick = () => {
     // Scroll to Research How-To + Major Selection (HeroSection is now 4th, index 3)
     scrollToSection(3);
@@ -97,6 +112,24 @@ const HomePage: React.FC = () => {
         ref={containerRef}
         className="flex-1 w-full overflow-y-scroll no-scrollbar scroll-smooth"
       >
+        {authNotice && (
+          <div className="fixed top-24 right-6 z-50 w-[280px] rounded-2xl border border-orange-200 bg-white shadow-xl px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.25em] text-orange-400">ResMap</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900">{authNotice}</div>
+                <div className="mt-1 text-xs text-slate-500">Bạn đã đăng nhập thành công.</div>
+              </div>
+              <button
+                onClick={() => setAuthNotice(null)}
+                className="text-slate-400 hover:text-slate-600 text-sm"
+                aria-label="Đóng thông báo"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
         {/* 1. Intro Banner */}
         <IntroSection onStartClick={handleStartClick} onLearnMoreClick={handleLearnMoreClick} />
 

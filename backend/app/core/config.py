@@ -18,8 +18,17 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
 
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_JWT_SECRET: str = ""
+    SUPABASE_JWT_ALGORITHM: str = "HS256"
+    AUTH_REQUIRED: bool = False
+
+    PORT: int = 8000
+
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()

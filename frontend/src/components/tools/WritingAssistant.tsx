@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Check, Copy, FileText, Loader2, RefreshCw } from 'lucide-react';
 import { postData } from '../../utils/api';
+import { logHistory } from '../../utils/logger';
 
 type Task = 'summarize' | 'rewrite';
 type Tone = 'academic' | 'simple' | 'formal';
@@ -31,6 +32,11 @@ const WritingAssistant: React.FC = () => {
         output_language: outputLanguage,
       });
       setResult(res.result || '');
+      await logHistory({
+        tool: 'writing',
+        request: { text, task, tone, output_language: outputLanguage },
+        response: { result: res.result || '' },
+      });
     } catch (e) {
       console.error(e);
       setError('Không thể xử lý lúc này. Vui lòng thử lại sau.');

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { postData } from '../../utils/api';
+import { logHistory } from '../../utils/logger';
 
 interface Source {
   url: string;
@@ -40,6 +41,11 @@ const PlagiarismChecker: React.FC = () => {
         max_sentences: 20
       });
       setResult(response);
+      await logHistory({
+        tool: 'plagiarism',
+        request: { text, max_sentences: 20 },
+        response,
+      });
     } catch (err) {
       console.error(err);
       setError("Có lỗi xảy ra khi kết nối tới server. Vui lòng thử lại sau.");

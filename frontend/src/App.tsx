@@ -6,6 +6,9 @@ import StarterKitPage from './pages/StarterKitPage';
 import CitationCheckPage from './pages/CitationCheckPage';
 import PlagiarismCheckPage from './pages/PlagiarismCheckPage';
 import AiAssistantPage from './pages/AiAssistantPage';
+import AuthPage from './pages/AuthPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import ProfilePage from './pages/ProfilePage';
 
 // Wrapper to handle scroll state for Navigation across pages
 const AppContent: React.FC = () => {
@@ -52,9 +55,39 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/starter-kit" element={<StarterKitPage />} />
-        <Route path="/citation-check" element={<CitationCheckPage />} />
-        <Route path="/plagiarism-check" element={<PlagiarismCheckPage />} />
-        <Route path="/ai-assistant" element={<AiAssistantPage />} />
+        <Route
+          path="/citation-check"
+          element={
+            <ProtectedRoute>
+              <CitationCheckPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/plagiarism-check"
+          element={
+            <ProtectedRoute>
+              <PlagiarismCheckPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-assistant"
+          element={
+            <ProtectedRoute>
+              <AiAssistantPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/auth" element={<AuthPage />} />
       </Routes>
     </div>
   );

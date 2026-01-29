@@ -2,11 +2,12 @@
 Plagiarism Checker API Endpoints
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 
 from app.schemas.plagiarism import PlagiarismCheckRequest, PlagiarismCheckResponse
 from app.services.plagiarism import check_plagiarism
 from app.core.limiter import limiter
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -28,7 +29,9 @@ router = APIRouter()
 )
 @limiter.limit("3/minute")
 async def plagiarism_check(
-    request: Request, payload: PlagiarismCheckRequest
+    request: Request,
+    payload: PlagiarismCheckRequest,
+    current_user: dict = Depends(get_current_user),
 ) -> PlagiarismCheckResponse:
     """
     Check text for plagiarism.

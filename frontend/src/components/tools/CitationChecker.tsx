@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, AlertCircle, RefreshCw, Quote } from 'lucide-react';
 import { postData } from '../../utils/api';
+import { logHistory } from '../../utils/logger';
 
 const CitationChecker: React.FC = () => {
   const [text, setText] = useState('');
@@ -16,6 +17,11 @@ const CitationChecker: React.FC = () => {
     try {
       const response = await postData('/tools/check', { text, style });
       setResult(response);
+      await logHistory({
+        tool: 'citation',
+        request: { text, style },
+        response,
+      });
     } catch (error) {
       console.error(error);
       setResult({ is_valid: false, suggestions: "Lỗi kết nối server." });

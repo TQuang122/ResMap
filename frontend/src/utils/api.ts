@@ -1,11 +1,23 @@
+import { supabase } from '../lib/supabase';
+
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 export async function postData(endpoint: string, data: any) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (supabase) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(data),
   });
 

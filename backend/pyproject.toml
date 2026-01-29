@@ -15,7 +15,8 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "google-genai>=0.6.0",
     "slowapi>=0.1.9",
-    "async-lru>=2.0.4"
+    "async-lru>=2.0.4",
+    "pyjwt>=2.8.0"
 ]
 
 [tool.setuptools]

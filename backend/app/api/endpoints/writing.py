@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 import traceback
 
 from app.schemas.writing import WritingAssistRequest, WritingAssistResponse
 from app.services.writing_service import writing_service
 from app.core.limiter import limiter
+from app.api.deps import get_current_user
 
 
 router = APIRouter()
@@ -12,7 +13,9 @@ router = APIRouter()
 @router.post("/writing", response_model=WritingAssistResponse)
 @limiter.limit("5/minute")
 async def writing_assistant(
-    request: Request, payload: WritingAssistRequest
+    request: Request,
+    payload: WritingAssistRequest,
+    current_user: dict = Depends(get_current_user),
 ) -> WritingAssistResponse:
     """Summarize or rewrite text for academic use."""
     try:
