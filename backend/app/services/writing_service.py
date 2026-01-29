@@ -1,6 +1,6 @@
 import asyncio
 
-import google.generativeai as genai
+from google import genai
 
 from app.core.config import settings
 
@@ -10,14 +10,18 @@ class WritingService:
         self.gemini_api_key = gemini_api_key
         self.model = model
 
-        if self.gemini_api_key:
-            genai.configure(api_key=self.gemini_api_key)
+        self._client = (
+            genai.Client(api_key=self.gemini_api_key) if self.gemini_api_key else None
+        )
 
     async def assist(
         self, *, text: str, task: str, tone: str, output_language: str
     ) -> str:
         if not self.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY is not configured")
+
+        if not self._client:
+            raise RuntimeError("Gemini client is not initialized")
 
         action = "Summarize" if task == "summarize" else "Rewrite"
         lang = "Vietnamese" if output_language.lower().startswith("vi") else "English"
@@ -39,9 +43,21 @@ Input text:
         prompt = prompt + "\n" + text.strip() + "\n"
 
         def _run() -> str:
-            model = genai.GenerativeModel(self.model)
-            resp = model.generate_content(prompt)
-            return (resp.text or "").strip()
+            resp = self._client.models.generate_content(
+                model=self.model, contents=prompt
+            )
+            text = getattr(resp, "text", None)
+            if isinstance(text, str):
+                return text.strip()
+            cand = getattr(resp, "candidates", None)
+            if isinstance(cand, list) and cand:
+                content = getattr(cand[0], "content", None)
+                parts = getattr(content, "parts", None) if content else None
+                if isinstance(parts, list) and parts:
+                    t = getattr(parts[0], "text", None)
+                    if isinstance(t, str):
+                        return t.strip()
+            return ""
 
         return await asyncio.to_thread(_run)
 
