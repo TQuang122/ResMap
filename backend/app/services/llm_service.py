@@ -10,9 +10,11 @@ from app.schemas.topic import TopicSuggestion
 
 
 class LLMService:
-    def __init__(self, gemini_api_key: str = "", model: str = "gemini-1.5-flash"):
+    def __init__(
+        self, gemini_api_key: str = "", model: str = "models/gemini-flash-latest"
+    ):
         self.gemini_api_key = gemini_api_key
-        self.model = model
+        self.model = model if model.startswith("models/") else f"models/{model}"
 
         self._client = (
             genai.Client(api_key=self.gemini_api_key) if self.gemini_api_key else None
