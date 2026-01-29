@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Wrench, Quote, Search, ArrowRight } from 'lucide-react';
+import { Wrench, Quote, Search, Sparkles, ArrowRight } from 'lucide-react';
 
 const ToolsSection: React.FC = () => {
   return (
@@ -20,7 +20,7 @@ const ToolsSection: React.FC = () => {
         </p>
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
           {/* Citation Checker Card */}
           <Link 
             to="/citation-check"
@@ -59,6 +59,29 @@ const ToolsSection: React.FC = () => {
                 </h3>
                 <p className="text-sm text-slate-600 mb-4">
                   Kiểm tra đạo văn miễn phí bằng cách so sánh với nguồn trên Internet (DuckDuckGo + CrossRef).
+                </p>
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#F36F21]">
+                  Sử dụng ngay <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          {/* AI Assistant Card */}
+          <Link 
+            to="/ai-assistant"
+            className="group bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg hover:border-[#F36F21]/30 transition-all duration-300"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-orange-50 text-[#F36F21] group-hover:bg-[#F36F21] group-hover:text-white transition-colors">
+                <Sparkles size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg text-slate-900 mb-2 group-hover:text-[#F36F21] transition-colors">
+                  AI Research Assistant
+                </h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Gợi ý đề tài + tóm tắt/viết lại đoạn văn theo phong cách học thuật.
                 </p>
                 <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#F36F21]">
                   Sử dụng ngay <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
