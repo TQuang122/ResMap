@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://resmap.vercel.app",  # Placeholder for future deployment
+        "https://resmap.vercel.app",
+        "https://*.vercel.app",  # Allow all Vercel preview deployments
     ]
 
     # Placeholder for AI Keys

@@ -1,0 +1,19 @@
+# Render Blueprint - Auto-deploy configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: resmap-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: singapore  # Closest to Vietnam
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: OPENAI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard
