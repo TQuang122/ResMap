@@ -18,3 +18,8 @@ node_modules/
 
 # Vite build output
 dist/
+
+# Python build artifacts
+backend/build/
+backend/dist/
+backend/*.egg-info/
