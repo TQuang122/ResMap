@@ -6,12 +6,22 @@ import StarterKitSection from '../components/StarterKitSection';
 import StepLayout from '../components/StepLayout';
 import SidebarDots from '../components/SidebarDots';
 import Footer from '../components/Footer';
-import { STEPS_DATA } from '../data/stepsData';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { StepFullData } from '../types';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
+
+// Mapping topic titles to their steps data modules
+const STEPS_BY_TOPIC: Record<string, () => Promise<{ STEPS_DATA: StepFullData[] }>> = {
+  'Công nghệ thông tin': () => import('../data/stepsIt').then(m => m),
+  'Kinh doanh, Quản trị & Tài chính': () => import('../data/stepsBusiness').then(m => m),
+  'Truyền thông & Media': () => import('../data/stepsMedia').then(m => m),
+  'Ngôn ngữ': () => import('../data/stepsLanguages').then(m => m),
+  'Thiết kế': () => import('../data/stepsDesign').then(m => m),
+  'Luật & Luật kinh tế': () => import('../data/stepsLaw').then(m => m),
+};
 
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,6 +33,7 @@ const HomePage: React.FC = () => {
   const INITIAL_SECTIONS_COUNT = 4;
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [stepsData, setStepsData] = useState<StepFullData[]>([]);
 
   // Check auth state on mount and listen for changes
   useEffect(() => {
@@ -89,6 +100,12 @@ const HomePage: React.FC = () => {
 
     // User is authenticated, proceed with selection
     setSelectedTopic(topic);
+
+    // Load topic-specific data
+    const loadData = STEPS_BY_TOPIC[topic];
+    if (loadData) {
+      loadData().then(m => setStepsData(m.STEPS_DATA));
+    }
   }, [isAuthenticated, navigate, location.pathname]);
 
   const scrollToSection = useCallback((index: number) => {
@@ -186,9 +203,9 @@ const HomePage: React.FC = () => {
         <HeroSection selectedTopic={selectedTopic} setSelectedTopic={handleTopicSelect} />
 
         {/* 5+. Steps (Only if topic selected) */}
-        {selectedTopic && (
+        {selectedTopic && stepsData.length > 0 && (
           <>
-            {STEPS_DATA.map((step) => (
+            {stepsData.map((step) => (
               <StepLayout
                 key={step.id}
                 stepData={step}
@@ -204,14 +221,14 @@ const HomePage: React.FC = () => {
 
         <SidebarDots 
           activeIndex={activeSection} 
-          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + STEPS_DATA.length : INITIAL_SECTIONS_COUNT} 
+          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + stepsData.length : INITIAL_SECTIONS_COUNT} 
           sectionLabels={selectedTopic
             ? [
                 'Giới thiệu',
                 'Lợi ích',
                 'Starter Kit',
                 'Research How-To',
-                ...STEPS_DATA.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
+                ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
               ]
             : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
           }
