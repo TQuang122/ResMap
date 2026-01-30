@@ -8,9 +8,10 @@ import SupportPanel from './steps/common/SupportPanel';
 interface StepLayoutProps {
   stepData: StepFullData;
   onResExploreOpen?: () => void;
+  onResearchSuggestionOpen?: () => void;
 }
 
-const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen }) => {
+const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onResearchSuggestionOpen }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { stepNumber, title, description, theme, deliverables, guidance, support } = stepData;
 
@@ -55,7 +56,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen }) =
           <div className="w-full lg:col-span-8 xl:col-span-9 space-y-6 lg:space-y-8">
             {/* Guidance Section */}
             <div className={`${theme.glass} backdrop-blur-xl border border-white/40 p-6 md:p-8 lg:p-10 rounded-2xl md:rounded-3xl shadow-xl`}>
-              <GuidanceSection items={guidance} theme={theme} onResExploreOpen={onResExploreOpen} />
+              <GuidanceSection items={guidance} theme={theme} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} />
             </div>
 
             {/* Support Panel */}

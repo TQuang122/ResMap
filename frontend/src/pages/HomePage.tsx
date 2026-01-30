@@ -8,6 +8,7 @@ import SidebarDots from '../components/SidebarDots';
 import Footer from '../components/Footer';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 import ResExploreModal from '../components/research/ResExploreModal';
+import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { StepFullData } from '../types';
@@ -37,6 +38,7 @@ const HomePage: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
   const [isResExploreOpen, setIsResExploreOpen] = useState(false);
+  const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
   useEffect(() => {
@@ -213,6 +215,7 @@ const HomePage: React.FC = () => {
                 key={step.id}
                 stepData={step}
                 onResExploreOpen={() => setIsResExploreOpen(true)}
+                onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
               />
             ))}
           </>
@@ -227,6 +230,11 @@ const HomePage: React.FC = () => {
         isOpen={isResExploreOpen}
         onClose={() => setIsResExploreOpen(false)}
         lecturers={IT_LECTURERS}
+      />
+
+      <ResearchSuggestionModal
+        isOpen={isResearchSuggestionOpen}
+        onClose={() => setIsResearchSuggestionOpen(false)}
       />
 
         <SidebarDots 
