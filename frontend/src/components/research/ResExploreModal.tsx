@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { LecturerData } from '../../types';
+import { supabase } from '../../lib/supabase';
 import ResExploreSidebar from './ResExploreSidebar';
 import ResExplorePanel from './ResExplorePanel';
 
@@ -13,10 +14,14 @@ const ResExploreModal: React.FC<ResExploreModalProps> = ({ isOpen, onClose, lect
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [interestedIds, setInterestedIds] = useState<Set<string>>(new Set());
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      loadInterestedLecturers();
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -34,6 +39,28 @@ const ResExploreModal: React.FC<ResExploreModalProps> = ({ isOpen, onClose, lect
     }
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+
+  const loadInterestedLecturers = async () => {
+    if (!supabase) return;
+    setLoading(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('interested_lecturers')
+      .select('lecturer_id')
+      .eq('user_id', userId);
+
+    if (!error && data) {
+      setInterestedIds(new Set(data.map((item) => item.lecturer_id)));
+    }
+    setLoading(false);
+  };
 
   const allAreas = useMemo(() => {
     const areas = new Set<string>();
@@ -93,6 +120,53 @@ const ResExploreModal: React.FC<ResExploreModalProps> = ({ isOpen, onClose, lect
   const handleToggleExpand = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
+
+  const handleToggleInterest = async (lecturer: LecturerData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!supabase) return;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) {
+      alert('Vui lòng đăng nhập để lưu giảng viên quan tâm.');
+      return;
+    }
+
+    setSavingId(lecturer.id);
+    const isInterested = interestedIds.has(lecturer.id);
+
+    if (isInterested) {
+      const { error } = await supabase
+        .from('interested_lecturers')
+        .delete()
+        .eq('user_id', userId)
+        .eq('lecturer_id', lecturer.id);
+
+      if (!error) {
+        setInterestedIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(lecturer.id);
+          return newSet;
+        });
+      }
+    } else {
+      const { error } = await supabase.from('interested_lecturers').insert({
+        user_id: userId,
+        lecturer_id: lecturer.id,
+        lecturer_name: lecturer.fullName,
+        department: lecturer.department,
+        research_areas: lecturer.researchAreas,
+        research_topics: lecturer.researchTopics,
+        lab: lecturer.lab || null,
+        email: lecturer.email,
+      });
+
+      if (!error) {
+        setInterestedIds((prev) => new Set(prev).add(lecturer.id));
+      }
+    }
+    setSavingId(null);
+  };
 
   if (!isOpen) return null;
 
@@ -156,7 +230,12 @@ const ResExploreModal: React.FC<ResExploreModalProps> = ({ isOpen, onClose, lect
           />
 
           <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-            {filteredLecturers.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-sm text-slate-500">Đang tải dữ liệu...</p>
+              </div>
+            ) : filteredLecturers.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
                 <svg
                   className="w-16 h-16 text-slate-300 mb-4"
@@ -183,7 +262,10 @@ const ResExploreModal: React.FC<ResExploreModalProps> = ({ isOpen, onClose, lect
                     key={lecturer.id}
                     lecturer={lecturer}
                     isExpanded={expandedId === lecturer.id}
+                    isInterested={interestedIds.has(lecturer.id)}
+                    isSaving={savingId === lecturer.id}
                     onToggle={() => handleToggleExpand(lecturer.id)}
+                    onToggleInterest={(e) => handleToggleInterest(lecturer, e)}
                   />
                 ))}
               </div>

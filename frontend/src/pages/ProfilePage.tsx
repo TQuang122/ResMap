@@ -1,11 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { Heart, Trash2, ExternalLink, Mail } from 'lucide-react';
 
 type SavedTopic = {
   id: string;
   title: string;
   description: string | null;
   difficulty: string | null;
+  created_at: string;
+};
+
+type InterestedLecturer = {
+  id: string;
+  lecturer_id: string;
+  lecturer_name: string;
+  department: string | null;
+  research_areas: string[] | null;
+  research_topics: string[] | null;
+  lab: string | null;
+  email: string | null;
   created_at: string;
 };
 
@@ -17,7 +30,7 @@ type HistoryLog = {
   created_at: string;
 };
 
-type TabKey = 'topics' | 'history';
+type TabKey = 'topics' | 'lecturers' | 'history';
 
 const ProfilePage: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('topics');
@@ -27,8 +40,10 @@ const ProfilePage: React.FC = () => {
   const [major, setMajor] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
+  const [deletingLecturerId, setDeletingLecturerId] = useState<string | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const [topics, setTopics] = useState<SavedTopic[]>([]);
+  const [lecturers, setLecturers] = useState<InterestedLecturer[]>([]);
   const [logs, setLogs] = useState<HistoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +82,7 @@ const ProfilePage: React.FC = () => {
         setAvatarUrl(profileRes.data.avatar_url ?? avatarUrl);
       }
 
-      const [topicsRes, logsRes] = await Promise.all([
+      const [topicsRes, logsRes, lecturersRes] = await Promise.all([
         supabase
           .from('saved_topics')
           .select('id,title,description,difficulty,created_at')
@@ -77,12 +92,22 @@ const ProfilePage: React.FC = () => {
           .select('id,tool,request,response,created_at')
           .order('created_at', { ascending: false })
           .limit(50),
+        supabase
+          .from('interested_lecturers')
+          .select('id,lecturer_id,lecturer_name,department,research_areas,research_topics,lab,email,created_at')
+          .order('created_at', { ascending: false }),
       ]);
 
       if (topicsRes.error) {
         setError('Không thể tải danh sách đề tài đã lưu.');
       } else {
         setTopics((topicsRes.data as SavedTopic[]) ?? []);
+      }
+
+      if (lecturersRes.error) {
+        setError('Không thể tải danh sách giảng viên quan tâm.');
+      } else {
+        setLecturers((lecturersRes.data as InterestedLecturer[]) ?? []);
       }
 
       if (logsRes.error) {
@@ -140,6 +165,21 @@ const ProfilePage: React.FC = () => {
     setDeletingTopicId(null);
   };
 
+  const handleDeleteLecturer = async (lecturerId: string) => {
+    if (!supabase) return;
+    setDeletingLecturerId(lecturerId);
+    const { error: deleteError } = await supabase
+      .from('interested_lecturers')
+      .delete()
+      .eq('id', lecturerId);
+    if (deleteError) {
+      setError('Không thể xoá giảng viên.');
+    } else {
+      setLecturers((prev) => prev.filter((lecturer) => lecturer.id !== lecturerId));
+    }
+    setDeletingLecturerId(null);
+  };
+
   const handleDeleteLog = async (logId: string) => {
     if (!supabase) return;
     setDeletingLogId(logId);
@@ -157,6 +197,7 @@ const ProfilePage: React.FC = () => {
 
   const emptyState = useMemo(() => {
     if (tab === 'topics') return 'Chưa có đề tài nào được lưu.';
+    if (tab === 'lecturers') return 'Chưa có giảng viên nào được quan tâm.';
     return 'Chưa có lịch sử hoạt động.';
   }, [tab]);
 
@@ -208,6 +249,16 @@ const ProfilePage: React.FC = () => {
                 }`}
               >
                 Đề tài đã lưu
+              </button>
+              <button
+                onClick={() => setTab('lecturers')}
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors ${
+                  tab === 'lecturers'
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'border-slate-200 text-slate-500 hover:border-orange-200'
+                }`}
+              >
+                Giảng viên quan tâm
               </button>
               <button
                 onClick={() => setTab('history')}
@@ -286,6 +337,92 @@ const ProfilePage: React.FC = () => {
                           className="text-xs font-semibold text-red-500 hover:text-red-600 disabled:opacity-60"
                         >
                           {deletingTopicId === topic.id ? 'Đang xoá...' : 'Xoá'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tab === 'lecturers' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {lecturers.length === 0 && (
+                    <div className="text-sm text-slate-500">{emptyState}</div>
+                  )}
+                  {lecturers.map((lecturer) => (
+                    <div key={lecturer.id} className="border border-slate-200 rounded-2xl p-4 bg-white">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-xs font-bold px-2 py-0.5 bg-red-50 text-red-500 rounded-full">
+                              <Heart className="w-3 h-3 inline mr-1 fill-current" />
+                              Quan tâm
+                            </span>
+                            {lecturer.department && (
+                              <span className="text-xs font-medium px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                {lecturer.department}
+                              </span>
+                            )}
+                            {lecturer.lab && (
+                              <span className="text-xs font-medium px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded">
+                                {lecturer.lab}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="font-bold text-slate-900">{lecturer.lecturer_name}</h3>
+                          {lecturer.research_areas && lecturer.research_areas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {lecturer.research_areas.slice(0, 3).map((area) => (
+                                <span key={area} className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded">
+                                  {area}
+                                </span>
+                              ))}
+                              {lecturer.research_areas.length > 3 && (
+                                <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded">
+                                  +{lecturer.research_areas.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {lecturer.research_topics && lecturer.research_topics.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs text-slate-500 mb-1">Hướng nghiên cứu:</p>
+                          <ul className="text-xs text-slate-600 space-y-0.5">
+                            {lecturer.research_topics.slice(0, 2).map((topic, idx) => (
+                              <li key={idx} className="flex items-start gap-1">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span className="line-clamp-1">{topic}</span>
+                              </li>
+                            ))}
+                            {lecturer.research_topics.length > 2 && (
+                              <li className="text-xs text-slate-400">
+                                +{lecturer.research_topics.length - 2} hướng khác
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {lecturer.email && (
+                            <a
+                              href={`mailto:${lecturer.email}`}
+                              className="text-xs flex items-center gap-1 text-blue-600 hover:underline"
+                            >
+                              <Mail className="w-3 h-3" />
+                              Email
+                            </a>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteLecturer(lecturer.id)}
+                          disabled={deletingLecturerId === lecturer.id}
+                          className="text-xs font-semibold flex items-center gap-1 text-red-500 hover:text-red-600 disabled:opacity-60"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {deletingLecturerId === lecturer.id ? 'Đang xoá...' : 'Xoá'}
                         </button>
                       </div>
                     </div>
