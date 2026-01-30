@@ -294,9 +294,10 @@ const HomePage: React.FC = () => {
                 'Research How-To',
                 ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
               ]
-            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
+            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Chọn khối ngành']
           }
-          scrollToSection={scrollToSection} 
+          scrollToSection={scrollToSection}
+          isTopicSelected={!!selectedTopic}
         />
     </>
   );

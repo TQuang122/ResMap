@@ -1,11 +1,13 @@
 import React from 'react';
 import { THEMES } from '../constants';
+import { ArrowLeft } from 'lucide-react';
 
 interface SidebarDotsProps {
   activeIndex: number;
   totalSections: number;
   scrollToSection: (index: number) => void;
   sectionLabels?: string[];
+  isTopicSelected?: boolean;
 }
 
 const SidebarDots: React.FC<SidebarDotsProps> = ({
@@ -13,6 +15,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
   totalSections,
   scrollToSection,
   sectionLabels,
+  isTopicSelected = false,
 }) => {
   const labels = sectionLabels && sectionLabels.length === totalSections
     ? sectionLabels
@@ -22,7 +25,6 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
   const progressScale = Math.max(0, Math.min(1, progressPct / 100));
 
   const getDotColor = (index: number) => {
-    // Static sections: Intro, Benefits, StarterKit, Research How-To (Hero)
     const STATIC_SECTIONS = 4;
     if (index < STATIC_SECTIONS) return 'bg-gray-500';
 
@@ -49,7 +51,6 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       role="navigation"
       aria-label="Section navigation"
     >
-      {/* Track */}
       <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full">
         <div
           className="absolute inset-0 bg-[#F36F21] origin-top rounded-full"
@@ -63,6 +64,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
           const isVisited = index < activeIndex;
           const dotColorClass = getDotColor(index);
           const label = labels[index];
+          const isMajorSelectionStep = !isTopicSelected && index === 3;
 
           return (
             <button
@@ -71,29 +73,40 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
               className={
                 `
                 group relative
-                h-8 w-8 rounded-full
                 flex items-center justify-center
-                transition-transform duration-200
-                hover:scale-105 active:scale-95
+                transition-all duration-200
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21]/60 focus-visible:ring-offset-2
+                ${isMajorSelectionStep ? 'h-10 w-10 -ml-1' : 'h-8 w-8 rounded-full hover:scale-105 active:scale-95'}
               `
               }
               aria-label={label}
               title={label}
             >
-              <span
-                className={
+              {isMajorSelectionStep ? (
+                <div className="relative flex items-center justify-center animate-pulse">
+                  <div className="absolute inset-0 bg-[#F36F21]/20 rounded-full animate-ping" />
+                  <div className={`
+                    relative z-10 flex items-center justify-center w-8 h-8 rounded-full 
+                    bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
+                    transition-transform duration-300 group-hover:-translate-x-1
+                  `}>
+                    <ArrowLeft size={16} strokeWidth={3} />
+                  </div>
+                </div>
+              ) : (
+                <span
+                  className={
+                    `
+                    rounded-full transition-all duration-250 ease-out
+                    ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
+                    ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
+                    ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
+                    ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
                   `
-                  rounded-full transition-all duration-250 ease-out
-                  ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
-                  ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
-                  ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
-                  ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
-                `
-                }
-              />
+                  }
+                />
+              )}
 
-              {/* Tooltip (desktop) */}
               <span
                 className={
                   `
@@ -109,6 +122,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   group-hover:opacity-100 group-hover:translate-x-0
                   group-focus-visible:opacity-100 group-focus-visible:translate-x-0
                   transition-all duration-200
+                  ${isMajorSelectionStep ? 'mr-4 bg-[#F36F21]' : ''}
                 `
                 }
               >
