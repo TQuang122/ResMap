@@ -29,7 +29,10 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
             <span>Research How-To</span>
           </div>
           <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4 leading-[1.1] text-gray-900">
-            Quy trình nghiên cứu <span className="text-[#F36F21]">trong 6 bước</span>
+            Quy trình nghiên cứu{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">
+              trong 6 bước
+            </span>
           </h2>
           <p className="text-gray-500 text-sm md:text-lg font-medium max-w-3xl mx-auto px-4">
             Nắm lộ trình tổng quát trước khi chọn khối ngành. Sau đó, hệ thống sẽ mở hướng dẫn chi tiết theo từng khối.
@@ -72,7 +75,9 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
       <div className="max-w-5xl w-full text-center mb-12 lg:mb-16">
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-6 md:mb-8 lg:mb-10 leading-[1.1] text-gray-900">
           Bạn thuộc khối ngành nào <br />
-          <span className="text-[#F36F21]">tại FPTU?</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">
+            tại FPTU?
+          </span>
         </h1>
         <p className="text-gray-500 text-sm md:text-lg lg:text-xl font-medium px-4">
           Chọn khối ngành để mở hướng dẫn chi tiết theo 6 bước

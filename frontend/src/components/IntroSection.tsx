@@ -24,7 +24,7 @@ const IntroSection: React.FC<IntroSectionProps> = ({ onStartClick, onLearnMoreCl
         
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tight">
           Đồng hành cùng sinh viên FPT <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F36F21] to-orange-500">
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">
             chinh phục NCKH
           </span>
         </h1>
