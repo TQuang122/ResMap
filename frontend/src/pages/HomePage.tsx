@@ -7,25 +7,8 @@ import StepLayout from '../components/StepLayout';
 import SidebarDots from '../components/SidebarDots';
 import Footer from '../components/Footer';
 import { STEPS_DATA } from '../data/stepsData';
-import Step1Problem from '../components/steps/Step1Problem';
-import Step2Literature from '../components/steps/Step2Literature';
-import Step3Method from '../components/steps/Step3Method';
-import Step4Planning from '../components/steps/Step4Planning';
-import Step5Analysis from '../components/steps/Step5Analysis';
-import Step6Ethics from '../components/steps/Step6Ethics';
-import { ThemeColors } from '../types';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-// Map step IDs to their corresponding components
-const STEP_COMPONENTS: Record<string, React.FC<{ theme: ThemeColors }>> = {
-  'step1': Step1Problem,
-  'step2': Step2Literature,
-  'step3': Step3Method,
-  'step4': Step4Planning,
-  'step5': Step5Analysis,
-  'step6': Step6Ethics,
-};
 
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -145,20 +128,12 @@ const HomePage: React.FC = () => {
         {/* 5+. Steps (Only if topic selected) */}
         {selectedTopic && (
           <>
-            {STEPS_DATA.map((step) => {
-              const StepComponent = STEP_COMPONENTS[step.id];
-              return (
-                <StepLayout
-                  key={step.id}
-                  stepNumber={step.stepNumber}
-                  title={step.title}
-                  description={step.description}
-                  theme={step.theme}
-                >
-                  <StepComponent theme={step.theme} />
-                </StepLayout>
-              );
-            })}
+            {STEPS_DATA.map((step) => (
+              <StepLayout
+                key={step.id}
+                stepData={step}
+              />
+            ))}
           </>
         )}
         
