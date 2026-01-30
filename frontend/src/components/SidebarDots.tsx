@@ -64,7 +64,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
           const isVisited = index < activeIndex;
           const dotColorClass = getDotColor(index);
           const label = labels[index];
-          const isMajorSelectionStep = !isTopicSelected && index === 3;
+          const isMajorSelectionStep = !isTopicSelected && index === 3 && activeIndex === 3;
 
           return (
             <button
