@@ -95,12 +95,20 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
         ))}
       </div>
 
-      <div className="w-full text-center mt-12 md:mt-16 hidden md:block">
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-          {selectedTopic ? 'Kéo xuống để xem 6 bước chi tiết' : 'Chọn khối ngành để mở 6 bước chi tiết'}
+      <div className={`w-full flex flex-col items-center gap-3 mt-16 transition-all duration-500 ${selectedTopic ? 'opacity-100 translate-y-0' : 'opacity-60'}`}>
+        <p className={`text-sm font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+          selectedTopic ? 'text-[#F36F21]' : 'text-slate-400'
+        }`}>
+          {selectedTopic ? 'Kéo xuống để xem 6 bước chi tiết' : 'Chọn khối ngành để mở chi tiết'}
         </p>
-        <div className={`animate-bounce flex justify-center ${selectedTopic ? 'text-gray-300' : 'text-gray-300 opacity-60'}`}>
-          <ArrowDown size={20} />
+        <div className={`
+          p-3 rounded-full border-2 animate-bounce transition-all duration-300 cursor-pointer
+          ${selectedTopic 
+            ? 'border-[#F36F21] text-[#F36F21] bg-orange-50 shadow-lg shadow-orange-100' 
+            : 'border-slate-200 text-slate-300'
+          }
+        `}>
+          <ArrowDown size={24} strokeWidth={2.5} />
         </div>
       </div>
     </section>
