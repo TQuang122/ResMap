@@ -67,8 +67,8 @@ export const STEPS_DATA: StepFullData[] = [
         'Nhấp vào "Xem tài liệu tham khảo" để xem videos và blogs hướng dẫn',
         'Sử dụng công cụ ResExplore để tìm giảng viên phù hợp'
       ],
-      videoUrl: 'https://www.youtube.com/embed/1fOG755hupg',
-      videoTitle: 'Cách xây dựng câu hỏi nghiên cứu (Scribbr)',
+      videoUrl: 'https://www.youtube.com/embed/42-d2HdbyS8',
+      videoTitle: 'How To Write A Research Question',
       blogs: [
         {
           title: 'How to Write a Good Research Question',
@@ -91,14 +91,14 @@ export const STEPS_DATA: StepFullData[] = [
       ],
       additionalVideos: [
         {
-          title: 'How to Write a Problem Statement',
-          url: 'https://www.youtube.com/watch?v=w8FVxM794OQ',
-          duration: '11 min'
+          title: 'How to Write a Problem Statement for Your Research',
+          url: 'https://www.youtube.com/watch?v=iaGpj8ViH1w',
+          duration: '13 min'
         },
         {
-          title: 'How to Find a Research Topic',
-          url: 'https://www.youtube.com/watch?v=hxCWd2Z-TGE',
-          duration: '4 min'
+          title: 'Find A Research Gap In ONE Day',
+          url: 'https://www.youtube.com/watch?v=JYTG8MP3-YI',
+          duration: '10 min'
         }
       ]
     }
