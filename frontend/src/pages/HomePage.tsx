@@ -12,6 +12,7 @@ import BusinessResExploreModal from '../components/research/BusinessResExploreMo
 import LanguagesResExploreModal from '../components/research/LanguagesResExploreModal';
 import DesignResExploreModal from '../components/research/DesignResExploreModal';
 import LawResExploreModal from '../components/research/LawResExploreModal';
+import MediaResExploreModal from '../components/research/MediaResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -50,6 +51,7 @@ const HomePage: React.FC = () => {
   const [isLanguagesResExploreOpen, setIsLanguagesResExploreOpen] = useState(false);
   const [isDesignResExploreOpen, setIsDesignResExploreOpen] = useState(false);
   const [isLawResExploreOpen, setIsLawResExploreOpen] = useState(false);
+  const [isMediaResExploreOpen, setIsMediaResExploreOpen] = useState(false);
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
@@ -235,6 +237,8 @@ const HomePage: React.FC = () => {
                     setIsDesignResExploreOpen(true);
                   } else if (selectedTopic === 'Luật & Luật kinh tế') {
                     setIsLawResExploreOpen(true);
+                  } else if (selectedTopic === 'Truyền thông & Media') {
+                    setIsMediaResExploreOpen(true);
                   } else {
                     setIsResExploreOpen(true);
                   }
@@ -278,6 +282,11 @@ const HomePage: React.FC = () => {
         isOpen={isLawResExploreOpen}
         onClose={() => setIsLawResExploreOpen(false)}
         lecturers={LAW_LECTURERS}
+      />
+
+      <MediaResExploreModal
+        isOpen={isMediaResExploreOpen}
+        onClose={() => setIsMediaResExploreOpen(false)}
       />
 
       <ResearchSuggestionModal
