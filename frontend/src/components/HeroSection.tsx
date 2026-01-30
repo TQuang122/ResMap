@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowDown, ChevronRight, Sparkles } from 'lucide-react';
 import { TOPICS } from '../data/topics';
 import { STEPS_DATA } from '../data/stepsData';
+import { motion } from 'framer-motion';
 
 interface TopicCardProps {
   icon: React.ReactNode;
@@ -9,13 +10,35 @@ interface TopicCardProps {
   onClick: () => void;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 },
+  },
+};
+
 const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => (
-  <div onClick={onClick} className="group cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48">
+  <motion.div
+    onClick={onClick}
+    className="group cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48"
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+  >
     <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-300">
       {icon}
     </div>
     <h3 className="font-bold text-xs md:text-xs lg:text-base text-gray-800">{title}</h3>
-  </div>
+  </motion.div>
 );
 
 const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (topic: string) => void }> = ({ selectedTopic, setSelectedTopic }) => {
@@ -23,7 +46,13 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
     <section className="h-auto w-full flex flex-col items-center justify-center pt-32 lg:pt-40 pb-12 px-4 relative bg-white shrink-0">
       {/* Research How-To (Overview) */}
       <div className="max-w-6xl w-full mb-14 lg:mb-16 mt-4 lg:mt-0">
-        <div className="text-center mb-8 lg:mb-10">
+        <motion.div
+          className="text-center mb-8 lg:mb-10"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-[#F36F21] font-bold text-xs uppercase tracking-wider mb-5 border border-orange-100">
             <Sparkles size={16} />
             <span>Research How-To</span>
@@ -37,9 +66,15 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
           <p className="text-gray-500 text-sm md:text-lg font-medium max-w-3xl mx-auto px-4">
             Nắm lộ trình tổng quát trước khi chọn khối ngành. Sau đó, hệ thống sẽ mở hướng dẫn chi tiết theo từng khối.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="relative">
+        <motion.div
+          className="relative"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           <div className="overflow-x-auto no-scrollbar">
             <div className="flex gap-4 md:gap-3 pb-2 md:pb-0">
               {STEPS_DATA.map((step) => (
@@ -68,11 +103,17 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Major Group Selection */}
-      <div className="max-w-5xl w-full text-center mb-12 lg:mb-16">
+      <motion.div
+        className="max-w-5xl w-full text-center mb-12 lg:mb-16"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-6 md:mb-8 lg:mb-10 leading-[1.1] text-gray-900">
           Bạn thuộc khối ngành nào <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">
@@ -82,20 +123,33 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
         <p className="text-gray-500 text-sm md:text-lg lg:text-xl font-medium px-4">
           Chọn khối ngành để mở hướng dẫn chi tiết theo 6 bước
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl w-full">
+      <motion.div
+        className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl w-full"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+      >
         {TOPICS.map((topic, idx) => (
-          <TopicCard 
-            key={idx} 
-            icon={topic.icon} 
-            title={topic.title}
-            onClick={() => setSelectedTopic(topic.title)}
-          />
+          <motion.div key={idx} variants={itemVariants}>
+            <TopicCard 
+              icon={topic.icon} 
+              title={topic.title}
+              onClick={() => setSelectedTopic(topic.title)}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className={`w-full flex flex-col items-center gap-3 mt-16 transition-all duration-500 ${selectedTopic ? 'opacity-100 translate-y-0' : 'opacity-60'}`}>
+      <motion.div
+        className={`w-full flex flex-col items-center gap-3 mt-16 transition-all duration-500 ${selectedTopic ? 'opacity-100 translate-y-0' : 'opacity-60'}`}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
         <p className={`text-sm font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
           selectedTopic ? 'text-[#F36F21]' : 'text-slate-400'
         }`}>
@@ -110,7 +164,7 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
         `}>
           <ArrowDown size={24} strokeWidth={2.5} />
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

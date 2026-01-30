@@ -2,13 +2,20 @@ import React from 'react';
 import { Download, ArrowDown, ExternalLink } from 'lucide-react';
 import { STARTER_KIT_ITEMS } from '../data/starterKit';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const StarterKitSection: React.FC<{ selectedTopic: string | null }> = ({ selectedTopic }) => {
   return (
     <section className="h-auto w-full bg-gray-50 flex flex-col items-center justify-center shrink-0 relative px-4 md:px-6 lg:px-10 pt-32 pb-16">
       <div className="max-w-[1400px] w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         
-        <div className="space-y-6 md:space-y-8">
+        <motion.div
+          className="space-y-6 md:space-y-8"
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div>
             <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               Nền tảng vững chắc
@@ -27,9 +34,15 @@ const StarterKitSection: React.FC<{ selectedTopic: string | null }> = ({ selecte
             <ExternalLink size={24} />
             <span>Xem nội dung chi tiết</span>
           </Link>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-2 gap-4 md:gap-5 lg:gap-6">
+        <motion.div
+          className="grid grid-cols-2 gap-4 md:gap-5 lg:gap-6"
+          initial={{ opacity: 0, x: 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+        >
             {STARTER_KIT_ITEMS.map((item, idx) => (
                 <div key={idx} className="p-5 md:p-7 lg:p-8 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 md:gap-5 hover:shadow-md transition-shadow">
                     <div className="text-[#FF6B00] bg-orange-50 w-fit p-3 md:p-4 rounded-lg">
@@ -38,10 +51,16 @@ const StarterKitSection: React.FC<{ selectedTopic: string | null }> = ({ selecte
                     <p className="font-bold text-gray-800 text-xs md:text-xs lg:text-sm">{item.label}</p>
                 </div>
             ))}
-        </div>
+        </motion.div>
       </div>
 
-      <div className="w-full text-center mt-12 md:mt-16 hidden md:block">
+      <motion.div
+        className="w-full text-center mt-12 md:mt-16 hidden md:block"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
           {selectedTopic 
             ? `Bắt đầu 6 bước nghiên cứu ngành "${selectedTopic}"` 
@@ -50,7 +69,7 @@ const StarterKitSection: React.FC<{ selectedTopic: string | null }> = ({ selecte
         <div className={`animate-bounce flex justify-center ${selectedTopic ? 'text-gray-300' : 'text-gray-300 opacity-50'}`}>
             <ArrowDown size={20} />
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

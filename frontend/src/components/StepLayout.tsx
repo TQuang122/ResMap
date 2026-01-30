@@ -4,6 +4,7 @@ import { StepFullData } from '../types';
 import DeliverableSidebar from './steps/common/DeliverableSidebar';
 import GuidanceSection from './steps/common/GuidanceSection';
 import SupportPanel from './steps/common/SupportPanel';
+import { motion } from 'framer-motion';
 
 interface StepLayoutProps {
   stepData: StepFullData;
@@ -23,7 +24,13 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
     `}>
       {/* Header Section */}
       <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-10 mb-8 lg:mb-12">
-        <div className="max-w-3xl">
+        <motion.div
+          className="max-w-3xl"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <span className="text-xs md:text-sm font-black uppercase tracking-[0.2em] opacity-60 mb-3 md:mb-4 block">
             Bước {stepNumber}
           </span>
@@ -34,7 +41,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
           <p className="text-sm md:text-base lg:text-lg leading-relaxed opacity-80 font-medium">
             {description}
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Main Content Grid */}
@@ -43,26 +50,43 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
           
           {/* Left Sidebar - Deliverables (Desktop) */}
           <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
-            <div className={`sticky top-28 ${theme.glass} backdrop-blur-xl border border-white/40 p-6 rounded-2xl shadow-xl max-h-[calc(100vh-8rem)] overflow-y-auto`}>
+            <motion.div
+              className={`sticky top-28 ${theme.glass} backdrop-blur-xl border border-white/40 p-6 rounded-2xl shadow-xl max-h-[calc(100vh-8rem)] overflow-y-auto`}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               <DeliverableSidebar
                 stepId={stepData.id}
                 deliverables={deliverables}
                 theme={theme}
               />
-            </div>
+            </motion.div>
           </div>
 
           {/* Right Content - Guidance + Support */}
           <div className="w-full lg:col-span-8 xl:col-span-9 space-y-6 lg:space-y-8">
             {/* Guidance Section */}
-            <div className={`${theme.glass} backdrop-blur-xl border border-white/40 p-6 md:p-8 lg:p-10 rounded-2xl md:rounded-3xl shadow-xl`}>
+            <motion.div
+              className={`${theme.glass} backdrop-blur-xl border border-white/40 p-6 md:p-8 lg:p-10 rounded-2xl md:rounded-3xl shadow-xl`}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               <GuidanceSection items={guidance} theme={theme} stepNumber={stepNumber} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} />
-            </div>
+            </motion.div>
 
             {/* Support Panel */}
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               <SupportPanel data={support} theme={theme} stepTitle={title} />
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
