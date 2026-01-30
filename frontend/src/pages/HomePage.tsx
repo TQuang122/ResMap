@@ -189,7 +189,7 @@ const HomePage: React.FC = () => {
     <>
       <div 
         ref={containerRef}
-        className="flex-1 w-full overflow-y-scroll no-scrollbar scroll-smooth"
+        className="flex-1 w-full overflow-y-scroll no-scrollbar scroll-smooth relative"
       >
         {authNotice && (
           <div className="fixed top-24 right-6 z-50 w-[280px] rounded-2xl border border-orange-200 bg-white shadow-xl px-4 py-3">
@@ -250,6 +250,22 @@ const HomePage: React.FC = () => {
         )}
         
         <Footer />
+
+        <SidebarDots 
+          activeIndex={activeSection} 
+          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + stepsData.length : INITIAL_SECTIONS_COUNT} 
+          sectionLabels={selectedTopic
+            ? [
+                'Giới thiệu',
+                'Lợi ích',
+                'Starter Kit',
+                'Research How-To',
+                ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
+              ]
+            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
+          }
+          scrollToSection={scrollToSection} 
+        />
       </div>
 
       <ChatbotWidget />
@@ -293,22 +309,6 @@ const HomePage: React.FC = () => {
         isOpen={isResearchSuggestionOpen}
         onClose={() => setIsResearchSuggestionOpen(false)}
       />
-
-        <SidebarDots 
-          activeIndex={activeSection} 
-          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + stepsData.length : INITIAL_SECTIONS_COUNT} 
-          sectionLabels={selectedTopic
-            ? [
-                'Giới thiệu',
-                'Lợi ích',
-                'Starter Kit',
-                'Research How-To',
-                ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
-              ]
-            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
-          }
-          scrollToSection={scrollToSection} 
-        />
     </>
   );
 };
