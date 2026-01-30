@@ -64,11 +64,43 @@ export const STEPS_DATA: StepFullData[] = [
         { label: 'Check dẫn nguồn', description: 'Bước 6 - Kiểm tra nguồn trích dẫn' }
       ],
       tips: [
-        'Nếu có clip ngắn liên quan tới bước này có sẵn, bạn sẽ thấy nút "Watch how others have done it before"',
-        'Ấn vào sẽ hiển thị overlay với embed video phỏng vấn'
+        'Nếu có clip ngắn liên quan tới bước này có sẵn, bạn sẽ thấy nút "Xem tài liệu tham khảo"',
+        'Ấn vào sẽ hiển thị popup với videos và blogs hướng dẫn'
       ],
       videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      videoTitle: 'Hướng dẫn chọn đề tài nghiên cứu'
+      videoTitle: 'Hướng dẫn chọn đề tài nghiên cứu',
+      blogs: [
+        {
+          title: 'How to Write a Good Research Question',
+          url: 'https://www.scribbr.com/research-process/research-questions/',
+          author: 'Scribbr',
+          description: 'Hướng dẫn chi tiết cách viết câu hỏi nghiên cứu hiệu quả'
+        },
+        {
+          title: 'Defining a Research Problem',
+          url: 'https://www.scribbr.com/research-process/research-problem/',
+          author: 'Scribbr',
+          description: 'Cách xác định và định nghĩa vấn đề nghiên cứu'
+        },
+        {
+          title: 'How to Choose a Research Topic',
+          url: 'https://www.scribbr.com/research-process/research-topic/',
+          author: 'Scribbr',
+          description: '10 bước để chọn đề tài nghiên cứu phù hợp'
+        }
+      ],
+      additionalVideos: [
+        {
+          title: 'Developing a Research Question',
+          url: 'https://www.youtube.com/watch?v=vcG6_UOFwhg',
+          duration: '8 min'
+        },
+        {
+          title: 'How to Find a Research Gap',
+          url: 'https://www.youtube.com/watch?v=84Yw5Q3E6jQ',
+          duration: '12 min'
+        }
+      ]
     }
   },
   {

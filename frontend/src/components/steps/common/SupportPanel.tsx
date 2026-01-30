@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
-import { Wrench, Lightbulb, Play, X } from 'lucide-react';
+import { Wrench, Lightbulb, Play, X, BookOpen } from 'lucide-react';
 import { SupportData, ThemeColors } from '../../../types';
+import ResourcesModal from './ResourcesModal';
 
 interface SupportPanelProps {
   data: SupportData;
   theme: ThemeColors;
+  stepTitle?: string;
 }
 
-const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme }) => {
+const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme, stepTitle }) => {
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const hasResources = (data.blogs && data.blogs.length > 0) || (data.additionalVideos && data.additionalVideos.length > 0);
 
   return (
     <>
@@ -45,8 +50,16 @@ const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme }) => {
           </ul>
         </div>
 
-        {/* Video Button */}
-        {data.videoUrl && (
+        {/* Resources Button */}
+        {hasResources ? (
+          <button
+            onClick={() => setIsResourcesOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl transition-colors shadow-lg"
+          >
+            <BookOpen size={18} />
+            <span className="text-sm">Xem tài liệu tham khảo</span>
+          </button>
+        ) : data.videoUrl ? (
           <button
             onClick={() => setIsVideoOpen(true)}
             className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors shadow-lg"
@@ -54,14 +67,23 @@ const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme }) => {
             <Play size={18} />
             <span className="text-sm">Watch how others have done it before</span>
           </button>
-        )}
+        ) : null}
       </div>
 
-      {/* Video Overlay Modal */}
+      {/* Resources Modal */}
+      {isResourcesOpen && (
+        <ResourcesModal
+          isOpen={isResourcesOpen}
+          onClose={() => setIsResourcesOpen(false)}
+          data={data}
+          stepTitle={stepTitle}
+        />
+      )}
+
+      {/* Video Overlay Modal (for single video, fallback) */}
       {isVideoOpen && data.videoUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
           <div className="relative w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="font-bold text-gray-800">
                 {data.videoTitle || 'Video Hướng dẫn'}
@@ -69,13 +91,10 @@ const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme }) => {
               <button
                 onClick={() => setIsVideoOpen(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Đóng video"
               >
                 <X size={20} className="text-gray-600" />
               </button>
             </div>
-            
-            {/* Video Embed */}
             <div className="aspect-video">
               <iframe
                 src={data.videoUrl}

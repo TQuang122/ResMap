@@ -33,11 +33,28 @@ export interface GuidanceItem {
   resExploreBox?: ResExploreBoxConfig;
 }
 
+export interface BlogItem {
+  title: string;
+  url: string;
+  author?: string;
+  date?: string;
+  description?: string;
+}
+
+export interface VideoItem {
+  title: string;
+  url: string;
+  duration?: string;
+  thumbnail?: string;
+}
+
 export interface SupportData {
   tools: { label: string; description: string }[];
   tips: string[];
   videoUrl?: string;
   videoTitle?: string;
+  blogs?: BlogItem[];
+  additionalVideos?: VideoItem[];
 }
 
 export interface StepFullData {

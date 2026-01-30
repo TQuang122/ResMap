@@ -61,7 +61,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
 
             {/* Support Panel */}
             <div>
-              <SupportPanel data={support} theme={theme} />
+              <SupportPanel data={support} theme={theme} stepTitle={title} />
             </div>
           </div>
         </div>
