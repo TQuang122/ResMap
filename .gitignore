@@ -18,6 +18,11 @@ node_modules/
 
 # Vite build output
 dist/
+frontend/dist/
+
+# Local tooling artifacts
+opencode.json
+\ opencode.json
 
 # Python build artifacts
 backend/build/

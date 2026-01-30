@@ -9,6 +9,9 @@ import Footer from '../components/Footer';
 import { STEPS_DATA } from '../data/stepsData';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
+const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,6 +22,74 @@ const HomePage: React.FC = () => {
   // Intro, Benefits, StarterKit, Research How-To (Hero) = 4 sections
   const INITIAL_SECTIONS_COUNT = 4;
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // Check auth state on mount and listen for changes
+  useEffect(() => {
+    if (!supabase) {
+      // If supabase is not configured, allow access without auth
+      setIsAuthenticated(true);
+      return;
+    }
+
+    // Check current session
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAuthenticated(Boolean(data.session));
+    });
+
+    // Listen for auth changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(Boolean(session));
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Restore pending topic after login
+  useEffect(() => {
+    const state = location.state as { authSuccess?: boolean; authMessage?: string; pendingTopic?: string } | null;
+    
+    if (state?.authSuccess && isAuthenticated) {
+      setAuthNotice(state.authMessage || 'Đăng nhập thành công.');
+      
+      // Check for pending topic from state or localStorage
+      const pendingTopic = state.pendingTopic || localStorage.getItem(PENDING_TOPIC_KEY);
+      if (pendingTopic) {
+        setSelectedTopic(pendingTopic);
+        localStorage.removeItem(PENDING_TOPIC_KEY);
+      }
+      
+      navigate(location.pathname, { replace: true, state: {} });
+      const timeoutId = window.setTimeout(() => setAuthNotice(null), 3000);
+      return () => window.clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [location.pathname, location.state, navigate, isAuthenticated]);
+
+  // Handle topic selection with auth check
+  const handleTopicSelect = useCallback((topic: string) => {
+    // If auth check is still loading, wait
+    if (isAuthenticated === null) return;
+
+    if (!isAuthenticated) {
+      // Save pending topic to localStorage
+      localStorage.setItem(PENDING_TOPIC_KEY, topic);
+      // Redirect to auth page
+      navigate('/auth', { 
+        state: { 
+          from: location.pathname,
+          pendingTopic: topic,
+          message: 'Vui lòng đăng nhập để xem hướng dẫn chi tiết theo khối ngành.'
+        } 
+      });
+      return;
+    }
+
+    // User is authenticated, proceed with selection
+    setSelectedTopic(topic);
+  }, [isAuthenticated, navigate, location.pathname]);
 
   const scrollToSection = useCallback((index: number) => {
     if (containerRef.current) {
@@ -68,17 +139,6 @@ const HomePage: React.FC = () => {
     return () => window.clearTimeout(timeoutId);
   }, [selectedTopic, scrollToSection]);
 
-  useEffect(() => {
-    const state = location.state as { authSuccess?: boolean; authMessage?: string } | null;
-    if (state?.authSuccess) {
-      setAuthNotice(state.authMessage || 'Đăng nhập thành công.');
-      navigate(location.pathname, { replace: true, state: {} });
-      const timeoutId = window.setTimeout(() => setAuthNotice(null), 2000);
-      return () => window.clearTimeout(timeoutId);
-    }
-    return undefined;
-  }, [location.pathname, location.state, navigate]);
-
   const handleStartClick = () => {
     // Scroll to Research How-To + Major Selection (HeroSection is now 4th, index 3)
     scrollToSection(3);
@@ -123,7 +183,7 @@ const HomePage: React.FC = () => {
         <StarterKitSection selectedTopic={selectedTopic} />
 
         {/* 4. Research How-To + Major Selection */}
-        <HeroSection selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
+        <HeroSection selectedTopic={selectedTopic} setSelectedTopic={handleTopicSelect} />
 
         {/* 5+. Steps (Only if topic selected) */}
         {selectedTopic && (

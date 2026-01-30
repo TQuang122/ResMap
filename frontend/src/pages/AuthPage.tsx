@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import GoogleLogo from '../assets/google-logo.svg';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type AuthMode = 'signin' | 'signup';
 
+const PENDING_TOPIC_KEY = 'resmap_pending_topic';
+
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -22,6 +25,23 @@ const AuthPage: React.FC = () => {
   const [isAuthed, setIsAuthed] = useState(false);
   const [redirected, setRedirected] = useState(false);
 
+  // Get redirect info from location state
+  const locationState = location.state as { 
+    from?: string; 
+    pendingTopic?: string; 
+    message?: string 
+  } | null;
+  const redirectMessage = locationState?.message;
+  const pendingTopic = locationState?.pendingTopic;
+  const returnPath = locationState?.from || '/home';
+
+  // Build redirect state for after successful login
+  const buildRedirectState = () => ({
+    authSuccess: true,
+    authMessage: 'Đăng nhập thành công.',
+    pendingTopic: pendingTopic || localStorage.getItem(PENDING_TOPIC_KEY)
+  });
+
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => {
@@ -29,7 +49,7 @@ const AuthPage: React.FC = () => {
       setIsAuthed(authed);
       if (authed && !redirected) {
         setRedirected(true);
-        navigate('/home', { state: { authSuccess: true, authMessage: 'Đăng nhập Google thành công.' } });
+        navigate(returnPath, { state: buildRedirectState() });
       }
     });
 
@@ -38,14 +58,14 @@ const AuthPage: React.FC = () => {
       setIsAuthed(authed);
       if (authed && !redirected) {
         setRedirected(true);
-        navigate('/home', { state: { authSuccess: true, authMessage: 'Đăng nhập Google thành công.' } });
+        navigate(returnPath, { state: buildRedirectState() });
       }
     });
 
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [navigate, redirected]);
+  }, [navigate, redirected, returnPath, pendingTopic]);
 
   const handleOAuth = async () => {
     if (!supabase) {
@@ -137,7 +157,7 @@ const AuthPage: React.FC = () => {
           password,
         });
         if (error) throw error;
-        navigate('/home', { state: { authSuccess: true, authMessage: 'Đăng nhập thành công.' } });
+        navigate(returnPath, { state: buildRedirectState() });
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Đăng nhập thất bại.');
@@ -186,7 +206,8 @@ const AuthPage: React.FC = () => {
                   {mode === 'signup' ? 'Đăng ký để lưu đề tài và lịch sử học tập.' : 'Tiếp tục với email của bạn.'}
                 </p>
               </div>
-              <div className="flex rounded-full border border-slate-200 overflow-hidden text-xs font-semibold">
+
+              <div className="flex rounded-full border border-slate-200 overflow-hidden text-xs font-semibold shrink-0">
                 <button
                   onClick={() => setMode('signin')}
                   className={`px-4 py-1.5 ${mode === 'signin' ? 'bg-orange-500 text-white' : 'text-slate-500'}`}
@@ -201,6 +222,14 @@ const AuthPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Show redirect message if user was redirected */}
+            {redirectMessage && (
+              <div className="flex items-start gap-2 mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
+                <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-700">{redirectMessage}</p>
+              </div>
+            )}
 
             <div className="mt-6">
               <button
