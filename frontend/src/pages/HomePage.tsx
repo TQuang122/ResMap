@@ -36,7 +36,6 @@ const STEPS_BY_TOPIC: Record<string, () => Promise<{ STEPS_DATA: StepFullData[] 
 };
 
 const HomePage: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,24 +127,19 @@ const HomePage: React.FC = () => {
   }, [isAuthenticated, navigate, location.pathname]);
 
   const scrollToSection = useCallback((index: number) => {
-    if (containerRef.current) {
-      const children = Array.from(containerRef.current.children) as HTMLElement[];
-      if (children[index]) {
-        children[index].scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
+    const children = Array.from(document.body.querySelectorAll('section')) as HTMLElement[];
+    if (children[index]) {
+      children[index].scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
   }, []);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const handleScroll = () => {
-      const scrollPosition = container.scrollTop + (window.innerHeight / 3);
-      const children = Array.from(container.children) as HTMLElement[];
+      const scrollPosition = window.scrollY + (window.innerHeight / 3);
+      const children = Array.from(document.body.querySelectorAll('section')) as HTMLElement[];
       
       for (let i = 0; i < children.length; i++) {
         const section = children[i];
@@ -159,18 +153,16 @@ const HomePage: React.FC = () => {
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
     if (!selectedTopic) return;
 
-    // After selecting a major group, auto-scroll to the first detailed step.
-    // Steps are rendered after the 4 static sections.
     const timeoutId = window.setTimeout(() => {
       scrollToSection(INITIAL_SECTIONS_COUNT);
-    }, 50);
+    }, 100);
 
     return () => window.clearTimeout(timeoutId);
   }, [selectedTopic, scrollToSection]);
@@ -187,10 +179,7 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-      <div 
-        ref={containerRef}
-        className="flex-1 w-full overflow-y-scroll no-scrollbar scroll-smooth relative"
-      >
+      <div className="flex-1 w-full">
         {authNotice && (
           <div className="fixed top-24 right-6 z-50 w-[280px] rounded-2xl border border-orange-200 bg-white shadow-xl px-4 py-3">
             <div className="flex items-start justify-between gap-3">
@@ -250,22 +239,6 @@ const HomePage: React.FC = () => {
         )}
         
         <Footer />
-
-        <SidebarDots 
-          activeIndex={activeSection} 
-          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + stepsData.length : INITIAL_SECTIONS_COUNT} 
-          sectionLabels={selectedTopic
-            ? [
-                'Giới thiệu',
-                'Lợi ích',
-                'Starter Kit',
-                'Research How-To',
-                ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
-              ]
-            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
-          }
-          scrollToSection={scrollToSection} 
-        />
       </div>
 
       <ChatbotWidget />
@@ -309,6 +282,22 @@ const HomePage: React.FC = () => {
         isOpen={isResearchSuggestionOpen}
         onClose={() => setIsResearchSuggestionOpen(false)}
       />
+
+        <SidebarDots 
+          activeIndex={activeSection} 
+          totalSections={selectedTopic ? INITIAL_SECTIONS_COUNT + stepsData.length : INITIAL_SECTIONS_COUNT} 
+          sectionLabels={selectedTopic
+            ? [
+                'Giới thiệu',
+                'Lợi ích',
+                'Starter Kit',
+                'Research How-To',
+                ...stepsData.map((s) => `Bước ${s.stepNumber}: ${s.title}`),
+              ]
+            : ['Giới thiệu', 'Lợi ích', 'Starter Kit', 'Research How-To']
+          }
+          scrollToSection={scrollToSection} 
+        />
     </>
   );
 };

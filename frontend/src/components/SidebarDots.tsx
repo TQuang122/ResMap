@@ -35,8 +35,8 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
     <div
       className={
         `
-        absolute z-40 pointer-events-auto transition-all duration-300
-        right-2 top-24 lg:top-32
+        fixed z-40 pointer-events-auto transition-all duration-300
+        right-2 top-1/2 -translate-y-1/2
         rounded-full
         bg-gradient-to-b from-white/40 to-white/15
         backdrop-blur-xl backdrop-saturate-150
