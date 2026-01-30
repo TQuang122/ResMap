@@ -11,6 +11,7 @@ import ResExploreModal from '../components/research/ResExploreModal';
 import BusinessResExploreModal from '../components/research/BusinessResExploreModal';
 import LanguagesResExploreModal from '../components/research/LanguagesResExploreModal';
 import DesignResExploreModal from '../components/research/DesignResExploreModal';
+import LawResExploreModal from '../components/research/LawResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -19,6 +20,7 @@ import { IT_LECTURERS } from '../data/lecturers/itLecturers';
 import { BUSINESS_LECTURERS } from '../data/lecturers/businessLecturers';
 import { LANGUAGES_LECTURERS } from '../data/lecturers/languagesLecturers';
 import { DESIGN_LECTURERS } from '../data/lecturers/designLecturers';
+import { LAW_LECTURERS } from '../data/lecturers/lawLecturers';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
@@ -47,6 +49,7 @@ const HomePage: React.FC = () => {
   const [isBusinessResExploreOpen, setIsBusinessResExploreOpen] = useState(false);
   const [isLanguagesResExploreOpen, setIsLanguagesResExploreOpen] = useState(false);
   const [isDesignResExploreOpen, setIsDesignResExploreOpen] = useState(false);
+  const [isLawResExploreOpen, setIsLawResExploreOpen] = useState(false);
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
@@ -230,6 +233,8 @@ const HomePage: React.FC = () => {
                     setIsLanguagesResExploreOpen(true);
                   } else if (selectedTopic === 'Thiết kế') {
                     setIsDesignResExploreOpen(true);
+                  } else if (selectedTopic === 'Luật & Luật kinh tế') {
+                    setIsLawResExploreOpen(true);
                   } else {
                     setIsResExploreOpen(true);
                   }
@@ -267,6 +272,12 @@ const HomePage: React.FC = () => {
         isOpen={isDesignResExploreOpen}
         onClose={() => setIsDesignResExploreOpen(false)}
         lecturers={DESIGN_LECTURERS}
+      />
+
+      <LawResExploreModal
+        isOpen={isLawResExploreOpen}
+        onClose={() => setIsLawResExploreOpen(false)}
+        lecturers={LAW_LECTURERS}
       />
 
       <ResearchSuggestionModal
