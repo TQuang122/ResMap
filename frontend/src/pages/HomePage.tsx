@@ -8,11 +8,13 @@ import SidebarDots from '../components/SidebarDots';
 import Footer from '../components/Footer';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
 import ResExploreModal from '../components/research/ResExploreModal';
+import BusinessResExploreModal from '../components/research/BusinessResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { StepFullData } from '../types';
 import { IT_LECTURERS } from '../data/lecturers/itLecturers';
+import { BUSINESS_LECTURERS } from '../data/lecturers/businessLecturers';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
@@ -38,6 +40,7 @@ const HomePage: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
   const [isResExploreOpen, setIsResExploreOpen] = useState(false);
+  const [isBusinessResExploreOpen, setIsBusinessResExploreOpen] = useState(false);
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
@@ -214,7 +217,13 @@ const HomePage: React.FC = () => {
               <StepLayout
                 key={step.id}
                 stepData={step}
-                onResExploreOpen={() => setIsResExploreOpen(true)}
+                onResExploreOpen={() => {
+                  if (selectedTopic === 'Kinh doanh, Quản trị & Tài chính') {
+                    setIsBusinessResExploreOpen(true);
+                  } else {
+                    setIsResExploreOpen(true);
+                  }
+                }}
                 onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
               />
             ))}
@@ -230,6 +239,12 @@ const HomePage: React.FC = () => {
         isOpen={isResExploreOpen}
         onClose={() => setIsResExploreOpen(false)}
         lecturers={IT_LECTURERS}
+      />
+
+      <BusinessResExploreModal
+        isOpen={isBusinessResExploreOpen}
+        onClose={() => setIsBusinessResExploreOpen(false)}
+        lecturers={BUSINESS_LECTURERS}
       />
 
       <ResearchSuggestionModal
