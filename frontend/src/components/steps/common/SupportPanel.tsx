@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wrench, Lightbulb, Play, X, BookOpen } from 'lucide-react';
+import { Play, X, BookOpen } from 'lucide-react';
 import { SupportData, ThemeColors } from '../../../types';
 import ResourcesModal from './ResourcesModal';
 
@@ -17,39 +17,7 @@ const SupportPanel: React.FC<SupportPanelProps> = ({ data, theme, stepTitle }) =
 
   return (
     <>
-      <div className="rounded-2xl border-2 border-orange-300 bg-orange-50/80 p-6 space-y-5">
-        {/* Tools Section */}
-        <div>
-          <h4 className="font-bold text-orange-800 flex items-center gap-2 mb-3">
-            <Wrench size={18} />
-            Tools
-          </h4>
-          <ul className="space-y-2">
-            {data.tools.map((tool, idx) => (
-              <li key={idx} className="text-sm">
-                <span className="font-semibold text-orange-700">{tool.label}</span>
-                <span className="text-orange-600/80"> - {tool.description}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Tips Section */}
-        <div>
-          <h4 className="font-bold text-orange-800 flex items-center gap-2 mb-3">
-            <Lightbulb size={18} />
-            Tips & Tricks
-          </h4>
-          <ul className="space-y-2">
-            {data.tips.map((tip, idx) => (
-              <li key={idx} className="text-sm text-orange-700 flex items-start gap-2">
-                <span className="text-orange-400 mt-1">•</span>
-                <span>{tip}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
+      <div className="rounded-2xl border-2 border-orange-300 bg-orange-50/80 p-4">
         {/* Resources Button */}
         {hasResources ? (
           <button
