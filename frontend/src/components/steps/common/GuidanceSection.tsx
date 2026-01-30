@@ -5,11 +5,12 @@ import { GuidanceItem, ThemeColors } from '../../../types';
 interface GuidanceSectionProps {
   items: GuidanceItem[];
   theme: ThemeColors;
+  stepNumber: string;
   onResExploreOpen?: () => void;
   onResearchSuggestionOpen?: () => void;
 }
 
-const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, onResExploreOpen, onResearchSuggestionOpen }) => {
+const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen }) => {
   const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id || null);
 
   const toggleExpand = (id: string) => {
@@ -23,7 +24,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, onResEx
       {items.map((item) => {
         const isExpanded = expandedId === item.id;
         const hasResExplore = !!item.resExploreBox;
-        const hasResearchSuggestion = item.stepNumber === 1;
+        const hasResearchSuggestion = stepNumber === "01" && item.stepNumber === 1;
         
         return (
           <div

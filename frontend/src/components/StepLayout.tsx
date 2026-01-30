@@ -56,7 +56,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
           <div className="w-full lg:col-span-8 xl:col-span-9 space-y-6 lg:space-y-8">
             {/* Guidance Section */}
             <div className={`${theme.glass} backdrop-blur-xl border border-white/40 p-6 md:p-8 lg:p-10 rounded-2xl md:rounded-3xl shadow-xl`}>
-              <GuidanceSection items={guidance} theme={theme} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} />
+              <GuidanceSection items={guidance} theme={theme} stepNumber={stepNumber} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} />
             </div>
 
             {/* Support Panel */}
