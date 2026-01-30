@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Heart, Trash2, ExternalLink, Mail } from 'lucide-react';
+import CleanupButton from '../components/profile/CleanupButton';
 
 type SavedTopic = {
   id: string;
@@ -432,6 +433,12 @@ const ProfilePage: React.FC = () => {
 
               {tab === 'history' && (
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-500">
+                      Tự động xoá logs cũ hơn 3 ngày
+                    </p>
+                    <CleanupButton />
+                  </div>
                   {logs.length === 0 && (
                     <div className="text-sm text-slate-500">{emptyState}</div>
                   )}

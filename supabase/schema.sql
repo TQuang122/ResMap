@@ -98,3 +98,50 @@ create policy "interested_lecturers_read_own" on public.interested_lecturers for
 create policy "interested_lecturers_write_own" on public.interested_lecturers for insert with check (auth.uid() = user_id);
 create policy "interested_lecturers_update_own" on public.interested_lecturers for update using (auth.uid() = user_id);
 create policy "interested_lecturers_delete_own" on public.interested_lecturers for delete using (auth.uid() = user_id);
+
+-- ============================================================
+-- 8. AUTO CLEANUP FUNCTION (Delete logs older than 3 days)
+-- ============================================================
+create or replace function public.cleanup_old_history_logs()
+returns integer as $$
+declare
+  deleted_count integer;
+begin
+  delete from public.history_logs where created_at < now() - interval '3 days';
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
+$$ language plpgsql security definer;
+
+-- Function to cleanup all old data (history logs, saved topics, interested lecturers)
+create or replace function public.cleanup_all_old_data()
+returns json as $$
+declare
+  logs_deleted integer;
+  topics_deleted integer;
+  lecturers_deleted integer;
+  total_deleted integer;
+begin
+  -- Delete old history logs
+  delete from public.history_logs where created_at < now() - interval '3 days';
+  get diagnostics logs_deleted = row_count;
+  
+  -- Delete old saved topics (older than 30 days)
+  delete from public.saved_topics where created_at < now() - interval '30 days';
+  get diagnostics topics_deleted = row_count;
+  
+  -- Delete old interested lecturers (older than 30 days)
+  delete from public.interested_lecturers where created_at < now() - interval '30 days';
+  get diagnostics lecturers_deleted = row_count;
+  
+  total_deleted := logs_deleted + topics_deleted + lecturers_deleted;
+  
+  return json_build_object(
+    'logs_deleted', logs_deleted,
+    'topics_deleted', topics_deleted,
+    'lecturers_deleted', lecturers_deleted,
+    'total_deleted', total_deleted
+  );
+end;
+$$ language plpgsql security definer;
+
