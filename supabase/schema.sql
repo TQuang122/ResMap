@@ -118,6 +118,11 @@ $$ language plpgsql security definer;
 
 -- Cleanup all old data function
 -- - History logs: older than 3 days
+-- ============================================================
+-- 8. CLEANUP FUNCTION (Delete old user data)
+-- ============================================================
+-- This function deletes old data for the current user only:
+-- - History logs: older than 3 days
 -- - Saved topics: older than 30 days
 -- - Interested lecturers: older than 30 days
 -- Returns: JSON with deletion counts
@@ -128,16 +133,19 @@ declare
   topics_deleted integer;
   lecturers_deleted integer;
 begin
-  -- Delete old history logs (3 days)
-  delete from public.history_logs where created_at < now() - interval '3 days';
+  -- Delete old history logs for current user (3 days)
+  delete from public.history_logs 
+  where user_id = auth.uid() and created_at < now() - interval '3 days';
   get diagnostics logs_deleted = row_count;
   
-  -- Delete old saved topics (30 days)
-  delete from public.saved_topics where created_at < now() - interval '30 days';
+  -- Delete old saved topics for current user (30 days)
+  delete from public.saved_topics 
+  where user_id = auth.uid() and created_at < now() - interval '30 days';
   get diagnostics topics_deleted = row_count;
   
-  -- Delete old interested lecturers (30 days)
-  delete from public.interested_lecturers where created_at < now() - interval '30 days';
+  -- Delete old interested lecturers for current user (30 days)
+  delete from public.interested_lecturers 
+  where user_id = auth.uid() and created_at < now() - interval '30 days';
   get diagnostics lecturers_deleted = row_count;
   
   return json_build_object(
@@ -147,3 +155,7 @@ begin
   );
 end;
 $$ language plpgsql security definer;
+
+-- ============================================================
+-- END OF SCHEMA
+-- ============================================================
