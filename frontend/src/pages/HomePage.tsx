@@ -10,6 +10,7 @@ import ChatbotWidget from '../components/ai/ChatbotWidget';
 import ResExploreModal from '../components/research/ResExploreModal';
 import BusinessResExploreModal from '../components/research/BusinessResExploreModal';
 import LanguagesResExploreModal from '../components/research/LanguagesResExploreModal';
+import DesignResExploreModal from '../components/research/DesignResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -17,6 +18,7 @@ import { StepFullData } from '../types';
 import { IT_LECTURERS } from '../data/lecturers/itLecturers';
 import { BUSINESS_LECTURERS } from '../data/lecturers/businessLecturers';
 import { LANGUAGES_LECTURERS } from '../data/lecturers/languagesLecturers';
+import { DESIGN_LECTURERS } from '../data/lecturers/designLecturers';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
@@ -44,6 +46,7 @@ const HomePage: React.FC = () => {
   const [isResExploreOpen, setIsResExploreOpen] = useState(false);
   const [isBusinessResExploreOpen, setIsBusinessResExploreOpen] = useState(false);
   const [isLanguagesResExploreOpen, setIsLanguagesResExploreOpen] = useState(false);
+  const [isDesignResExploreOpen, setIsDesignResExploreOpen] = useState(false);
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
@@ -225,6 +228,8 @@ const HomePage: React.FC = () => {
                     setIsBusinessResExploreOpen(true);
                   } else if (selectedTopic === 'Ngôn ngữ') {
                     setIsLanguagesResExploreOpen(true);
+                  } else if (selectedTopic === 'Thiết kế') {
+                    setIsDesignResExploreOpen(true);
                   } else {
                     setIsResExploreOpen(true);
                   }
@@ -256,6 +261,12 @@ const HomePage: React.FC = () => {
         isOpen={isLanguagesResExploreOpen}
         onClose={() => setIsLanguagesResExploreOpen(false)}
         lecturers={LANGUAGES_LECTURERS}
+      />
+
+      <DesignResExploreModal
+        isOpen={isDesignResExploreOpen}
+        onClose={() => setIsDesignResExploreOpen(false)}
+        lecturers={DESIGN_LECTURERS}
       />
 
       <ResearchSuggestionModal
