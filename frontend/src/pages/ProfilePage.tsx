@@ -220,9 +220,9 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-slate-50 pt-24 pb-16 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-white border border-orange-100 rounded-3xl p-6 md:p-8 shadow-xl">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-slate-50 pt-24 pb-16 px-4 overflow-visible">
+      <div className="max-w-5xl mx-auto overflow-visible">
+        <div className="bg-white border border-orange-100 rounded-3xl p-6 md:p-8 shadow-xl overflow-visible">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-xl">

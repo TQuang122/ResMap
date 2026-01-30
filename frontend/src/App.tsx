@@ -49,9 +49,10 @@ const AppContent: React.FC = () => {
   }, [location]);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-white text-slate-900 font-sans flex flex-col">
+    <div className="relative w-full min-h-screen bg-white text-slate-900 font-sans flex flex-col">
       <Navigation isScrolled={isScrolled} />
-      <Routes>
+      <main className="flex-1 overflow-y-auto">
+        <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/starter-kit" element={<StarterKitPage />} />
@@ -89,6 +90,7 @@ const AppContent: React.FC = () => {
         />
         <Route path="/auth" element={<AuthPage />} />
       </Routes>
+      </main>
     </div>
   );
 }
