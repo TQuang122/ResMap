@@ -160,13 +160,6 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, onResEx
           </div>
         );
       })}
-
-      {/* Feeling Stuck Helper */}
-      <div className="mt-6 p-4 bg-white/10 rounded-xl border border-white/20">
-        <p className="text-sm opacity-70 text-center">
-          Feeling stuck? <span className="font-semibold">Watch how others have done it before</span>
-        </p>
-      </div>
     </div>
   );
 };

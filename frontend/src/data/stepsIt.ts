@@ -64,8 +64,8 @@ export const STEPS_DATA: StepFullData[] = [
         { label: 'Check dẫn nguồn', description: 'Bước 6 - Kiểm tra nguồn trích dẫn' }
       ],
       tips: [
-        'Nếu có clip ngắn liên quan tới bước này có sẵn, bạn sẽ thấy nút "Xem tài liệu tham khảo"',
-        'Ấn vào sẽ hiển thị popup với videos và blogs hướng dẫn'
+        'Nhấp vào "Xem tài liệu tham khảo" để xem videos và blogs hướng dẫn',
+        'Sử dụng công cụ ResExplore để tìm giảng viên phù hợp'
       ],
       videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       videoTitle: 'Hướng dẫn chọn đề tài nghiên cứu',
