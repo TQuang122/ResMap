@@ -39,7 +39,12 @@ export const STEPS_DATA: StepFullData[] = [
           'Tham khảo Capstone gần nhất của chuyên ngành',
           'Cân bằng tò mò cá nhân vs. giá trị học thuật',
           'Nên thảo luận với leader/mentor không quá 3 ngày'
-        ]
+        ],
+        resExploreBox: {
+          title: 'ResExplore',
+          description: 'Khám phá giảng viên và hướng nghiên cứu tại FPTU để tìm mentor phù hợp cho đề tài của bạn.',
+          buttonLabel: 'Mở ResExplore'
+        }
       },
       {
         id: 'step1_g2',

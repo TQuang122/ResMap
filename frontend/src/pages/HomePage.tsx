@@ -7,9 +7,11 @@ import StepLayout from '../components/StepLayout';
 import SidebarDots from '../components/SidebarDots';
 import Footer from '../components/Footer';
 import ChatbotWidget from '../components/ai/ChatbotWidget';
+import ResExploreModal from '../components/research/ResExploreModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { StepFullData } from '../types';
+import { IT_LECTURERS } from '../data/lecturers/itLecturers';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
@@ -34,6 +36,7 @@ const HomePage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
+  const [isResExploreOpen, setIsResExploreOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
   useEffect(() => {
@@ -209,6 +212,7 @@ const HomePage: React.FC = () => {
               <StepLayout
                 key={step.id}
                 stepData={step}
+                onResExploreOpen={() => setIsResExploreOpen(true)}
               />
             ))}
           </>
@@ -218,6 +222,12 @@ const HomePage: React.FC = () => {
       </div>
 
       <ChatbotWidget />
+
+      <ResExploreModal
+        isOpen={isResExploreOpen}
+        onClose={() => setIsResExploreOpen(false)}
+        lecturers={IT_LECTURERS}
+      />
 
         <SidebarDots 
           activeIndex={activeSection} 

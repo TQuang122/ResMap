@@ -30,6 +30,7 @@ export interface GuidanceItem {
   title: string;
   description: string;
   subSteps?: string[];
+  resExploreBox?: ResExploreBoxConfig;
 }
 
 export interface SupportData {
@@ -48,4 +49,28 @@ export interface StepFullData {
   deliverables: DeliverableItem[];
   guidance: GuidanceItem[];
   support: SupportData;
+  resExploreBox?: ResExploreBoxConfig;
+}
+
+export interface ResExploreBoxConfig {
+  title: string;
+  description: string;
+  buttonLabel: string;
+}
+
+export interface LecturerData {
+  id: string;
+  title: string;
+  fullName: string;
+  department: string;
+  phone?: string;
+  email: string;
+  personalWebsite?: string;
+  orcid?: string;
+  researchGate?: string;
+  googleScholar?: string;
+  researchAreas: string[];
+  researchTopics: string[];
+  lab?: string;
+  note?: string;
 }
