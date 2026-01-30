@@ -1,6 +1,6 @@
 import React from 'react';
 import { THEMES } from '../constants';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 
 interface SidebarDotsProps {
   activeIndex: number;
@@ -88,9 +88,9 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   <div className={`
                     relative z-10 flex items-center justify-center w-8 h-8 rounded-full 
                     bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
-                    transition-transform duration-300 group-hover:-translate-x-1
+                    transition-transform duration-300 group-hover:translate-y-1
                   `}>
-                    <ArrowLeft size={16} strokeWidth={3} />
+                    <ArrowDown size={16} strokeWidth={3} />
                   </div>
                 </div>
               ) : (
