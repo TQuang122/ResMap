@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Home, FolderOpen, Quote, Search, Sparkles, ChevronRight, User, IdCard } from 'lucide-react';
+import { X, Home, FolderOpen, Quote, ShieldCheck, Sparkles, ChevronRight, User, IdCard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
@@ -120,12 +120,12 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
             to="/plagiarism-check" 
             className={`flex items-center justify-between p-3 rounded-xl transition-all ${
               location.pathname === '/plagiarism-check' 
-              ? 'bg-orange-50 text-[#F36F21] font-bold' 
-              : 'text-slate-600 hover:bg-slate-50'
+                ? 'bg-orange-50 text-[#F36F21] font-bold' 
+                : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
             <div className="flex items-center gap-3">
-              <Search size={18} />
+              <ShieldCheck size={18} />
               <span>Plagiarism Checker</span>
             </div>
             {location.pathname === '/plagiarism-check' && <ChevronRight size={16} />}

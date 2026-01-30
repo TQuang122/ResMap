@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, X, ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, Search, X, ChevronDown, LogOut, User as UserIcon, Home, FolderOpen, Quote, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '@/assets/Logo.png';
 import { searchContent } from '../utils/search';
@@ -122,11 +122,26 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
 
           {/* Center: Navigation (Desktop) */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-500">
-            <Link to="/home" className="hover:text-[#F36F21] transition-colors">Trang chủ</Link>
-            <Link to="/starter-kit" className="hover:text-[#F36F21] transition-colors">Starter Kit</Link>
-            <Link to="/citation-check" className="hover:text-[#F36F21] transition-colors">Citation</Link>
-            <Link to="/plagiarism-check" className="hover:text-[#F36F21] transition-colors">Plagiarism</Link>
-            <Link to="/ai-assistant" className="hover:text-[#F36F21] transition-colors">AI Assistant</Link>
+            <Link to="/home" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <Home size={16} />
+              <span>Trang chủ</span>
+            </Link>
+            <Link to="/starter-kit" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <FolderOpen size={16} />
+              <span>Starter Kit</span>
+            </Link>
+            <Link to="/citation-check" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <Quote size={16} />
+              <span>Citation</span>
+            </Link>
+            <Link to="/plagiarism-check" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <ShieldCheck size={16} />
+              <span>Plagiarism</span>
+            </Link>
+            <Link to="/ai-assistant" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <Sparkles size={16} />
+              <span>AI Assistant</span>
+            </Link>
           </nav>
 
 
