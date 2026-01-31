@@ -122,20 +122,36 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
 
           {/* Center: Navigation (Desktop) */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-500">
-            <Link to="/home" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+            <Link to="/home" className={`flex items-center gap-2 transition-colors ${
+              location.pathname === '/home' 
+                ? 'text-[#F36F21] font-bold' 
+                : 'hover:text-[#F36F21]'
+            }`}>
               <Home size={16} />
               <span>Trang chủ</span>
             </Link>
-            <Link to="/about-us" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+            <Link to="/about-us" className={`flex items-center gap-2 transition-colors ${
+              location.pathname === '/about-us' 
+                ? 'text-[#F36F21] font-bold' 
+                : 'hover:text-[#F36F21]'
+            }`}>
               <Info size={16} />
               <span>Giới thiệu</span>
             </Link>
-            <Link to="/starter-kit" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+            <Link to="/starter-kit" className={`flex items-center gap-2 transition-colors ${
+              location.pathname === '/starter-kit' 
+                ? 'text-[#F36F21] font-bold' 
+                : 'hover:text-[#F36F21]'
+            }`}>
               <FolderOpen size={16} />
               <span>Starter Kit</span>
             </Link>
             <div className="relative group">
-              <button className="flex items-center gap-2 hover:text-[#F36F21] transition-colors py-2 outline-none">
+              <button className={`flex items-center gap-2 transition-colors py-2 outline-none ${
+                location.pathname.includes('-check') 
+                  ? 'text-[#F36F21] font-bold' 
+                  : 'hover:text-[#F36F21]'
+              }`}>
                 <Wrench size={16} />
                 <span>Công cụ</span>
                 <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
@@ -144,14 +160,22 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                 <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-2 flex flex-col gap-1 overflow-hidden">
                   <Link
                     to="/citation-check"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 transition-colors"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      location.pathname === '/citation-check'
+                        ? 'text-[#F36F21] bg-orange-50 font-bold'
+                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50'
+                    }`}
                   >
                     <Quote size={16} />
                     <span>Citation Checker</span>
                   </Link>
                   <Link
                     to="/plagiarism-check"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 transition-colors"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      location.pathname === '/plagiarism-check'
+                        ? 'text-[#F36F21] bg-orange-50 font-bold'
+                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50'
+                    }`}
                   >
                     <ShieldCheck size={16} />
                     <span>Plagiarism Checker</span>
@@ -159,7 +183,11 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                 </div>
               </div>
             </div>
-            <Link to="/ai-assistant" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+            <Link to="/ai-assistant" className={`flex items-center gap-2 transition-colors ${
+              location.pathname === '/ai-assistant' 
+                ? 'text-[#F36F21] font-bold' 
+                : 'hover:text-[#F36F21]'
+            }`}>
               <Sparkles size={16} />
               <span>AI Assistant</span>
             </Link>

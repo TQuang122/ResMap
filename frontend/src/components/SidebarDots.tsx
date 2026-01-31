@@ -71,27 +71,27 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       className={
         `
         fixed z-40 pointer-events-auto transition-all duration-300
-        right-2 top-1/2 -translate-y-1/2
+        right-1 top-1/2 -translate-y-1/2
         rounded-full
         bg-gradient-to-b from-white/40 to-white/15
         backdrop-blur-xl backdrop-saturate-150
         border border-white/25 shadow-lg shadow-black/8
-        px-2 py-2
+        px-1 py-1
         
-        lg:right-8 lg:px-2.5 lg:py-3
+        lg:right-2 lg:px-1.5 lg:py-1.5
       `
       }
       role="navigation"
       aria-label="Section navigation"
     >
-      <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full">
+      <div className="absolute top-2.5 bottom-2.5 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full">
         <div
           className="absolute inset-0 bg-[#F36F21] origin-top rounded-full"
           style={{ transform: `scaleY(${progressScale})` }}
         />
       </div>
 
-      <div className="relative flex flex-col items-center gap-1.5 lg:gap-2">
+      <div className="relative flex flex-col items-center gap-1 lg:gap-1">
         {Array.from({ length: totalSections }).map((_, index) => {
           const isActive = activeIndex === index;
           const isVisited = index < activeIndex;
@@ -109,7 +109,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                 group relative
                 flex items-center justify-center
                 transition-all duration-200
-                ${isMajorSelectionStep ? 'h-10 w-10 -ml-1' : 'h-8 w-8 rounded-full hover:scale-105 active:scale-95'}
+                ${isMajorSelectionStep ? 'h-7 w-7' : 'h-6 w-6 rounded-full hover:scale-105 active:scale-95'}
               `
               }
             >
@@ -125,7 +125,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   flex items-center justify-center
                   transition-all duration-200
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21]/60 focus-visible:ring-offset-2
-                  ${isMajorSelectionStep ? 'h-10 w-10 -ml-1' : 'h-8 w-8 rounded-full hover:scale-105 active:scale-95'}
+                  ${isMajorSelectionStep ? 'h-7 w-7' : 'h-6 w-6 rounded-full hover:scale-105 active:scale-95'}
                 `}
                 aria-label={label}
                 title={label}
@@ -134,11 +134,11 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   <div className="relative flex items-center justify-center animate-pulse">
                     <div className="absolute inset-0 bg-[#F36F21]/20 rounded-full animate-ping" />
                     <div className={`
-                      relative z-10 flex items-center justify-center w-8 h-8 rounded-full 
+                      relative z-10 flex items-center justify-center w-5.5 h-5.5 rounded-full 
                       bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
                       transition-transform duration-300 group-hover:translate-y-1
                     `}>
-                      <ArrowDown size={16} strokeWidth={3} />
+                      <ArrowDown size={11} strokeWidth={3} />
                     </div>
                   </div>
                 ) : (
@@ -146,7 +146,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                     className={
                       `
                       rounded-full transition-all duration-250 ease-out
-                      ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
+                      ${isActive ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5'}
                       ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
                       ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
                       ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
