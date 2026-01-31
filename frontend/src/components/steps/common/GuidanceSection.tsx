@@ -788,6 +788,111 @@ const RankingDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
   );
 };
 
+// InteractiveChecklistDisplay - For interactive checkboxes with strikethrough (Step 4.6)
+const InteractiveChecklistDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+
+  const isChecklist = subSteps.length > 0 && subSteps.some(s => s.startsWith('CHECK|'));
+
+  if (!isChecklist) return null;
+
+  const items = subSteps
+    .filter(s => s.startsWith('CHECK|'))
+    .map(s => s.replace('CHECK|', '').trim());
+
+  const toggleItem = (idx: number) => {
+    setCheckedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(idx)) {
+        newSet.delete(idx);
+      } else {
+        newSet.add(idx);
+      }
+      return newSet;
+    });
+  };
+
+  const completedCount = checkedItems.size;
+  const totalCount = items.length;
+  const allCompleted = completedCount === totalCount;
+
+  return (
+    <div className="mt-4 space-y-3">
+      {/* Progress indicator */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out"
+            style={{ width: `${(completedCount / totalCount) * 100}%` }}
+          />
+        </div>
+        <span className={`text-sm font-semibold ${allCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+          {completedCount}/{totalCount}
+        </span>
+      </div>
+
+      {/* Checklist items */}
+      <div className="space-y-2">
+        {items.map((item, idx) => {
+          const isChecked = checkedItems.has(idx);
+          return (
+            <button
+              key={idx}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleItem(idx);
+              }}
+              className={`
+                w-full flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-all duration-300
+                ${isChecked 
+                  ? 'bg-green-50 border-green-300 shadow-sm' 
+                  : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'}
+              `}
+            >
+              {/* Checkbox */}
+              <div className={`
+                shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300
+                ${isChecked 
+                  ? 'bg-green-500 border-green-500' 
+                  : 'bg-white border-gray-300'}
+              `}>
+                {isChecked && (
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              
+              {/* Text */}
+              <span className={`
+                flex-1 text-sm leading-relaxed transition-all duration-300
+                ${isChecked 
+                  ? 'text-gray-500 line-through decoration-2 decoration-green-500' 
+                  : 'text-gray-700'}
+              `}>
+                {item}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Completion message */}
+      {allCompleted && (
+        <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 flex items-center gap-3">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+            <CheckCircle2 size={20} className="text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-green-800">Bước này đã hoàn thành!</p>
+            <p className="text-sm text-green-600">Bạn đã kiểm tra tất cả các tiêu chí. Sẵn sàng chuyển sang bước tiếp theo.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -814,6 +919,13 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
 
   // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
   const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
+
+  // Check if this is the "Interactive Checklist" type (CHECK|...)
+  const isChecklist = subSteps.length > 0 && subSteps.some(s => s.startsWith('CHECK|'));
+
+  if (isChecklist) {
+    return <InteractiveChecklistDisplay subSteps={subSteps} theme={theme} />;
+  }
 
   if (isCriteriaGrid) {
     return <CriteriaGridDisplay subSteps={subSteps} theme={theme} />;

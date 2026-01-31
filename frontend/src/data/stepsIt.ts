@@ -494,12 +494,12 @@ export const STEPS_DATA: StepFullData[] = [
         title: 'Test nhanh & Kết luận',
         description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
         subSteps: [
-          'Tôi mô tả được dữ liệu bằng ví dụ cụ thể (một bảng, một đoạn ghi chép, một tài liệu)?',
-          'Mỗi loại dữ liệu tương ứng phần nào của câu hỏi nghiên cứu?',
-          'Nguồn dữ liệu thực sự tiếp cận được với tôi?',
-          'Nếu cắt 30-50% thời gian, tôi biết giữ lại phần nào?',
-          'Thứ tự các bước có phụ thuộc nhau hợp lý?',
-          'Nếu không chỉ ra được dữ liệu cụ thể, nguồn dữ liệu, và cách dùng dữ liệu để trả lời câu hỏi → bước này chưa đạt.'
+          'CHECK|Tôi mô tả được dữ liệu bằng ví dụ cụ thể (một bảng, một đoạn ghi chép, một tài liệu)?',
+          'CHECK|Mỗi loại dữ liệu tương ứng phần nào của câu hỏi nghiên cứu?',
+          'CHECK|Nguồn dữ liệu thực sự tiếp cận được với tôi?',
+          'CHECK|Nếu cắt 30-50% thời gian, tôi biết giữ lại phần nào?',
+          'CHECK|Thứ tự các bước có phụ thuộc nhau hợp lý?',
+          'CHECK|Nếu không chỉ ra được dữ liệu cụ thể, nguồn dữ liệu, và cách dùng dữ liệu để trả lời câu hỏi → bước này chưa đạt.'
         ]
       }
     ],
