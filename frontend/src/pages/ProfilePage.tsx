@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Heart, Trash2, ExternalLink, Mail } from 'lucide-react';
+import { Heart, Trash2, ExternalLink, Mail, Pencil } from 'lucide-react';
 import CleanupButton from '../components/profile/CleanupButton';
 
 type SavedTopic = {
@@ -40,6 +40,7 @@ const ProfilePage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [major, setMajor] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
   const [deletingLecturerId, setDeletingLecturerId] = useState<string | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
@@ -147,6 +148,8 @@ const ProfilePage: React.FC = () => {
 
     if (upsertError) {
       setError('Không thể lưu hồ sơ.');
+    } else {
+      setIsEditing(false);
     }
     setProfileSaving(false);
   };
@@ -240,7 +243,18 @@ const ProfilePage: React.FC = () => {
                 {major && <p className="text-xs text-slate-400 mt-1">{major}</p>}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setIsEditing((prev) => !prev)}
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors flex items-center gap-2 ${
+                  isEditing
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'border-slate-200 text-slate-500 hover:border-orange-200'
+                }`}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {isEditing ? 'Đóng chỉnh sửa' : 'Chỉnh sửa hồ sơ'}
+              </button>
               <button
                 onClick={() => setTab('topics')}
                 className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors ${
@@ -282,6 +296,7 @@ const ProfilePage: React.FC = () => {
             </div>
           ) : (
             <div className="mt-8 space-y-6">
+              {isEditing && (
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50">
                 <h2 className="text-sm font-bold text-slate-700">Cập nhật hồ sơ</h2>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,14 +319,24 @@ const ProfilePage: React.FC = () => {
                     />
                   </label>
                 </div>
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={profileSaving}
-                  className="mt-4 px-4 py-2 rounded-full bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 disabled:opacity-60"
-                >
-                  {profileSaving ? 'Đang lưu...' : 'Lưu hồ sơ'}
-                </button>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={profileSaving}
+                    className="px-4 py-2 rounded-full bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 disabled:opacity-60"
+                  >
+                    {profileSaving ? 'Đang lưu...' : 'Lưu hồ sơ'}
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    disabled={profileSaving}
+                    className="px-4 py-2 rounded-full border border-slate-200 text-slate-500 text-xs font-bold hover:border-orange-200 disabled:opacity-60"
+                  >
+                    Huỷ
+                  </button>
+                </div>
               </div>
+              )}
               {tab === 'topics' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {topics.length === 0 && (
