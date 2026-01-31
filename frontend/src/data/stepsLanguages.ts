@@ -634,68 +634,117 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step6',
     stepNumber: "06",
-    title: "Đạo đức & Chuẩn mực",
-    description: "Kiểm tra đạo văn (Turnitin), đảm bảo đạo đức nghiên cứu và chuẩn bị slide bảo vệ trước Hội đồng.",
+    title: "Trình bày, phản biện & hoàn thiện nghiên cứu",
+    description: "Chuyển toàn bộ kết quả và lập luận thành sản phẩm học thuật mạch lạc, có thể đọc – phản biện – đánh giá, và hoàn thiện dựa trên phản hồi.",
     theme: THEMES.step6,
     deliverables: [
       {
         id: 'step6_d1',
-        label: 'Đầu ra 1',
-        criteria: ['Tiêu chí 1: Turnitin report < 20%', 'Tiêu chí 2: Tất cả sources được trích dẫn'],
-        placeholder: 'Ghi chú về kết quả Turnitin...'
+        label: 'Sản phẩm nghiên cứu hoàn chỉnh',
+        criteria: ['Báo cáo / khoá luận / proposal hoàn chỉnh', 'Slide / poster / bản thuyết minh (nếu cần)'],
+        placeholder: 'Ghi chú về sản phẩm cuối...'
       },
       {
         id: 'step6_d2',
-        label: 'Đầu ra 2',
-        criteria: ['Tiêu chí 1: Ethical considerations documented', 'Tiêu chí 2: Consent forms archived'],
-        placeholder: 'Ghi chú về ethical compliance...'
+        label: 'Cấu trúc lập luận',
+        criteria: ['Mạch logic: câu hỏi → phương pháp → dữ liệu → kết quả → kết luận', 'Không nhảy bước, dễ theo dõi'],
+        placeholder: 'Ghi chú về cấu trúc lập luận...'
       },
       {
         id: 'step6_d3',
-        label: 'Đầu ra 3',
-        criteria: ['Tiêu chí 1: Slide bảo vệ hoàn chỉnh', 'Tiêu chí 2: Rehearsal completed'],
-        placeholder: 'Ghi chú về chuẩn bị defense...'
+        label: 'Phản hồi đã xử lý',
+        criteria: ['Góp ý từ mentor/giảng viên đã được ghi nhận', 'Chỉnh sửa hoặc nêu rõ lý do không chỉnh'],
+        placeholder: 'Ghi chú về xử lý phản hồi...'
       }
     ],
     guidance: [
       {
         id: 'step6_g1',
         stepNumber: 1,
-        title: 'Kiểm tra đạo văn và ethical compliance',
-        description: 'Submit qua Turnitin, review kết quả và fix các issues về trích dẫn.',
-        subSteps: [
-          'Submit draft qua Turnitin',
-          'Review similarity report',
-          'Fix quotes chưa có citation',
-          'Paraphrase properly (không chỉ đổi từ)'
-        ]
+        title: 'Mục tiêu của bước này',
+        description: 'Chuyển toàn bộ kết quả và lập luận thành sản phẩm học thuật mạch lạc, có thể đọc – phản biện – đánh giá, và hoàn thiện dựa trên phản hồi. Góc nhìn giảng viên: muốn thấy bạn hiểu rõ mình đã làm gì, vì sao làm vậy và giới hạn ở đâu, không chỉ "đúng format".',
+        subSteps: []
       },
       {
         id: 'step6_g2',
         stepNumber: 2,
-        title: 'Chuẩn bị bảo vệ trước Hội đồng',
-        description: 'Tạo slide presentation, rehearse và chuẩn bị cho Q&A session.',
+        title: 'Đầu ra cụ thể',
+        description: 'Sau bước này, bạn cần có 4 nhóm đầu ra chính:',
         subSteps: [
-          'Tạo slide 15-20 trang (theo template trường)',
-          'Rehearse nhiều lần',
-          'Chuẩn bị câu trả lời cho questions thường gặp',
-          'Backup slides và laptop'
+          '📊|Sản phẩm nghiên cứu hoàn chỉnh|Báo cáo / khoá luận / proposal, hoặc slide / poster / bản thuyết minh (tuỳ bối cảnh).',
+          '📋|Cấu trúc lập luận rõ ràng|Câu hỏi → phương pháp → dữ liệu → kết quả → kết luận, nối logic, không nhảy bước.',
+          '💡|Phản hồi đã được xử lý|Ghi nhận góp ý từ giảng viên / mentor / bạn học; chỉnh sửa hoặc nêu rõ lý do không chỉnh.',
+          '⚠️|Phiên bản cuối có thể đánh giá độc lập|Người đọc không cần hỏi thêm vẫn hiểu nghiên cứu; dùng để chấm điểm, phản biện.'
+        ]
+      },
+      {
+        id: 'step6_g3',
+        stepNumber: 3,
+        title: 'Tiêu chí đánh giá đầu ra',
+        description: 'Sản phẩm đạt nếu phần lớn câu hỏi sau trả lời được:',
+        subSteps: [
+          '1️⃣ Theo mạch: Chỉ đọc bản viết / slide, người đọc có hiểu câu hỏi, cách làm và kết luận không?',
+          '2️⃣ Bảo vệ kết luận: Mỗi kết luận có dữ liệu và lập luận dẫn dắt không?',
+          '3️⃣ Trung thực về giới hạn: Hạn chế và giả định có nêu rõ, đúng chỗ không?',
+          '4️⃣ Xử lý phản hồi: Có dấu vết chỉnh sửa sau phản biện không?'
+        ]
+      },
+      {
+        id: 'step6_g4',
+        stepNumber: 4,
+        title: 'Cách làm từng bước',
+        description: 'Đừng coi viết là pha cuối tách rời; đây là vòng lặp lập luận – người đọc – phản hồi.',
+        subSteps: [
+          'PRINCIPLE|Mỗi phần/đoạn đảm nhiệm một chức năng lập luận rõ ràng (đặt vấn đề, bảo vệ phương pháp, đưa bằng chứng, diễn giải ý nghĩa).',
+          'PRINCIPLE|Viết để người đọc theo được logic, không để "trông học thuật".',
+          'PRINCIPLE|Viết là chuỗi vòng lặp: nháp → phản hồi → chỉnh sửa có chủ đích.',
+          'CYCLE|1|Khoá mạch lập luận|Trả lời ngắn gọn 3 câu hỏi — vấn đề là gì, vì sao cách làm hợp lý, kết quả trả lời được gì và không trả lời được gì.',
+          'CYCLE|2|Trình bày theo người đọc|Mỗi mục trả lời một câu hỏi ngầm; nếu người đọc phải tự đoán bước nhảy logic → đoạn đó chưa đạt.',
+          'CYCLE|3|Nhận phản hồi có chủ đích|Ưu tiên người không cùng đề tài để lộ điểm mù logic, không chỉ lỗi câu chữ.',
+          'CYCLE|4|Chỉnh sửa có chọn lọc|Mỗi góp ý được gắn nhãn làm rõ, củng cố lập luận hoặc không áp dụng (kèm lý do).',
+          'QUICKTEST|Một người ngoài đề tài có thể đọc và kể lại đúng câu chuyện nghiên cứu, bao gồm cả giới hạn, mà không cần hỏi thêm không? Nếu chưa chắc → cần thêm một vòng lặp.'
+        ]
+      },
+      {
+        id: 'step6_g5',
+        stepNumber: 5,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến trong quá trình trình bày và hoàn thiện.',
+        subSteps: [
+          'Viết cho người chấm, không cho người đọc: Nhận biết là nhiều thuật ngữ, mạch khó theo. Xử lý: Nhờ người ngoài lĩnh vực chỉ ra đoạn khó hiểu',
+          'Che giấu hạn chế để nghiên cứu "đẹp" hơn: Nhận biết là không có mục hạn chế hoặc viết rất chung. Xử lý: Nêu rõ điều kiện khiến kết luận có thể không còn đúng',
+          'Nhồi kết quả/ý tưởng mới phút cuối: Nhận biết là nội dung không gắn với phương pháp hoặc dữ liệu trước đó. Xử lý: Loại bỏ hoặc chuyển thành hướng nghiên cứu tiếp theo',
+          'Bỏ qua phản biện vì thiếu thời gian: Nhận biết là bản cuối gần như giống bản trước phản hồi. Xử lý: Ưu tiên chỉnh các điểm ảnh hưởng trực tiếp đến mạch lập luận'
+        ]
+      },
+      {
+        id: 'step6_g6',
+        stepNumber: 6,
+        title: 'Test nhanh & Kết luận',
+        description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
+        subSteps: [
+          'CHECK|Người ngoài đề tài có thể đọc và kể lại đúng câu chuyện nghiên cứu không?',
+          'CHECK|Mỗi kết luận có dữ liệu và lập luận dẫn dắt?',
+          'CHECK|Hạn chế và giả định được nêu rõ, đúng chỗ?',
+          'CHECK|Có dấu vết chỉnh sửa sau phản hồi?',
+          'CHECK|Nếu sản phẩm khó theo, né hạn chế hoặc phớt lờ phản hồi → bước này chưa đạt.'
         ]
       }
     ],
     support: {
       tools: [
         { label: 'Turnitin', description: 'Kiểm tra đạo văn chính thức' },
-        { label: 'Grammarly', description: 'Check grammar và clarity' },
-        { label: 'Canva/PPT', description: 'Thiết kế slide presentation' }
+        { label: 'Grammarly', description: 'Kiểm tra ngữ pháp và clarity' },
+        { label: 'Canva / PowerPoint', description: 'Thiết kế slide và poster' }
       ],
       tips: [
-        'Turnitin dưới 20% là yêu cầu tối thiểu',
-        'Paraphrase = đổi cấu trúc câu, không chỉ đổi từ',
-        'Rehearse trước gương hoặc record lại'
+        'Viết cho người đọc, không cho người chấm',
+        'Nhờ người ngoài đề tài review để lộ điểm mù logic',
+        'Thừa nhận hạn chế một cách trung thực',
+        'Ưu tiên chỉnh sửa các điểm ảnh hưởng đến mạch lập luận'
       ],
       videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      videoTitle: 'Tips bảo vệ Capstone thành công'
+      videoTitle: 'Hướng dẫn trình bày và bảo vệ nghiên cứu'
     }
   }
 ];

@@ -196,6 +196,156 @@ const OutputCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> =
   );
 };
 
+// PrinciplesAndStepsDisplay - For Step 6.4 with 3 sections: Principles, Cycle Steps, Quick Test
+const PrinciplesAndStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Parse principles (PRINCIPLE|content)
+  const principles = subSteps
+    .filter(s => s.startsWith('PRINCIPLE|'))
+    .map(s => s.replace('PRINCIPLE|', '').trim());
+
+  // Parse cycle steps (CYCLE|number|title|content)
+  const cycleSteps = subSteps
+    .filter(s => s.startsWith('CYCLE|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 4) {
+        return {
+          number: parseInt(parts[1]),
+          title: parts[2].trim(),
+          content: parts.slice(3).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { number: number; title: string; content: string } => p !== null);
+
+  // Parse quick test (QUICKTEST|content)
+  const quickTest = subSteps
+    .filter(s => s.startsWith('QUICKTEST|'))
+    .map(s => s.replace('QUICKTEST|', '').trim())[0];
+
+  const isPrinciplesAndSteps = principles.length > 0 || cycleSteps.length > 0 || quickTest;
+
+  if (!isPrinciplesAndSteps) return null;
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Section 1: Nguyên tắc cốt lõi */}
+      {principles.length > 0 && (
+        <div className="rounded-xl overflow-hidden border border-purple-200 shadow-sm">
+          <div className="bg-gradient-to-r from-purple-600 to-violet-600 px-4 py-3 flex items-center gap-2">
+            <span className="text-xl">⚡</span>
+            <h5 className="font-bold text-white text-sm uppercase tracking-wide">Nguyên tắc cốt lõi</h5>
+          </div>
+          <div className="bg-purple-50 p-4">
+            <ul className="space-y-3">
+              {principles.map((principle, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <div className="shrink-0 w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-purple-900 leading-relaxed">{principle}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Section 2: Cách triển khai một vòng đầy đủ */}
+      {cycleSteps.length > 0 && (
+        <div className="rounded-xl overflow-hidden border border-blue-200 shadow-sm">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center gap-2">
+            <span className="text-xl">🔄</span>
+            <h5 className="font-bold text-white text-sm uppercase tracking-wide">Cách triển khai một vòng đầy đủ</h5>
+          </div>
+          <div className="bg-blue-50 p-4">
+            {/* Horizontal Steps Navigation */}
+            <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
+              {cycleSteps.map((step, idx) => (
+                <div key={idx} className="flex items-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveStep(idx);
+                    }}
+                    className={`
+                      relative flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 transition-all duration-300
+                      ${activeStep === idx
+                        ? 'bg-white border-blue-500 shadow-lg scale-105'
+                        : 'bg-white/50 border-blue-200 hover:border-blue-300 hover:bg-white'}
+                    `}
+                  >
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mb-1
+                      ${activeStep === idx
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-200 text-blue-700'}
+                    `}>
+                      {step.number}
+                    </div>
+                    <span className={`text-[10px] font-medium text-center px-1 leading-tight ${activeStep === idx ? 'text-blue-900' : 'text-blue-600'}`}>
+                      {step.title.length > 12 ? step.title.substring(0, 12) + '...' : step.title}
+                    </span>
+                  </button>
+                  {idx < cycleSteps.length - 1 && (
+                    <div className="w-6 h-0.5 bg-blue-300 mx-1 hidden sm:block" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Active Step Content */}
+            <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                  <span className="text-white font-bold">{cycleSteps[activeStep]?.number}</span>
+                </div>
+                <h6 className="font-bold text-blue-900 text-base">{cycleSteps[activeStep]?.title}</h6>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed pl-13">
+                {cycleSteps[activeStep]?.content}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Section 3: Bài test nhanh */}
+      {quickTest && (
+        <div className="rounded-xl overflow-hidden border border-green-200 shadow-sm">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-3 flex items-center gap-2">
+            <span className="text-xl">🎯</span>
+            <h5 className="font-bold text-white text-sm uppercase tracking-wide">Bài test nhanh</h5>
+          </div>
+          <div className="bg-green-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-green-600 text-lg">❓</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-green-900 leading-relaxed font-medium">
+                  {quickTest.split('?')[0]}?
+                </p>
+                {quickTest.includes('→') && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-green-700 bg-green-100 rounded-lg px-3 py-2">
+                    <span className="text-green-600 font-bold">➡️</span>
+                    <span>{quickTest.split('→')[1]?.trim() || quickTest.split('?')[1]?.trim()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // VerticalTimelineStepsDisplay - For "Cách làm từng bước" with vertical timeline (Step 3.4)
 const VerticalTimelineStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -985,6 +1135,16 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
 
   // Check if this is the "Interactive Checklist" type (CHECK|...)
   const isChecklist = subSteps.length > 0 && subSteps.some(s => s.startsWith('CHECK|'));
+
+  // Check if this is the "Principles and Steps" type (PRINCIPLE|, CYCLE|, QUICKTEST|)
+  const isPrinciplesAndSteps = subSteps.length > 0 && 
+    (subSteps.some(s => s.startsWith('PRINCIPLE|')) || 
+     subSteps.some(s => s.startsWith('CYCLE|')) ||
+     subSteps.some(s => s.startsWith('QUICKTEST|')));
+
+  if (isPrinciplesAndSteps) {
+    return <PrinciplesAndStepsDisplay subSteps={subSteps} theme={theme} />;
+  }
 
   if (isChecklist) {
     return <InteractiveChecklistDisplay subSteps={subSteps} theme={theme} />;
