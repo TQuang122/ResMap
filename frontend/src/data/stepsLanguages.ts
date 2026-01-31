@@ -5,40 +5,49 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step1',
     stepNumber: "01",
-    title: "Chọn vấn đề & Câu hỏi nghiên cứu",
-    description: "Xác định đề tài Capstone/ResFes khả thi, được Mentor phê duyệt và phù hợp với chuyên ngành Ngôn ngữ.",
+    title: "Chọn vấn đề & biến nó thành câu hỏi nghiên cứu",
+    description: "Sau bước này, bạn cần xác định một câu hỏi/bài toán nghiên cứu đủ rõ để bắt đầu tìm tài liệu và triển khai trong một chu kỳ nghiên cứu hữu hạn. Một câu hỏi tốt giúp người hướng dẫn hiểu bạn định làm gì, giúp bạn không lan man và giúp nhóm sớm quyết định tiếp tục hay dừng một hướng.",
     theme: THEMES.step1,
     deliverables: [
       {
         id: 'step1_d1',
-        label: 'Đầu ra 1',
-        criteria: ['Tiêu chí 1: Tên đề tài sơ bộ', 'Tiêu chí 2: Câu hỏi nghiên cứu chính'],
-        placeholder: 'Ghi chú ngắn gọn về đề tài bạn chọn, các ý tưởng ban đầu...'
+        label: 'Đầu ra chính',
+        criteria: ['1 câu hỏi/bài toán nghiên cứu', 'Viết gọn trong 1–2 câu, rõ ràng', 'Tránh khẩu hiệu, từ mơ hồ', 'Người ngoài đề tài nhưng cùng lĩnh vực gần vẫn hiểu được ý chính'],
+        placeholder: 'Ghi chú câu hỏi nghiên cứu chính của bạn...'
       },
       {
         id: 'step1_d2',
-        label: 'Đầu ra 2',
-        criteria: ['Tiêu chí 1: Các câu hỏi phụ', 'Tiêu chí 2: Phạm vi nghiên cứu'],
-        placeholder: 'Ghi chú về câu hỏi phụ và phạm vi...'
+        label: 'Đánh giá: Đối tượng & Nguồn',
+        criteria: ['Nghiên cứu trên cái gì (dữ liệu, tài liệu, hiện tượng, hệ thống)?', 'Nguồn từ đâu (công khai, nội bộ, khảo sát, thí nghiệm)?', 'Có thể tiếp cận hợp pháp và lặp lại được không?'],
+        placeholder: 'Ghi chú về đối tượng và nguồn dữ liệu...'
       },
       {
         id: 'step1_d3',
-        label: 'Đầu ra 3',
-        criteria: ['Tiêu chí 1: Mục tiêu tổng quát', 'Tiêu chí 2: Mục tiêu cụ thể'],
-        placeholder: 'Ghi chú về mục tiêu nghiên cứu...'
+        label: 'Đánh giá: Năng lực & Phương pháp',
+        criteria: ['Nhóm đã từng làm hoặc học được cách phân tích tương tự chưa?', 'Có tài liệu, khóa học hoặc ví dụ đủ để học và áp dụng trong vài tuần không?'],
+        placeholder: 'Ghi chú về năng lực và phương pháp...'
+      },
+      {
+        id: 'step1_d4',
+        label: 'Đánh giá: Thời gian & Tài nguyên',
+        criteria: ['Có chia được thành các giai đoạn (chuẩn bị → triển khai → phân tích → viết) không?', 'Mỗi giai đoạn có hình dung được đầu ra không?', 'Công cụ, thời gian, kinh phí, nhân lực có đáp ứng không?'],
+        placeholder: 'Ghi chú về thời gian và nguồn lực...'
       }
     ],
     guidance: [
       {
         id: 'step1_g1',
         stepNumber: 1,
-        title: 'Chọn 1-3 chủ đề bạn thật sự tò mò',
-        description: 'Cả nhóm cần thể chí hiểu 1 chủ đề nghiên cứu của bạn từ đầu. Quan sát các hiện tượng xung quanh mình. Liên hệ chương trình giảng viên, cựu sinh viên tại FPTU. Chia sẻ với người đi trước nếu chủ đề nhiều về sở thích riêng của bạn. Sử dụng ResMap / Research Explorer để xem người nghiên cứu xưa đã viết nhiều về vấn đề nào và xem liệu bạn có góc nhìn mới để trả lời hơn không.',
+        title: 'Khám phá & hình thành hướng nghiên cứu',
+        description: 'Không có một con đường "đúng" duy nhất. Bạn có thể quan sát vấn đề từ học tập, công việc, trải nghiệm cá nhân hoặc chọn hướng từ lab, bộ môn, gợi ý của giảng viên. Với người mới, tham khảo chủ đề từ giảng viên/lab và có mentor giúp tránh nhiều ngõ cụt. Dù khám phá theo cách nào, luôn đánh giá từng hướng bằng khung khả thi ở trên.',
         subSteps: [
-          'Dùng ResMap / Research Explorer để xem xu hướng (đang nghiên cứu)',
+          'Quan sát vấn đề từ học tập, công việc, trải nghiệm cá nhân',
+          'Chọn hướng từ lab, bộ môn hoặc gợi ý của giảng viên',
+          'Bắt đầu từ một chủ đề bạn hứng thú rồi đọc để tìm điểm có thể đi sâu',
+          'Dùng ResMap / Research Explorer để xem các hướng đã được nghiên cứu và tìm giảng viên/nhóm phù hợp',
           'Tham khảo Capstone gần nhất của chuyên ngành',
-          'Cân bằng tò mò cá nhân vs. giá trị học thuật',
-          'Nên thảo luận với leader/mentor không quá 3 ngày'
+          'Thảo luận với mentor để hiểu nhanh bối cảnh và nhận ra hướng khó khả thi',
+          '⚠️ Không nên khóa cứng một hướng quá sớm, giữ hơn 1 lựa chọn để linh hoạt đổi hướng'
         ],
         resExploreBox: {
           title: 'Languages ResExplore',
@@ -49,21 +58,36 @@ export const STEPS_DATA: StepFullData[] = [
       {
         id: 'step1_g2',
         stepNumber: 2,
-        title: 'Chuyển chủ đề → Câu hỏi / bài toán nghiên cứu',
-        description: 'Đọc abstract của 3-5 bài về cùng chủ đề để xác định gap. Dùng template: "Mặc dù [vấn đề đã biết], vẫn chưa rõ [câu hỏi chưa được giải đáp]" để tìm lỗ hổng nghiên cứu.',
+        title: 'Thu hẹp thành câu hỏi/bài toán nghiên cứu',
+        description: 'Mục tiêu là câu hỏi đủ rõ và đủ cụ thể để kiểm tra khả thi, chưa cần hoàn hảo. Câu hỏi này sẽ tiếp tục được kiểm chứng và chỉnh ở Bước 2.',
         subSteps: [
-          'Tìm 3-5 abstract liên quan trên Google Scholar',
-          'Xác định khoảng trống (research gap)',
-          'Đặt câu hỏi theo format FINER'
+          'Bước A – Cố định "mình đang làm gì": Tôi sẽ làm gì (phân tích, so sánh, đánh giá, thử nghiệm…)? Tôi không làm gì ở giai đoạn này (cố tình loại 1–2 thứ để tránh lan man)?',
+          'Bước B – Khoanh vùng phạm vi: Đối tượng nghiên cứu cụ thể là gì? Phạm vi/bối cảnh/thời gian nào được bao gồm và loại trừ? Có giải thích được trong 30 giây cho mentor không?',
+          'Bước C – Gắn với cách đánh giá: Làm sao biết kết quả có ý nghĩa? Tiêu chí đến từ đâu (nghiên cứu trước, chuẩn học thuật, so sánh…)? Kết quả sẽ ở dạng gì (bảng, biểu đồ, lập luận, đối chiếu…)?',
+          'Bước D – Viết câu hỏi nháp & xin ý kiến mentor: Viết 1–2 câu, dùng từ đơn giản. Tránh "tốt hơn / hiệu quả / tối ưu" nếu chưa gắn tiêu chí. Trao đổi nhanh với mentor (~5 phút)'
+        ]
+      },
+      {
+        id: 'step1_g3',
+        stepNumber: 3,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến để không lan man hoặc mắc kẹt. Nhớ rằng đọc là để refine câu hỏi, không phải để trì hoãn việc chốt hướng.',
+        subSteps: [
+          'Quá rộng hoặc mơ hồ: Dấu hiệu là không nói rõ trong 1 câu; paper nào cũng "có vẻ liên quan". Xử lý: cố định một đối tượng chính, chấp nhận bỏ hướng phụ',
+          'Ý tưởng hay nhưng không đo lường được: Dấu hiệu là không biết "tốt hay chưa" bằng cách nào. Xử lý: chuyển sang phân tích/so sánh/đánh giá; mượn tiêu chí từ nghiên cứu trước',
+          'Chạy theo xu hướng nhưng chưa hiểu lõi: Dấu hiệu là không giải thích được nếu bỏ từ khóa thời thượng. Xử lý: thu hẹp về một cơ chế hoặc góc nhìn cụ thể; ưu tiên hiểu sâu',
+          'Trì hoãn việc chốt câu hỏi: Dấu hiệu là đọc nhiều nhưng chưa viết được 1–2 câu. Xử lý: viết câu hỏi nháp và gửi mentor; nếu góp ý được ngay → đủ để đi tiếp'
         ]
       }
     ],
     support: {
       tools: [
-        { label: 'Research Explorer', description: 'Công cụ của ResMap (Bước 1: Tìm placeholder về câu hỏi nghiên cứu)' },
-        { label: 'Check dẫn nguồn', description: 'Bước 6 - Kiểm tra nguồn trích dẫn' }
+        { label: 'ResMap', description: 'Công cụ khám phá chủ đề và giảng viên (Bước 1)' },
+        { label: 'Google Scholar', description: 'Tìm abstract để xác định research gap' }
       ],
       tips: [
+        '✅ Kiểm tra: Có 1 câu hỏi rõ ràng? Có đối tượng/nguồn cụ thể? Có phương pháp khả thi? Có thời gian/tài nguyên phù hợp? → Nếu tất cả ĐÚNG → Đủ điều kiện sang Bước 2',
+        '✅ Tự hỏi thêm: Có mô tả được đầu vào → quá trình → đầu ra? Có ít nhất 1 cách đánh giá kết quả không dựa vào cảm giác? Nếu kết quả không như kỳ vọng, nghiên cứu vẫn trả lời được câu hỏi ban đầu?',
         'Nhấp vào "Xem tài liệu tham khảo" để xem videos và blogs hướng dẫn',
         'Sử dụng công cụ ResExplore để tìm giảng viên phù hợp'
       ],
@@ -106,68 +130,152 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step2',
     stepNumber: "02",
-    title: "Tìm & Sàng lọc tài liệu (LR)",
-    description: "Xây dựng cơ sở lý thuyết (Literature Review) từ các nguồn uy tín (IEEE, ScienceDirect) để tìm Research Gap.",
+    title: "Tìm & Sàng lọc tài liệu",
+    description: "Mục tiêu không phải đọc thật nhiều, mà là: biết người khác đã làm gì, biết những gì không cần làm lại, và xác định khoảng trống để đặt câu hỏi hoặc thiết kế nghiên cứu.",
     theme: THEMES.step2,
     deliverables: [
       {
         id: 'step2_d1',
-        label: 'Đầu ra 1',
-        criteria: ['Tiêu chí 1: Danh sách 10-20 bài báo chất lượng', 'Tiêu chí 2: Bảng tổng hợp LR'],
-        placeholder: 'Ghi chú các nguồn tài liệu đã tìm được...'
+        label: 'Bảng tổng hợp tài liệu cốt lõi',
+        criteria: [
+          '8–12 tài liệu cốt lõi đã được sàng lọc',
+          '1–2 survey/review/theoretical overview',
+          '4–6 bài nghiên cứu gốc (xương sống LR)',
+          '2–3 bài so sánh/benchmark/case study'
+        ],
+        placeholder: 'Liệt kê các tài liệu cốt lõi đã chọn...'
       },
       {
         id: 'step2_d2',
-        label: 'Đầu ra 2',
-        criteria: ['Tiêu chí 1: Research Gap được xác định', 'Tiêu chí 2: Khung lý thuyết sơ bộ'],
-        placeholder: 'Ghi chú về gap và khung lý thuyết...'
+        label: 'Thông tin mỗi tài liệu',
+        criteria: [
+          'Vấn đề / câu hỏi nghiên cứu của bài',
+          'Cách tiếp cận / phương pháp / khung lý thuyết',
+          'Dữ liệu / đối tượng / bối cảnh',
+          'Kết quả hoặc lập luận chính',
+          'Lý do giữ bài – nó giúp quyết định điều gì?'
+        ],
+        placeholder: 'Ghi chú tóm tắt từng tài liệu...'
       },
       {
         id: 'step2_d3',
-        label: 'Đầu ra 3',
-        criteria: ['Tiêu chí 1: File Mendeley/Zotero được setup', 'Tiêu chí 2: Trích dẫn theo chuẩn APA'],
-        placeholder: 'Ghi chú về công cụ quản lý tài liệu...'
+        label: 'Kiểm tra đầu ra',
+        criteria: [
+          'Trả lời được: "Mình đang đứng ở đâu trong bức tranh nghiên cứu hiện tại?"',
+          'Xác định được state of the art / prior work',
+          'Nhận diện được khoảng trống (gap) để thiết kế nghiên cứu'
+        ],
+        placeholder: 'Ghi chú về vị trí nghiên cứu của bạn trong bức tranh tổng thể...'
       }
     ],
     guidance: [
       {
         id: 'step2_g1',
         stepNumber: 1,
-        title: 'Tìm kiếm trên các nguồn uy tín',
-        description: 'Sử dụng IEEE Xplore, ScienceDirect, Google Scholar, Scopus để tìm các bài báo liên quan đến chủ đề nghiên cứu.',
+        title: 'Mục tiêu thực sự của bước này',
+        description: 'Mục tiêu không phải đọc thật nhiều, mà là:',
         subSteps: [
-          'Xác định keywords từ câu hỏi nghiên cứu',
-          'Sử dụng Boolean operators (AND, OR, NOT)',
-          'Lọc theo năm xuất bản (ưu tiên 5 năm gần nhất)',
-          'Đọc abstract trước, full paper sau'
+          'Biết người khác đã làm gì (state of the art / prior work)',
+          'Biết những gì không cần làm lại',
+          'Xác định khoảng trống để đặt câu hỏi hoặc thiết kế nghiên cứu',
+          '💡 Literature review còn giúp bạn nhận diện các hướng tiếp cận, phương pháp, cách đo lường, và chuẩn bị nền tảng cho quyết định ở Bước 3.',
+          '⚠️ Nếu chưa trả lời được "Mình đang đứng ở đâu trong bức tranh nghiên cứu hiện tại?" → bước này chưa đạt'
+        ]
+      },
+      {
+        id: 'step2_g1b',
+        stepNumber: 2,
+        title: 'Đầu ra cụ thể',
+        description: 'Sau Bước 2, bắt buộc phải có:',
+        subSteps: [
+          'OUTPUT|Bảng tổng hợp 8-12 tài liệu cốt lõi|1-2 survey / review / theoretical overview (nắm tổng quan & thuật ngữ)|4-6 bài nghiên cứu gốc (xương sống literature review)|2-3 bài so sánh / benchmark / case study / ứng dụng|(Tuỳ chọn) 0-1 bài replication / meta-analysis',
+          'OUTPUT|Với mỗi tài liệu, ghi rõ|Vấn đề / câu hỏi nghiên cứu|Cách tiếp cận / phương pháp / khung lý thuyết|Dữ liệu / đối tượng / bối cảnh (nếu có)|Kết quả hoặc lập luận chính|Lý do giữ bài – nó giúp bạn quyết định điều gì?'
         ]
       },
       {
         id: 'step2_g2',
-        stepNumber: 2,
-        title: 'Tổng hợp và quản lý tài liệu',
-        description: 'Sử dụng Mendeley hoặc Zotero để lưu trữ, gắn tag và tạo trích dẫn tự động.',
+        stepNumber: 3,
+        title: 'Tiêu chí đánh giá tài liệu',
+        description: 'Sử dụng các tiêu chí sau để quyết định giữ hay loại một tài liệu trong quá trình sàng lọc.',
         subSteps: [
-          'Import PDF vào Mendeley/Zotero',
-          'Tạo folder theo chủ đề',
-          'Highlight và note các điểm quan trọng',
-          'Export bibliography theo chuẩn APA/IEEE'
+          'Giữ: Gắn trực tiếp hoặc rất gần câu hỏi nghiên cứu',
+          'Giữ: Có phương pháp / lập luận rõ ràng, tóm tắt được',
+          'Giữ: Có bằng chứng, dữ liệu, ví dụ hoặc logic kiểm chứng',
+          'Giữ: References dẫn đến nhiều bài lõi khác',
+          'Loại: Nói chung chung, thiếu phương pháp hoặc luận cứ',
+          'Loại: Survey quá rộng, không chạm phần lõi bạn quan tâm',
+          'Loại: Không có dữ liệu / ví dụ / khung phân tích để học hỏi',
+          'Loại: Đọc xong không giúp quyết định gì tiếp theo'
+        ]
+      },
+      {
+        id: 'step2_g3',
+        stepNumber: 4,
+        title: 'Cách làm – hai lớp chiến lược',
+        description: 'Kết hợp chiến lược macro (chọn & thu hẹp tài liệu) và micro (đọc từng tài liệu theo Three-Pass Method của S. Keshav).',
+        subSteps: [
+          'A|Chọn & thu hẹp tài liệu (macro)|A1 – Chọn seed paper: Seed là điểm xuất phát của literature map.\n\nSeed tốt thường là:\n• Survey / review uy tín\n• Công trình nền tảng, được trích dẫn nhiều\n• Bài gần đây, định nghĩa rõ vấn đề hoặc khung nghiên cứu\n\n⚠️ Không nên dùng seed nếu bài quá hẹp, references mỏng, hoặc đọc mà không hiểu trọng tâm.',
+          'A|Chọn & thu hẹp tài liệu (macro)|A2 – Đọc "đồ thị nghiên cứu": Khi dùng Connected Papers / citation graph:\n\n• Nút trung tâm → công trình nền\n• Cụm → các trường phái / hướng tiếp cận\n• Bridge papers → nối các cụm (rất giá trị)\n\n💡 Luôn hỏi: "Vì sao bài này nằm ở vị trí này trong mạng lưới?"',
+          'A|Chọn & thu hẹp tài liệu (macro)|A3 – Dùng để ưu tiên, không phải để gom: Kết quả mong muốn là 5–10 bài tiềm năng, không phải 50 PDF.\n\n🎯 Với mỗi bài, quyết định rõ:\n• Chỉ đọc abstract\n• Pass 1\n• Đọc sâu (Pass 2/3)',
+          'B|Đọc từng tài liệu (Three-Pass Method)|Pass 1 (5–10 phút) – Bird\'s-eye view: Đọc title, abstract, intro, conclusion; lướt headings và glance references. Sau Pass 1, trả lời "5 Cs": (1) Category – loại paper gì? (2) Context – liên quan papers nào, dùng lý thuyết nền nào? (3) Correctness – giả định có valid? (4) Contributions – đóng góp chính? (5) Clarity – viết có rõ ràng? → Không rõ/không liên quan/giả định không valid → DỪNG.',
+          'B|Đọc từng tài liệu (Three-Pass Method)|Pass 2 (1 tiếng) – Nắm nội dung chính: Đọc kỹ hơn nhưng bỏ qua details như proofs. Ghi chú key points. CHÚ Ý ĐẶC BIỆT: figures, diagrams, graphs – axes có labeled đúng? Có error bars? Đánh dấu references chưa đọc. Sau pass này: tóm tắt được main thrust với supporting evidence cho người khác. Nếu vẫn không hiểu → đọc background hoặc tiếp Pass 3.',
+          'B|Đọc từng tài liệu (Three-Pass Method)|Pass 3 (4–5 tiếng) – Hiểu sâu hoàn toàn: "Virtual re-implementation" – giả sử cùng assumptions, thử tái tạo công trình trong đầu. Challenge EVERY assumption in EVERY statement. So sánh re-creation với paper → thấy innovations + hidden failings. Nghĩ: "Mình sẽ present khác thế nào?" Ghi ideas cho future work. Sau pass: reconstruct được entire structure từ memory, chỉ ra implicit assumptions và potential issues.'
+        ]
+      },
+      {
+        id: 'step2_g4',
+        stepNumber: 5,
+        title: 'Nguồn tìm papers uy tín & Cách đánh giá',
+        description: 'Biết nơi nào để tìm papers chất lượng và cách phân biệt uy tín thông qua conference/journal rankings.',
+        subSteps: [
+          'N|Nguồn tìm kiếm|• Google Scholar: Tổng hợp từ mọi nguồn học thuật, miễn phí\n• Scopus: Thuộc Elsevier, phủ sóng rộng Linguistics, Languages, Education\n• Web of Science: Thuộc Clarivate, index các tạp chí uy tín nhất\n• JSTOR: Linguistics, Language learning, Literary studies\n• Springer Nature: Applied Linguistics, Language Education\n• Wiley Online Library: TESOL, Language Teaching research\n• ERIC (Education Resources Information Center): Language education research',
+          'N|Conference vs Journal|Conference: Công bố tại hội nghị, peer review ngắn hơn. Phù hợp với Applied Linguistics khi cần trao đổi về methodology và classroom research. Journal: Công bố trên tạp chí là kênh chính cho linguistics và language studies. Linguistics journals có truyền thống lâu đời và được đánh giá cao.',
+          'N|Conference Ranking|A*: Hội nghị elite trong Linguistics & Language Studies, acceptance rate 5-15%\nA: Hội nghị top-tier, well-known trong lĩnh vực, acceptance rate 15-25%\nB: Hội nghị tốt, solid venues, acceptance rate 25-35%\nC: Hội nghị chấp nhận được, bổ sung cho danh mục, acceptance rate 35-50%',
+          'N|Journal Ranking|Q1 (Quartile 1): Top 25% các tạp chí trong lĩnh vực, impact factor cao nhất\nQ2 (Quartile 2): 25-50%, tạp chí tốt, cân bằng giữa quality và accessibility\nQ3 (Quartile 3): 50-75%, tạp chí trung bình\nQ4 (Quartile 4): Bottom 25%, các tạp chí chuyên ngành nhỏ hơn'
+        ]
+      },
+      {
+        id: 'step2_g5',
+        stepNumber: 6,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến trong quá trình tìm và sàng lọc tài liệu.',
+        subSteps: [
+          'Chỉ đọc tổng quan, né tài liệu gốc: Dấu hiệu là không chỉ ra được dữ liệu/lập luận đứng sau một kết luận. Xử lý: Bắt buộc giữ ≥4 bài nghiên cứu gốc, ghi rõ dữ liệu/lập luận → kết luận',
+          'Thu thập nhiều nhưng không rõ vai trò: Dấu hiệu là không trả lời được bài này giúp quyết định gì ở Bước 3. Xử lý: Mỗi bài phải có 1 dòng "Bài này giúp mình quyết định ___"',
+          'Sao chép cách làm mà không hiểu điều kiện: Dấu hiệu là không rõ bối cảnh khác nhau ảnh hưởng kết quả thế nào. Xử lý: Ghi rõ assumptions – constraints – phạm vi hiệu lực của mỗi phương pháp',
+          'Giữ bài "có vẻ liên quan" nhưng không dùng được: Dấu hiệu là không gắn được bài vào quyết định hay lập luận cụ thể nào. Xử lý: Mạnh dạn loại và ghi lý do. Loại có lý do = hiểu nghiên cứu rõ hơn'
         ]
       }
     ],
     support: {
       tools: [
-        { label: 'IEEE Xplore', description: 'Cơ sở dữ liệu khoa học kỹ thuật' },
-        { label: 'Google Scholar', description: 'Tìm kiếm học thuật miễn phí' },
-        { label: 'Mendeley', description: 'Quản lý tài liệu tham khảo' }
+        { label: 'Connected Papers', description: 'Trực quan hóa citation graph và tìm bài liên quan' },
+        { label: 'Google Scholar', description: 'Tìm kiếm học thuật và theo dõi citations' },
+        { label: 'Semantic Scholar', description: 'AI-powered research discovery' },
+        { label: 'Zotero/Mendeley', description: 'Quản lý tài liệu và tạo trích dẫn' }
       ],
       tips: [
-        'Đọc abstract trước để tiết kiệm thời gian',
-        'Ưu tiên bài có số citation cao',
-        'Sử dụng "Cited by" để tìm bài liên quan mới hơn'
+        'Kết quả mong muốn: 5–10 bài tiềm năng, không phải 50 PDF',
+        'Mỗi bài giữ phải có 1 dòng: "Bài này giúp mình quyết định ___"',
+        'Tham khảo Three-Pass Method: web.stanford.edu/class/cs114/reading-keshav.pdf',
+        'Loại có lý do = hiểu nghiên cứu rõ hơn'
       ],
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      videoTitle: 'Hướng dẫn Literature Review'
+      videoUrl: 'https://www.youtube.com/embed/CqeqJBcloek',
+      videoTitle: 'How to Read a Paper Efficiently (S. Keshav)',
+      blogs: [
+        {
+          title: 'How to Read a Paper (Three-Pass Approach)',
+          url: 'https://web.stanford.edu/class/cs114/reading-keshav.pdf',
+          author: 'S. Keshav',
+          description: 'Phương pháp Three-Pass kinh điển để đọc paper hiệu quả'
+        },
+        {
+          title: 'How to do a Literature Review',
+          url: 'https://www.scribbr.com/methodology/literature-review/',
+          author: 'Scribbr',
+          description: 'Hướng dẫn từng bước thực hiện literature review'
+        }
+      ]
     }
   },
   {
@@ -333,7 +441,7 @@ export const STEPS_DATA: StepFullData[] = [
         id: 'step5_g1',
         stepNumber: 1,
         title: 'Phân tích dữ liệu thu được',
-        description: `Sử dụng: Phân SPSS/Excel cho định lượng, NVivo/manual coding cho định tính.`,
+        description: 'Sử dụng SPSS/Excel cho định lượng, NVivo/manual coding cho định tính.',
         subSteps: [
           'Clean data trước khi phân tích',
           'Chạy descriptive statistics',
