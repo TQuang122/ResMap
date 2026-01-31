@@ -72,7 +72,7 @@ const AboutUsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full lg:w-[360px] bg-white/15 border border-white/30 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
+                <div className="w-full lg:w-[420px] bg-white/15 border border-white/30 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
                   <div className="flex items-center gap-3">
                     <img src={Logo} alt="ResMap" className="h-20 w-20 rounded-2xl bg-white/80 p-2" />
                     <div>

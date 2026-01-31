@@ -7,42 +7,49 @@ export const THEMES: Record<string, ThemeColors> = {
     bg: 'bg-white',
     text: 'text-[#1A2B42]',
     accent: 'text-[#F36F21]',
+    accentText: 'text-[#F36F21]',
     glass: 'bg-white/70'
   },
   step1: {
-    bg: 'bg-[#E2E8F0]', // Slate-200ish
-    text: 'text-[#1A2B42]', // Navy
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#1A2B42]',
-    glass: 'bg-white/40'
+    accentText: 'text-[#1A2B42]',
+    glass: 'bg-white/80'
   },
   step2: {
-    bg: 'bg-[#FFF7ED]', // Orange-50
-    text: 'text-[#EA580C]', // Orange-600
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#EA580C]',
-    glass: 'bg-white/60'
+    accentText: 'text-[#EA580C]',
+    glass: 'bg-white/80'
   },
   step3: {
-    bg: 'bg-[#F0FDF4]', // Green-50
-    text: 'text-[#166534]', // Green-800
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#166534]',
-    glass: 'bg-white/60'
+    accentText: 'text-[#166534]',
+    glass: 'bg-white/80'
   },
   step4: {
-    bg: 'bg-[#F5F3FF]', // Purple-50
-    text: 'text-[#5B21B6]', // Purple-900
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#5B21B6]',
-    glass: 'bg-white/50'
+    accentText: 'text-[#5B21B6]',
+    glass: 'bg-white/80'
   },
   step5: {
-    bg: 'bg-[#FEFCE8]', // Yellow-50
-    text: 'text-[#854D0E]', // Yellow-800
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#854D0E]',
-    glass: 'bg-white/60'
+    accentText: 'text-[#854D0E]',
+    glass: 'bg-white/80'
   },
   step6: {
-    bg: 'bg-[#FFF1F2]', // Rose-50
-    text: 'text-[#9F1239]', // Rose-900
+    bg: 'bg-slate-50',
+    text: 'text-slate-800',
     accent: 'bg-[#9F1239]',
-    glass: 'bg-white/60'
+    accentText: 'text-[#9F1239]',
+    glass: 'bg-white/80'
   }
 };

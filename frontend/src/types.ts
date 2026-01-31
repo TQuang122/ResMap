@@ -4,6 +4,7 @@ export interface ThemeColors {
   bg: string;
   text: string;
   accent: string;
+  accentText: string;
   glass: string;
 }
 

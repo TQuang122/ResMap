@@ -35,7 +35,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
           <span className="text-xs md:text-sm font-black uppercase tracking-[0.2em] opacity-60 mb-3 md:mb-4 block">
             Bước {stepNumber}
           </span>
-          <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black mb-4 md:mb-6 leading-[1.1]">
+          <h2 className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black mb-4 md:mb-6 leading-[1.1] ${theme.accentText}`}>
             {title}
           </h2>
           <div className={`w-14 md:w-20 lg:w-24 h-1.5 md:h-2 mb-4 md:mb-6 ${theme.accent} opacity-80 rounded-full`}></div>
@@ -50,9 +50,9 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8">
           
           {/* Left Sidebar - Deliverables (Desktop) */}
-          <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
+          <div className="hidden lg:block lg:col-span-3 xl:col-span-2">
             <motion.div
-              className={`sticky top-28 ${theme.glass} backdrop-blur-xl border border-white/40 p-6 rounded-2xl shadow-xl max-h-[calc(100vh-8rem)] overflow-y-auto`}
+              className={`sticky top-28 bg-white/20 backdrop-blur-sm border border-white/10 p-4 rounded-2xl shadow-md max-h-[calc(100vh-8rem)] overflow-y-auto opacity-70 hover:opacity-100 transition-opacity duration-300`}
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -67,7 +67,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
           </div>
 
           {/* Right Content - Guidance + Support */}
-          <div className="w-full lg:col-span-8 xl:col-span-9 space-y-6 lg:space-y-8">
+          <div className="w-full lg:col-span-9 xl:col-span-10 space-y-6 lg:space-y-8">
             {/* Guidance Section */}
             <motion.div
               className={`${theme.glass} backdrop-blur-xl border border-white/40 p-6 md:p-8 lg:p-10 rounded-2xl md:rounded-3xl shadow-xl`}
