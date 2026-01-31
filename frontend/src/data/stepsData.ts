@@ -139,8 +139,8 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step3',
     stepNumber: "03",
-    title: "Chọn thiết kế & Phương pháp",
-    description: "Chọn phương pháp nghiên cứu (Quantitative/Qualitative) phù hợp với yêu cầu của Hội đồng chuyên môn.",
+    title: "Xây dựng hướng tiếp cận & Phương pháp nghiên cứu",
+    description: "Chọn cách tiếp cận phù hợp với câu hỏi nghiên cứu, xác định thiết kế và phương pháp để đảm bảo dữ liệu thu được có giá trị.",
     theme: THEMES.step3,
     deliverables: [
       {
@@ -204,8 +204,8 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step4',
     stepNumber: "04",
-    title: "Thiết kế công cụ & Lập kế hoạch",
-    description: "Thiết kế bảng hỏi, kịch bản phỏng vấn và lập kế hoạch thu thập dữ liệu thực tế tại FPTU hoặc doanh nghiệp.",
+    title: "Thiết kế pipeline triển khai nghiên cứu",
+    description: "Xây dựng pipeline thực thi: công cụ thu thập dữ liệu, quy trình triển khai, timeline và nguồn lực để đảm bảo tiến độ.",
     theme: THEMES.step4,
     deliverables: [
       {
@@ -271,8 +271,8 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step5',
     stepNumber: "05",
-    title: "Phân tích & Trình bày kết quả",
-    description: "Phân tích dữ liệu (SPSS, Nvivo), trực quan hóa kết quả và viết báo cáo theo chuẩn format của trường.",
+    title: "Triển khai, phân tích, diễn giải (& lặp lại)",
+    description: "Thu thập dữ liệu, phân tích và diễn giải kết quả; lặp lại khi cần để tinh chỉnh câu hỏi, phương pháp và kết luận.",
     theme: THEMES.step5,
     deliverables: [
       {
@@ -338,8 +338,8 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step6',
     stepNumber: "06",
-    title: "Đạo đức & Chuẩn mực",
-    description: "Kiểm tra đạo văn (Turnitin), đảm bảo đạo đức nghiên cứu và chuẩn bị slide bảo vệ trước Hội đồng.",
+    title: "Trình bày, phản biện & hoàn thiện nghiên cứu",
+    description: "Hoàn thiện báo cáo, trình bày kết quả, phản biện và chỉnh sửa để đạt chuẩn học thuật và sẵn sàng bảo vệ.",
     theme: THEMES.step6,
     deliverables: [
       {

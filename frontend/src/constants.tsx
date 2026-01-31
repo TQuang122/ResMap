@@ -22,9 +22,9 @@ export const THEMES: Record<string, ThemeColors> = {
   step2: {
     bg: 'bg-slate-50',
     text: 'text-slate-800',
-    accent: 'bg-[#EA580C]',
-    accentText: 'text-[#EA580C]',
-    borderColor: '#EA580C',
+    accent: 'bg-[#2563EB]',
+    accentText: 'text-[#2563EB]',
+    borderColor: '#2563EB',
     glass: 'bg-white/80'
   },
   step3: {

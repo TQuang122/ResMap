@@ -142,9 +142,6 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
                   <h3 className="font-black text-base md:text-sm lg:text-base text-slate-900 mb-2 group-hover:text-[#F36F21] transition-colors">
                     {step.title}
                   </h3>
-                  <p className="text-slate-500 text-sm md:text-xs lg:text-sm leading-relaxed line-clamp-3">
-                    {step.description}
-                  </p>
                 </div>
               ))}
             </div>
