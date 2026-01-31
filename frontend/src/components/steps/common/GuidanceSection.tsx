@@ -136,6 +136,64 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
   );
 };
 
+// OutputCardsDisplay - For "Đầu ra cụ thể" with emoji cards (Step 5.2)
+const OutputCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isOutputCards = subSteps.length > 0 && subSteps.some(s => /^[📊📋💡⚠️]\|/.test(s));
+
+  if (!isOutputCards) return null;
+
+  const outputItems = subSteps
+    .filter(s => /^[📊📋💡⚠️]\|/.test(s))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 3) {
+        return {
+          emoji: parts[0].trim(),
+          title: parts[1].trim(),
+          content: parts.slice(2).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { emoji: string; title: string; content: string } => p !== null);
+
+  const colorMap: Record<string, { bg: string; border: string; header: string; text: string; iconBg: string }> = {
+    '📊': { bg: 'bg-indigo-50', border: 'border-indigo-200', header: 'bg-gradient-to-r from-indigo-500 to-indigo-600', text: 'text-indigo-900', iconBg: 'bg-indigo-100' },
+    '📋': { bg: 'bg-teal-50', border: 'border-teal-200', header: 'bg-gradient-to-r from-teal-500 to-teal-600', text: 'text-teal-900', iconBg: 'bg-teal-100' },
+    '💡': { bg: 'bg-amber-50', border: 'border-amber-200', header: 'bg-gradient-to-r from-amber-500 to-amber-600', text: 'text-amber-900', iconBg: 'bg-amber-100' },
+    '⚠️': { bg: 'bg-rose-50', border: 'border-rose-200', header: 'bg-gradient-to-r from-rose-500 to-rose-600', text: 'text-rose-900', iconBg: 'bg-rose-100' }
+  };
+
+  const defaultColor = { bg: 'bg-gray-50', border: 'border-gray-200', header: 'bg-gradient-to-r from-gray-500 to-gray-600', text: 'text-gray-900', iconBg: 'bg-gray-100' };
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {outputItems.map((item, idx) => {
+          const colors = colorMap[item.emoji] || defaultColor;
+          return (
+            <div key={idx} className={`rounded-lg shadow-sm overflow-hidden bg-white`}>
+              <div className={`px-3 py-2 ${colors.header} flex items-center gap-2`}>
+                <span className={`w-7 h-7 rounded-full ${colors.iconBg} flex items-center justify-center text-base`}>
+                  {item.emoji}
+                </span>
+                <span className="font-bold text-white text-sm">
+                  {item.title}
+                </span>
+              </div>
+              <div className={`p-3 border-x border-b ${colors.border} ${colors.bg}`}>
+                <p className={`text-sm ${colors.text} leading-relaxed`}>
+                  {item.content}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // VerticalTimelineStepsDisplay - For "Cách làm từng bước" with vertical timeline (Step 3.4)
 const VerticalTimelineStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -917,6 +975,9 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Criteria Grid" type (1️⃣, 2️⃣, 3️⃣, 4️⃣, 5️⃣)
   const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-5]️⃣/.test(s));
 
+  // Check if this is the "Output Cards" type (📊|, 📋|, 💡|, ⚠️|)
+  const isOutputCards = subSteps.length > 0 && subSteps.some(s => /^[📊📋💡⚠️]\|/.test(s));
+
   // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
   const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
 
@@ -925,6 +986,10 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
 
   if (isChecklist) {
     return <InteractiveChecklistDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  if (isOutputCards) {
+    return <OutputCardsDisplay subSteps={subSteps} theme={theme} />;
   }
 
   if (isCriteriaGrid) {

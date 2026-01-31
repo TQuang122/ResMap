@@ -521,68 +521,114 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step5',
     stepNumber: "05",
-    title: "Phân tích & Trình bày kết quả",
-    description: "Phân tích dữ liệu (SPSS, Nvivo), trực quan hóa kết quả và viết báo cáo theo chuẩn format của trường.",
+    title: "Triển khai, phân tích, diễn giải (& lặp lại)",
+    description: "Chuyển dữ liệu từ pipeline thành lập luận có cơ sở để trả lời câu hỏi nghiên cứu, đồng thời cho phép điều chỉnh và lặp lại khi kết quả chưa đủ thuyết phục.",
     theme: THEMES.step5,
     deliverables: [
       {
         id: 'step5_d1',
-        label: 'Đầu ra 1',
-        criteria: ['Tiêu chí 1: Kết quả phân tích thống kê/thematic', 'Tiêu chí 2: Tables và Figures'],
-        placeholder: 'Ghi chú về kết quả phân tích...'
+        label: 'Tập kết quả chính',
+        criteria: ['Bảng số liệu / trích dẫn / quan sát cốt lõi', 'Mỗi kết quả gắn rõ với nguồn dữ liệu'],
+        placeholder: 'Ghi chú về kết quả chính...'
       },
       {
         id: 'step5_d2',
-        label: 'Đầu ra 2',
-        criteria: ['Tiêu chí 1: Discussion section hoàn chỉnh', 'Tiêu chí 2: So sánh với literature'],
-        placeholder: 'Ghi chú về phần thảo luận...'
+        label: 'Diễn giải có lập luận',
+        criteria: ['Kết quả trả lời phần nào của RQ', 'Ý nghĩa trong bối cảnh cụ thể'],
+        placeholder: 'Ghi chú về diễn giải...'
       },
       {
         id: 'step5_d3',
-        label: 'Đầu ra 3',
-        criteria: ['Tiêu chí 1: Limitations acknowledged', 'Tiêu chí 2: Future research directions'],
-        placeholder: 'Ghi chú về hạn chế và hướng mở rộng...'
+        label: 'Hạn chế & giả định',
+        criteria: ['Điều kết quả chưa nói được', 'Điều kiện khiến kết luận có thể thay đổi'],
+        placeholder: 'Ghi chú về hạn chế...'
       }
     ],
     guidance: [
       {
         id: 'step5_g1',
         stepNumber: 1,
-        title: 'Phân tích dữ liệu thu được',
-        description: 'Sử dụng SPSS/Excel cho định lượng, NVivo/manual coding cho định tính.',
-        subSteps: [
-          'Clean data trước khi phân tích',
-          'Chạy descriptive statistics',
-          'Thực hiện hypothesis testing',
-          'Interpret kết quả'
-        ]
+        title: 'Mục tiêu của bước này',
+        description: 'Chuyển dữ liệu từ pipeline (Bước 4) thành lập luận có cơ sở để trả lời trực tiếp câu hỏi nghiên cứu, đồng thời cho phép điều chỉnh và lặp lại khi kết quả chưa đủ thuyết phục.',
+        subSteps: []
       },
       {
         id: 'step5_g2',
         stepNumber: 2,
-        title: 'Trực quan hóa và trình bày theo IMRaD',
-        description: 'Tạo charts, tables theo chuẩn APA. Viết Results và Discussion sections.',
+        title: 'Đầu ra cụ thể',
+        description: 'Sau bước này, bạn cần có 4 nhóm đầu ra chính:',
         subSteps: [
-          'Chọn đúng loại chart cho data',
-          'Results: Trình bày KHÔNG giải thích',
-          'Discussion: Giải thích ý nghĩa, so với LR',
-          'Nêu limitations một cách honest'
+          '📊|Tập kết quả chính|Bảng số liệu / trích dẫn / quan sát / phân loại cốt lõi. Mỗi kết quả gắn rõ với nguồn dữ liệu cụ thể.',
+          '📋|So sánh có kiểm soát|Giữa các phương án / nhóm / cách tiếp cận. Dựa trên tiêu chí đã xác định ở Bước 3–4.',
+          '💡|Diễn giải có lập luận|Kết quả nói gì về câu hỏi nghiên cứu? Ý nghĩa của kết quả trong bối cảnh nào?',
+          '⚠️|Hạn chế & giả định|Điều kết quả chưa nói được. Điều kiện khiến kết luận có thể thay đổi.'
+        ]
+      },
+      {
+        id: 'step5_g3',
+        stepNumber: 3,
+        title: 'Tiêu chí đánh giá đầu ra',
+        description: 'Phân tích được coi là đạt nếu phần lớn câu hỏi sau trả lời được:',
+        subSteps: [
+          '1️⃣ Truy vết dữ liệu: Mỗi kết luận có chỉ ra bảng / trích dẫn / quan sát cụ thể không?',
+          '2️⃣ Phân tích vs. mô tả: Nếu bỏ dữ liệu đi, đoạn văn còn đứng vững không? Tôi có trả lời "vì sao kết quả này quan trọng?" không?',
+          '3️⃣ So sánh có kiểm soát: Các đối tượng được so sánh có cùng điều kiện? Có trộn tiêu chí khác mục tiêu không?',
+          '4️⃣ Thừa nhận giới hạn: Ít nhất một hạn chế hoặc giả định được nêu rõ?'
+        ]
+      },
+      {
+        id: 'step5_g4',
+        stepNumber: 4,
+        title: 'Cách làm từng bước',
+        description: 'Thực hiện theo 5 bước sau để triển khai, phân tích và diễn giải:',
+        subSteps: [
+          'Bước 1 – Cố định lại tiêu chí phân tích: Quay lại Bước 3–4 • Tôi đã cam kết dùng tiêu chí / thước đo / khung phân tích nào? • Có tiêu chí nào đang bị bỏ quên hoặc dùng sai mục đích không?',
+          'Bước 2 – Trình bày kết quả trước, diễn giải sau: Đưa bảng, trích dẫn, sơ đồ, hoặc mô tả quan sát trước • Chỉ diễn giải khi người đọc đã thấy dữ liệu • Nếu chỉ đọc chữ mà không cần dữ liệu → bạn đang kể chuyện',
+          'Bước 3 – So sánh và đối chiếu có kiểm soát: Mỗi kết luận gắn với ít nhất một đối chiếu cụ thể • Giữ nguyên điều kiện, chỉ thay đổi yếu tố đang phân tích',
+          'Bước 4 – Diễn giải: từ kết quả sang ý nghĩa: Tự hỏi • Kết quả này trả lời phần nào của câu hỏi nghiên cứu? • Trong bối cảnh nào kết luận đúng, và khi nào thì không?',
+          'Bước 5 – Quyết định có cần lặp lại không: Dựa trên kết quả hiện tại • Có dữ liệu cần bổ sung không? • Có giả định cần điều chỉnh không? • Nếu cần thay đổi cách thu thập hoặc xử lý dữ liệu → quay lại Bước 4 với pipeline đã có'
+        ]
+      },
+      {
+        id: 'step5_g5',
+        stepNumber: 5,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến trong quá trình phân tích và diễn giải.',
+        subSteps: [
+          'Chỉ lặp lại kết quả bằng lời: Nhận biết là chỉ nhắc lại con số / trích dẫn, không nói ý nghĩa. Xử lý: Bắt buộc trả lời "Kết quả này cho tôi hiểu biết hoặc quyết định mới nào?"',
+          'Kết luận không gắn với dữ liệu: Nhận biết là kết luận nghe hợp lý nhưng không chỉ ra nguồn. Xử lý: Truy ngược lại bảng / trích dẫn / quan sát cụ thể hoặc bỏ kết luận',
+          'Né tránh kết quả không đẹp hoặc mâu thuẫn: Nhận biết là chỉ trình bày phần thuận lợi cho giả thuyết ban đầu. Xử lý: Nêu rõ điều kiện khiến phương án không hiệu quả — điều này tăng độ tin cậy',
+          'Không biết khi nào nên dừng phân tích: Nhận biết là phân tích kéo dài nhưng không tạo thêm lập luận mới. Xử lý: Quay lại câu hỏi nghiên cứu gốc và kiểm tra: đã trả lời đủ chưa?'
+        ]
+      },
+      {
+        id: 'step5_g6',
+        stepNumber: 6,
+        title: 'Test nhanh & Kết luận',
+        description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
+        subSteps: [
+          'CHECK|Mỗi kết luận có truy vết được về dữ liệu cụ thể (bảng/trích dẫn/quan sát)?',
+          'CHECK|Tôi đã trả lời "vì sao kết quả này quan trọng?" cho mỗi kết quả chính?',
+          'CHECK|Các so sánh có kiểm soát (cùng điều kiện, chỉ thay đổi 1 yếu tố)?',
+          'CHECK|Ít nhất một hạn chế hoặc giả định được nêu rõ?',
+          'CHECK|Nếu kết luận không truy vết được về dữ liệu hoặc né tránh hạn chế → bước này chưa đạt.'
         ]
       }
     ],
     support: {
       tools: [
-        { label: 'SPSS', description: 'Phân tích thống kê chuyên nghiệp' },
-        { label: 'Tableau', description: 'Trực quan hóa dữ liệu' },
-        { label: 'PowerBI', description: 'Dashboard và reporting' }
+        { label: 'SPSS / Excel', description: 'Phân tích thống kê định lượng' },
+        { label: 'NVivo', description: 'Phân tích định tính và mã hóa' },
+        { label: 'Tableau / PowerBI', description: 'Trực quan hóa dữ liệu' }
       ],
       tips: [
-        'Đừng chỉ report số, hãy explain meaning',
-        'Link findings với câu hỏi nghiên cứu',
-        'Be honest về limitations'
+        'Trình bày dữ liệu trước, diễn giải sau',
+        'Mỗi kết luận phải truy vết được về nguồn',
+        'Thừa nhận hạn chế tăng độ tin cậy',
+        'Nếu phân tích không tạo lập luận mới → dừng lại'
       ],
       videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      videoTitle: 'Hướng dẫn phân tích SPSS'
+      videoTitle: 'Hướng dẫn phân tích và diễn giải kết quả'
     }
   },
   {
