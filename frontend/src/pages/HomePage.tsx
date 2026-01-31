@@ -14,6 +14,7 @@ import DesignResExploreModal from '../components/research/DesignResExploreModal'
 import LawResExploreModal from '../components/research/LawResExploreModal';
 import MediaResExploreModal from '../components/research/MediaResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
+import AiUsageModal from '../components/research/AiUsageModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { StepFullData } from '../types';
@@ -52,6 +53,7 @@ const HomePage: React.FC = () => {
   const [isLawResExploreOpen, setIsLawResExploreOpen] = useState(false);
   const [isMediaResExploreOpen, setIsMediaResExploreOpen] = useState(false);
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
+  const [isAiUsageOpen, setIsAiUsageOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
   useEffect(() => {
@@ -233,6 +235,7 @@ const HomePage: React.FC = () => {
                   }
                 }}
                 onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
+                onAiUsageOpen={() => setIsAiUsageOpen(true)}
               />
             ))}
           </>
@@ -281,6 +284,11 @@ const HomePage: React.FC = () => {
       <ResearchSuggestionModal
         isOpen={isResearchSuggestionOpen}
         onClose={() => setIsResearchSuggestionOpen(false)}
+      />
+
+      <AiUsageModal
+        isOpen={isAiUsageOpen}
+        onClose={() => setIsAiUsageOpen(false)}
       />
 
         <SidebarDots 

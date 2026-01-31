@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles, Brain } from 'lucide-react';
 import { GuidanceItem, ThemeColors } from '../../../types';
 
 interface GuidanceSectionProps {
@@ -8,9 +8,10 @@ interface GuidanceSectionProps {
   stepNumber: string;
   onResExploreOpen?: () => void;
   onResearchSuggestionOpen?: () => void;
+  onAiUsageOpen?: () => void;
 }
 
-const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen }) => {
+const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen }) => {
   const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id || null);
 
   const toggleExpand = (id: string) => {
@@ -25,6 +26,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
         const isExpanded = expandedId === item.id;
         const hasResExplore = !!item.resExploreBox;
         const hasResearchSuggestion = stepNumber === "01" && item.stepNumber === 1;
+        const hasAiUsage = stepNumber === "01" && item.stepNumber === 1;
         
         return (
           <div
@@ -92,7 +94,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                   )}
 
                   {/* Action Buttons Row */}
-                  {(hasResExplore || hasResearchSuggestion) && (
+                  {(hasResExplore || hasResearchSuggestion || hasAiUsage) && (
                     <div className="flex flex-wrap gap-3">
                       {/* ResExplore Button */}
                       {hasResExplore && item.resExploreBox && (
@@ -148,6 +150,35 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                               >
                                 <Sparkles className="w-4 h-4" />
                                 Mở AI Assistant
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Use in Research Button */}
+                      {hasAiUsage && (
+                        <div className="bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-xl p-4 border border-purple-400/30">
+                          <div className="flex items-start gap-3">
+                            <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                              <Brain className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-semibold text-purple-900 mb-1">
+                                AI Use in Research
+                              </h5>
+                              <p className="text-sm text-purple-700/80 mb-3">
+                                Hướng dẫn sử dụng AI hiệu quả trong từng giai đoạn nghiên cứu
+                              </p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAiUsageOpen?.();
+                                }}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white text-sm font-medium rounded-lg transition-colors"
+                              >
+                                <Brain className="w-4 h-4" />
+                                Xem hướng dẫn
                               </button>
                             </div>
                           </div>
