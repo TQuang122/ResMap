@@ -44,11 +44,11 @@ const AboutUsPage: React.FC = () => {
             <div className="relative px-6 py-14 md:px-10 md:py-24">
               <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10">
                 <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/20 border border-white/30 px-4 py-1.5 text-xs uppercase tracking-[0.3em]">
-                    <Sparkles size={14} />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/20 border border-white/30 px-4 py-1.5 text-sm uppercase tracking-[0.3em]">
+                    <Sparkles size={15} />
                     ResMap Crew
                   </div>
-                  <h1 className="mt-6 text-4xl md:text-6xl font-black leading-tight">
+                  <h1 className="mt-6 text-[2.75rem] md:text-[4rem] font-black leading-tight">
                     Nghiên cứu khoa học
                     <span className="block">không còn là ác mộng.</span>
                   </h1>
@@ -74,25 +74,25 @@ const AboutUsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full lg:w-[540px] bg-white/15 border border-white/30 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
+                <div className="w-full lg:w-[540px] bg-white/15 border border-white/30 rounded-3xl p-7 backdrop-blur-sm shadow-2xl">
                   <div>
                     <div className="text-sm uppercase tracking-[0.3em]">FPTU</div>
                     <div className="text-xl font-black">RESMAP</div>
                   </div>
-                  <p className="mt-4 text-sm text-white/90 leading-relaxed">
+                  <p className="mt-4 text-[0.9375rem] text-white/90 leading-relaxed">
                     Hướng dẫn nghiên cứu khoa học, công cụ học thuật, và cộng đồng chia sẻ kiến thức dành cho Gen Z.
                   </p>
-                  <div className="mt-6 space-y-3 text-sm">
+                  <div className="mt-6 space-y-3 text-[0.9375rem]">
                     <div className="flex items-center gap-2">
-                      <Zap size={16} />
+                      <Zap size={17} />
                       6 bước chuẩn hóa nghiên cứu
                     </div>
                     <div className="flex items-center gap-2">
-                      <ShieldCheck size={16} />
+                      <ShieldCheck size={17} />
                       Bám chuẩn học thuật & đạo đức
                     </div>
                     <div className="flex items-center gap-2">
-                      <Flame size={16} />
+                      <Flame size={17} />
                       Tối ưu tiến độ, giảm stress
                     </div>
                   </div>
