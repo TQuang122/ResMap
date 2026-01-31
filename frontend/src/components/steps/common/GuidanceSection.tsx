@@ -95,10 +95,10 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
 
                   {/* Action Buttons Row */}
                   {(hasResExplore || hasResearchSuggestion || hasAiUsage) && (
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       {/* ResExplore Button */}
                       {hasResExplore && item.resExploreBox && (
-                        <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 border border-blue-400/30">
+                        <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 border border-blue-400/30 h-full">
                           <div className="flex items-start gap-3">
                             <div className="shrink-0 w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
                               <Search className="w-5 h-5 text-white" />
@@ -115,7 +115,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                                   e.stopPropagation();
                                   onResExploreOpen?.();
                                 }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors w-full justify-center"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -129,7 +129,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
 
                       {/* Research Suggestion Button */}
                       {hasResearchSuggestion && (
-                        <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl p-4 border border-orange-400/30">
+                        <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl p-4 border border-orange-400/30 h-full">
                           <div className="flex items-start gap-3">
                             <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
                               <Sparkles className="w-5 h-5 text-white" />
@@ -146,7 +146,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                                   e.stopPropagation();
                                   onResearchSuggestionOpen?.();
                                 }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F36F21] to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F36F21] to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-lg transition-colors w-full justify-center"
                               >
                                 <Sparkles className="w-4 h-4" />
                                 Mở AI Assistant
@@ -158,7 +158,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
 
                       {/* AI Use in Research Button */}
                       {hasAiUsage && (
-                        <div className="bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-xl p-4 border border-purple-400/30">
+                        <div className="bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-xl p-4 border border-purple-400/30 h-full">
                           <div className="flex items-start gap-3">
                             <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
                               <Brain className="w-5 h-5 text-white" />
@@ -175,7 +175,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                                   e.stopPropagation();
                                   onAiUsageOpen?.();
                                 }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white text-sm font-medium rounded-lg transition-colors w-full justify-center"
                               >
                                 <Brain className="w-4 h-4" />
                                 Xem hướng dẫn
