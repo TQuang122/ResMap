@@ -5,6 +5,7 @@ export interface ThemeColors {
   text: string;
   accent: string;
   accentText: string;
+  borderColor: string;
   glass: string;
 }
 

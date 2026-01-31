@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowDown, ChevronRight, Sparkles } from 'lucide-react';
 import { TOPICS } from '../data/topics';
 import { STEPS_DATA } from '../data/stepsData';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
+import StepInfoModal from './StepInfoModal';
 
 interface TopicCardProps {
   icon: React.ReactNode;
@@ -84,6 +85,8 @@ const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => {
 };
 
 const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (topic: string) => void }> = ({ selectedTopic, setSelectedTopic }) => {
+  const [selectedStep, setSelectedStep] = useState<{ stepNumber: string; title: string; description: string } | null>(null);
+
   return (
     <section className="h-auto w-full flex flex-col items-center justify-center pt-32 lg:pt-40 pb-12 px-4 relative bg-white shrink-0">
       {/* Research How-To (Overview) */}
@@ -122,7 +125,8 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
               {STEPS_DATA.map((step) => (
                 <div
                   key={step.id}
-                  className="min-w-[240px] md:min-w-0 md:flex-1 bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:bg-white hover:shadow-lg hover:border-orange-200 transition-all duration-300 group"
+                  onClick={() => setSelectedStep({ stepNumber: step.stepNumber, title: step.title, description: step.description })}
+                  className="min-w-[240px] md:min-w-0 md:flex-1 bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:bg-white hover:shadow-lg hover:border-orange-200 transition-all duration-300 group cursor-pointer"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -207,6 +211,13 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
           <ArrowDown size={24} strokeWidth={2.5} />
         </div>
       </motion.div>
+
+      {/* Step Info Modal */}
+      <StepInfoModal
+        isOpen={selectedStep !== null}
+        onClose={() => setSelectedStep(null)}
+        step={selectedStep}
+      />
     </section>
   );
 };

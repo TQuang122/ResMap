@@ -18,11 +18,16 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
   const { stepNumber, title, description, theme, deliverables, guidance, support } = stepData;
 
   return (
-    <section className={`
-      w-full min-h-screen shrink-0 
-      flex flex-col relative ${theme.bg} ${theme.text} 
-      pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 transition-all
-    `}>
+    <section 
+      className={`
+        w-full min-h-screen shrink-0 
+        flex flex-col relative ${theme.text} 
+        pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 transition-all
+      `}
+      style={{ 
+        background: `linear-gradient(180deg, ${theme.borderColor}15 0%, ${theme.borderColor}05 8%, #f8fafc 20%, #f8fafc 100%)`
+      }}
+    >
       {/* Header Section */}
       <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-10 mb-8 lg:mb-12">
         <motion.div
