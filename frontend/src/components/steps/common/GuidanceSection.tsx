@@ -88,14 +88,14 @@ const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
 
 // CriteriaGridDisplay - For "Tiêu chí đánh giá" with 4 cards grid (Step 3.3)
 const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
-  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
+  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-5]️⃣/.test(s));
 
   if (!isCriteriaGrid) return null;
 
   const criteriaItems = subSteps
-    .filter(s => /^[1-4]️⃣/.test(s))
+    .filter(s => /^[1-5]️⃣/.test(s))
     .map(s => {
-      const match = s.match(/^[1-4]️⃣\s*(.*?):\s*(.*)$/);
+      const match = s.match(/^[1-5]️⃣\s*(.*?):\s*(.*)$/);
       if (match) {
         return { number: match[1].trim(), title: match[1].trim(), content: match[2].trim() };
       }
@@ -107,7 +107,8 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
     { bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-gradient-to-r from-blue-500 to-blue-600', text: 'text-blue-900', icon: 'bg-blue-100 text-blue-600' },
     { bg: 'bg-purple-50', border: 'border-purple-200', header: 'bg-gradient-to-r from-purple-500 to-purple-600', text: 'text-purple-900', icon: 'bg-purple-100 text-purple-600' },
     { bg: 'bg-orange-50', border: 'border-orange-200', header: 'bg-gradient-to-r from-orange-400 to-orange-500', text: 'text-orange-900', icon: 'bg-orange-100 text-orange-600' },
-    { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600' }
+    { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600' },
+    { bg: 'bg-pink-50', border: 'border-pink-200', header: 'bg-gradient-to-r from-pink-500 to-rose-500', text: 'text-pink-900', icon: 'bg-pink-100 text-pink-600' }
   ];
 
   return (
