@@ -1,6 +1,6 @@
 AGENT.md
-.opencode/
-.agent/
+# .opencode/
+# .agent/
 .DS_Store
 
 # Env files (never commit secrets)

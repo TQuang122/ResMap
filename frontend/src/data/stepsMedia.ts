@@ -345,10 +345,10 @@ export const STEPS_DATA: StepFullData[] = [
         title: 'Cách làm từng bước',
         description: 'Thực hiện theo 4 bước sau để xây dựng hướng tiếp cận và phương pháp:',
         subSteps: [
-          'Bước 1 – Bóc tách cách người khác trả lời câu hỏi: Trong LR, mỗi bài dùng cách tiếp cận nào? Phương pháp cụ thể là gì? Tại sao họ chọn như vậy?',
-          'Bước 2 – Ánh xạ câu hỏi của bạn ↔ cách làm trong literature: Câu hỏi bạn thuộc loại nào? Phương pháp nào thường được dùng? Có dùng được không hay cần điều chỉnh?',
-          'Bước 3 – Rút gọn còn 1–2 hướng phương pháp khả thi: Dựa trên 4 tiêu chí (Rõ ràng, Khả thi, Gắn câu hỏi, Có điểm dừng), loại bỏ những hướng không khả thi',
-          'Bước 4 – Chốt hướng tiếp cận chính (phiên bản của bạn): Viết 1–2 đoạn mô tả phương pháp sẽ dùng, giải thích vì sao phù hợp với câu hỏi và bối cảnh của bạn'
+          'Bước 1 – Giải phẫu cách người khác giải quyết vấn đề: Method literacy - khả năng đọc và hiểu cách tri thức được tạo ra. Phân tích theo 4 trục: • Loại vấn đề: Mô tả (chuyện gì xảy ra?), Giải thích (vì sao?), Dự đoán (sẽ xảy ra gì?), Can thiệp (làm sao thay đổi?), Thiết kế (làm sao tạo thứ tốt hơn?) • Nguồn tri thức: dữ liệu số, quan sát con người, hoặc lý thuyết • Logic tạo kết luận: Input → Process → Output (ví dụ: Survey → thống kê → insight) • Ràng buộc thực tế: không có data tốt hơn, không thể thí nghiệm, giới hạn thời gian, vấn đề đạo đức',
+          'Bước 2 – Ánh xạ câu hỏi vào bản đồ phương pháp: Biến câu hỏi mơ hồ thành đối tượng khoa học qua 3 bước: • Bước A - Rút về bản chất: Ép thành dạng "Tôi muốn hiểu ___ để có thể ___" • Bước B - Chọn engine tri thức: "vì sao/như thế nào" → định tính, "bao nhiêu/mạnh không" → định lượng, "sẽ xảy ra không" → mô hình dự đoán • Bước C - Reality check: Có đo được biến không? Có đủ mẫu không? Có quyền truy cập dữ liệu không?',
+          'Bước 3 – Thu hẹp còn hướng khả thi: Áp dụng 5 bộ lọc chiến lược: • Directness: Phương pháp có trả lời thẳng câu hỏi không? • Feasibility: Bạn thực sự làm được không? Phương pháp trung bình + thực thi xuất sắc luôn thắng • Signal vs Noise: Data có đủ tín hiệu hay toàn nhiễu? • Contribution: Cách này giúp nói điều gì mới không? • Energy cost: Phương pháp có làm bạn kiệt sức không? Research là marathon',
+          'Bước 4 – Chốt hướng tiếp cận: Viết 2 đoạn logic thuyết phục: • Đoạn 1 - Strategic logic: "Nghiên cứu này chọn cách tiếp cận ___ nhằm làm rõ ___. Cách này phù hợp vì bản chất câu hỏi là ___ và yêu cầu ___" • Đoạn 2 - Operational snapshot: "Dữ liệu được thu thập từ ___. Phân tích bằng ___. Phương pháp này cho phép phát hiện ___ trong bối cảnh ___"'
         ]
       },
       {

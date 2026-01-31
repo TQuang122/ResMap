@@ -161,6 +161,30 @@ const VerticalTimelineStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeC
     { bg: 'bg-green-500', text: 'text-green-600', light: 'bg-green-50' }
   ];
 
+  const renderStepContent = (content: string) => {
+    if (!content) return null;
+
+    const parts = content.split('•').filter(p => p.trim());
+
+    if (parts.length <= 1) {
+      return <p className="text-gray-700 leading-relaxed">{content}</p>;
+    }
+
+    return (
+      <>
+        {parts[0] && <p className="text-gray-700 leading-relaxed mb-3">{parts[0].trim()}</p>}
+        <ul className="space-y-2">
+          {parts.slice(1).map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2 text-gray-700">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-current mt-2" />
+              <span>{item.trim()}</span>
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  };
+
   return (
     <div className="mt-4">
       <div className="flex flex-col md:flex-row gap-6">
@@ -214,9 +238,7 @@ const VerticalTimelineStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeC
               </div>
             </div>
             <div className={`p-4 rounded-xl ${stepColors[activeStep % stepColors.length].light}`}>
-              <p className="text-gray-700 leading-relaxed">
-                {steps[activeStep]?.content}
-              </p>
+              {renderStepContent(steps[activeStep]?.content)}
             </div>
           </div>
         </div>
