@@ -369,9 +369,9 @@ export const STEPS_DATA: StepFullData[] = [
         title: 'Test nhanh & Kết luận',
         description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
         subSteps: [
-          'Test nhanh: Giải thích phương pháp cho mentor và 2–3 người khác. Nếu họ hiểu → đạt.',
-          '⚠️ Nếu không trả lời được đồng thời: làm gì – ra kết quả gì – trong bao lâu – để trả lời câu hỏi nào → chưa đạt',
-          'Đầu ra cuối cùng: 1 đoạn mô tả hướng tiếp cận + 1 đoạn mô tả phương pháp chính, cùng lý do vì sao chọn'
+          'CHECK|Test nhanh: Giải thích phương pháp cho mentor và 2–3 người khác. Nếu họ hiểu → đạt.',
+          'CHECK|Nếu không trả lời được đồng thời: làm gì – ra kết quả gì – trong bao lâu – để trả lời câu hỏi nào → chưa đạt',
+          'CHECK|Đầu ra cuối cùng: 1 đoạn mô tả hướng tiếp cận + 1 đoạn mô tả phương pháp chính, cùng lý do vì sao chọn'
         ]
       }
     ],
