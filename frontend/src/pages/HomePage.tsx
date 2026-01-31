@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import IntroSection from '../components/IntroSection';
 import BenefitsSection from '../components/BenefitsSection';
 import HeroSection from '../components/HeroSection';
@@ -37,6 +38,11 @@ const STEPS_BY_TOPIC: Record<string, () => Promise<{ STEPS_DATA: StepFullData[] 
 };
 
 const HomePage: React.FC = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const fadeUp = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
+    visible: { opacity: 1, y: 0 },
+  };
   const [activeSection, setActiveSection] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
@@ -201,16 +207,44 @@ const HomePage: React.FC = () => {
           </div>
         )}
         {/* 1. Intro Banner */}
-        <IntroSection onStartClick={handleStartClick} onLearnMoreClick={handleLearnMoreClick} />
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+        >
+          <IntroSection onStartClick={handleStartClick} onLearnMoreClick={handleLearnMoreClick} />
+        </motion.div>
 
         {/* 2. Benefits */}
-        <BenefitsSection />
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.45, ease: 'easeOut', delay: 0.06 }}
+        >
+          <BenefitsSection />
+        </motion.div>
 
         {/* 3. Starter Kit (Summary) */}
-        <StarterKitSection selectedTopic={selectedTopic} />
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.45, ease: 'easeOut', delay: 0.12 }}
+        >
+          <StarterKitSection selectedTopic={selectedTopic} />
+        </motion.div>
 
         {/* 4. Research How-To + Major Selection */}
-        <HeroSection selectedTopic={selectedTopic} setSelectedTopic={handleTopicSelect} />
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.45, ease: 'easeOut', delay: 0.18 }}
+        >
+          <HeroSection selectedTopic={selectedTopic} setSelectedTopic={handleTopicSelect} />
+        </motion.div>
 
         {/* 5+. Steps (Only if topic selected) */}
         {selectedTopic && stepsData.length > 0 && (

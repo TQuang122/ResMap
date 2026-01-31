@@ -9,6 +9,9 @@ import AiAssistantPage from './pages/AiAssistantPage';
 import AuthPage from './pages/AuthPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import AboutUsPage from './pages/AboutUsPage';
 
 // Wrapper to handle scroll state for Navigation across pages
 const AppContent: React.FC = () => {
@@ -89,6 +92,9 @@ const AppContent: React.FC = () => {
           }
         />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/about-us" element={<AboutUsPage />} />
       </Routes>
       </main>
     </div>

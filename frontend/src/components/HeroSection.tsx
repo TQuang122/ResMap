@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowDown, ChevronRight, Sparkles } from 'lucide-react';
 import { TOPICS } from '../data/topics';
 import { STEPS_DATA } from '../data/stepsData';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 
 interface TopicCardProps {
   icon: React.ReactNode;
@@ -27,19 +27,61 @@ const itemVariants = {
   },
 };
 
-const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => (
-  <motion.div
-    onClick={onClick}
-    className="group cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48"
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-  >
-    <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-300">
-      {icon}
-    </div>
-    <h3 className="font-bold text-xs md:text-xs lg:text-base text-gray-800">{title}</h3>
-  </motion.div>
-);
+const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useTransform(mouseY, [-50, 50], [10, -10]);
+  const rotateY = useTransform(mouseX, [-50, 50], [-10, 10]);
+
+  const smoothRotateX = useSpring(rotateX, { stiffness: 420, damping: 24 });
+  const smoothRotateY = useSpring(rotateY, { stiffness: 420, damping: 24 });
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <motion.div
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-2xl hover:-translate-y-2 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48 relative overflow-hidden"
+      whileHover={!shouldReduceMotion ? { scale: 1.12 } : undefined}
+      transition={{ type: 'spring', stiffness: 520, damping: 18 }}
+      whileTap={{ scale: 0.98 }}
+      style={!shouldReduceMotion ? {
+        rotateX: smoothRotateX,
+        rotateY: smoothRotateY,
+        transformStyle: 'preserve-3d',
+      } : undefined}
+    >
+      {!shouldReduceMotion && (
+        <motion.div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{
+            background: `radial-gradient(240px circle at ${mouseX.get() + 120}px ${mouseY.get() + 120}px, rgba(243, 111, 33, 0.18), transparent 60%)`,
+          }}
+        />
+      )}
+      <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-200 relative">
+        {icon}
+      </div>
+      <h3 className="font-bold text-xs md:text-xs lg:text-base text-gray-800 relative">{title}</h3>
+    </motion.div>
+  );
+};
 
 const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (topic: string) => void }> = ({ selectedTopic, setSelectedTopic }) => {
   return (

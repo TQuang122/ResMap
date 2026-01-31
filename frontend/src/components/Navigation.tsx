@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, X, ChevronDown, LogOut, User as UserIcon, Home, FolderOpen, Quote, ShieldCheck, Sparkles } from 'lucide-react';
+import { Menu, Search, X, ChevronDown, LogOut, User as UserIcon, Home, FolderOpen, Quote, ShieldCheck, Sparkles, Wrench, Info } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '@/assets/Logo.png';
 import { searchContent } from '../utils/search';
@@ -126,18 +126,39 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
               <Home size={16} />
               <span>Trang chủ</span>
             </Link>
+            <Link to="/about-us" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
+              <Info size={16} />
+              <span>Giới thiệu</span>
+            </Link>
             <Link to="/starter-kit" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
               <FolderOpen size={16} />
               <span>Starter Kit</span>
             </Link>
-            <Link to="/citation-check" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
-              <Quote size={16} />
-              <span>Citation</span>
-            </Link>
-            <Link to="/plagiarism-check" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
-              <ShieldCheck size={16} />
-              <span>Plagiarism</span>
-            </Link>
+            <div className="relative group">
+              <button className="flex items-center gap-2 hover:text-[#F36F21] transition-colors py-2 outline-none">
+                <Wrench size={16} />
+                <span>Công cụ</span>
+                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
+              </button>
+              <div className="absolute top-full left-0 pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+                <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-2 flex flex-col gap-1 overflow-hidden">
+                  <Link
+                    to="/citation-check"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 transition-colors"
+                  >
+                    <Quote size={16} />
+                    <span>Citation Checker</span>
+                  </Link>
+                  <Link
+                    to="/plagiarism-check"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 transition-colors"
+                  >
+                    <ShieldCheck size={16} />
+                    <span>Plagiarism Checker</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
             <Link to="/ai-assistant" className="flex items-center gap-2 hover:text-[#F36F21] transition-colors">
               <Sparkles size={16} />
               <span>AI Assistant</span>

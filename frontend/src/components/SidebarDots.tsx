@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { THEMES } from '../constants';
 import { ArrowDown } from 'lucide-react';
 
@@ -17,12 +17,44 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
   sectionLabels,
   isTopicSelected = false,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hideTimeoutRef = useRef<number | null>(null);
+  const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
   const labels = sectionLabels && sectionLabels.length === totalSections
     ? sectionLabels
     : Array.from({ length: totalSections }).map((_, i) => `Section ${i + 1}`);
 
   const progressPct = totalSections <= 1 ? 0 : (activeIndex / (totalSections - 1)) * 100;
   const progressScale = Math.max(0, Math.min(1, progressPct / 100));
+
+  const scheduleHide = () => {
+    if (hideTimeoutRef.current) {
+      window.clearTimeout(hideTimeoutRef.current);
+    }
+    hideTimeoutRef.current = window.setTimeout(() => {
+      setVisibleIndex(null);
+      hideTimeoutRef.current = null;
+    }, 1000);
+  };
+
+  useEffect(() => {
+    scheduleHide();
+  }, [activeIndex]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        scheduleHide();
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      if (hideTimeoutRef.current) {
+        window.clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const getDotColor = (index: number) => {
     const STATIC_SECTIONS = 4;
@@ -35,6 +67,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className={
         `
         fixed z-40 pointer-events-auto transition-all duration-300
@@ -65,47 +98,63 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
           const dotColorClass = getDotColor(index);
           const label = labels[index];
           const isMajorSelectionStep = !isTopicSelected && index === 3 && activeIndex === 3;
+          const isLabelVisible = visibleIndex === index;
 
           return (
-            <button
+            <div
               key={index}
-              onClick={() => scrollToSection(index)}
+              onClick={() => setVisibleIndex((prev) => (prev === index ? null : index))}
               className={
                 `
                 group relative
                 flex items-center justify-center
                 transition-all duration-200
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21]/60 focus-visible:ring-offset-2
                 ${isMajorSelectionStep ? 'h-10 w-10 -ml-1' : 'h-8 w-8 rounded-full hover:scale-105 active:scale-95'}
               `
               }
-              aria-label={label}
-              title={label}
             >
-              {isMajorSelectionStep ? (
-                <div className="relative flex items-center justify-center animate-pulse">
-                  <div className="absolute inset-0 bg-[#F36F21]/20 rounded-full animate-ping" />
-                  <div className={`
-                    relative z-10 flex items-center justify-center w-8 h-8 rounded-full 
-                    bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
-                    transition-transform duration-300 group-hover:translate-y-1
-                  `}>
-                    <ArrowDown size={16} strokeWidth={3} />
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  scrollToSection(index);
+                  scheduleHide();
+                }}
+                className={`
+                  group relative
+                  flex items-center justify-center
+                  transition-all duration-200
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21]/60 focus-visible:ring-offset-2
+                  ${isMajorSelectionStep ? 'h-10 w-10 -ml-1' : 'h-8 w-8 rounded-full hover:scale-105 active:scale-95'}
+                `}
+                aria-label={label}
+                title={label}
+              >
+                {isMajorSelectionStep ? (
+                  <div className="relative flex items-center justify-center animate-pulse">
+                    <div className="absolute inset-0 bg-[#F36F21]/20 rounded-full animate-ping" />
+                    <div className={`
+                      relative z-10 flex items-center justify-center w-8 h-8 rounded-full 
+                      bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
+                      transition-transform duration-300 group-hover:translate-y-1
+                    `}>
+                      <ArrowDown size={16} strokeWidth={3} />
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <span
-                  className={
+                ) : (
+                  <span
+                    className={
+                      `
+                      rounded-full transition-all duration-250 ease-out
+                      ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
+                      ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
+                      ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
+                      ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
                     `
-                    rounded-full transition-all duration-250 ease-out
-                    ${isActive ? 'w-3 h-3' : 'w-2 h-2'}
-                    ${isActive ? `${dotColorClass} ring-2 ring-[#F36F21]/40` : ''}
-                    ${!isActive && isVisited ? `${dotColorClass} opacity-70` : ''}
-                    ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
-                  `
-                  }
-                />
-              )}
+                    }
+                  />
+                )}
+              </button>
 
               <span
                 className={
@@ -118,9 +167,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   text-xs font-bold
                   whitespace-nowrap
                   shadow-lg
-                  opacity-0 translate-x-2
-                  group-hover:opacity-100 group-hover:translate-x-0
-                  group-focus-visible:opacity-100 group-focus-visible:translate-x-0
+                  ${isLabelVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}
                   transition-all duration-200
                   ${isMajorSelectionStep ? 'mr-4 bg-[#F36F21]' : ''}
                 `
@@ -128,7 +175,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
               >
                 {label}
               </span>
-            </button>
+            </div>
           );
         })}
       </div>

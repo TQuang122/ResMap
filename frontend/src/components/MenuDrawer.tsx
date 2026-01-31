@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Home, FolderOpen, Quote, ShieldCheck, Sparkles, ChevronRight, User, IdCard } from 'lucide-react';
+import { X, Home, FolderOpen, Quote, ShieldCheck, Sparkles, ChevronRight, User, IdCard, Wrench, ChevronDown, Info } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MenuDrawerProps {
@@ -12,6 +12,7 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -87,6 +88,21 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
           </Link>
 
           <Link 
+            to="/about-us" 
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              location.pathname === '/about-us' 
+              ? 'bg-orange-50 text-[#F36F21] font-bold' 
+              : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Info size={18} />
+              <span>Giới thiệu</span>
+            </div>
+            {location.pathname === '/about-us' && <ChevronRight size={16} />}
+          </Link>
+
+          <Link 
             to="/starter-kit" 
             className={`flex items-center justify-between p-3 rounded-xl transition-all ${
               location.pathname === '/starter-kit' 
@@ -101,35 +117,59 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
             {location.pathname === '/starter-kit' && <ChevronRight size={16} />}
           </Link>
 
-          <Link 
-            to="/citation-check" 
-            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-              location.pathname === '/citation-check' 
-              ? 'bg-orange-50 text-[#F36F21] font-bold' 
-              : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Quote size={18} />
-              <span>APA/IEEE Checker</span>
-            </div>
-            {location.pathname === '/citation-check' && <ChevronRight size={16} />}
-          </Link>
+          <div>
+            <button
+              onClick={() => setIsToolsOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                location.pathname.includes('-check')
+                  ? 'text-[#F36F21] font-bold'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Wrench size={18} />
+                <span>Công cụ</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${isToolsOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
 
-          <Link 
-            to="/plagiarism-check" 
-            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-              location.pathname === '/plagiarism-check' 
-                ? 'bg-orange-50 text-[#F36F21] font-bold' 
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <ShieldCheck size={18} />
-              <span>Plagiarism Checker</span>
+            <div className={`overflow-hidden transition-all duration-300 ${isToolsOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="pl-4 pr-2 py-1 space-y-1">
+                <Link
+                  to="/citation-check"
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                    location.pathname === '/citation-check'
+                    ? 'bg-orange-50 text-[#F36F21] font-bold'
+                    : 'text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Quote size={16} />
+                    <span>APA/IEEE Checker</span>
+                  </div>
+                  {location.pathname === '/citation-check' && <ChevronRight size={14} />}
+                </Link>
+
+                <Link
+                  to="/plagiarism-check"
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                    location.pathname === '/plagiarism-check'
+                      ? 'bg-orange-50 text-[#F36F21] font-bold'
+                      : 'text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck size={16} />
+                    <span>Plagiarism Checker</span>
+                  </div>
+                  {location.pathname === '/plagiarism-check' && <ChevronRight size={14} />}
+                </Link>
+              </div>
             </div>
-            {location.pathname === '/plagiarism-check' && <ChevronRight size={16} />}
-          </Link>
+          </div>
 
           <Link 
             to="/ai-assistant" 
