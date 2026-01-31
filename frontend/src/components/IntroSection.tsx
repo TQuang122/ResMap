@@ -33,7 +33,7 @@ const IntroSection: React.FC<IntroSectionProps> = ({ onStartClick, onLearnMoreCl
     <section className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-slate-50 to-white px-4 pt-32 overflow-hidden shrink-0">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#F36F21]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#F36F21]/10 rounded-full blur-[100px]" />
         <div className="absolute bottom-[10%] left-[-10%] w-[600px] h-[600px] bg-blue-900/5 rounded-full blur-[120px]" />
       </div>
 
