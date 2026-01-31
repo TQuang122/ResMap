@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Brain, AlertTriangle, CheckCircle, CircleSlash, FileText } from 'lucide-react';
+import { X, Brain, AlertTriangle, CheckCircle, CircleSlash, FileText, ArrowRight } from 'lucide-react';
 
 interface AiUsageModalProps {
   isOpen: boolean;
@@ -147,14 +147,14 @@ const AiUsageModal: React.FC<AiUsageModalProps> = ({ isOpen, onClose }) => {
                       <CheckCircle className="w-4 h-4" />
                       Nên dùng AI để
                     </h5>
-                    <ul className="space-y-2">
+                    <div className="space-y-2">
                       {item.goodFor.map((point, pIdx) => (
-                        <li key={pIdx} className="text-sm text-slate-600 flex items-start gap-2">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full shrink-0 mt-2" />
+                        <div key={pIdx} className="text-sm text-slate-600 flex items-start gap-2">
+                          <ArrowRight className="w-4 h-4 text-green-500 shrink-0 mt-0.5 flex-shrink-0" />
                           {point}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
                   {/* Bad For */}
@@ -163,14 +163,14 @@ const AiUsageModal: React.FC<AiUsageModalProps> = ({ isOpen, onClose }) => {
                       <CircleSlash className="w-4 h-4" />
                       Không nên dùng AI để
                     </h5>
-                    <ul className="space-y-2">
+                    <div className="space-y-2">
                       {item.badFor.map((point, pIdx) => (
-                        <li key={pIdx} className="text-sm text-slate-600 flex items-start gap-2">
-                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0 mt-2" />
+                        <div key={pIdx} className="text-sm text-slate-600 flex items-start gap-2">
+                          <ArrowRight className="w-4 h-4 text-red-500 shrink-0 mt-0.5 flex-shrink-0" />
                           {point}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
                   {/* Risks */}
