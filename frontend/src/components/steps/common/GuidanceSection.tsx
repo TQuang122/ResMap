@@ -138,12 +138,14 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
 
 // OutputCardsDisplay - For "Đầu ra cụ thể" with emoji cards (Step 5.2)
 const OutputCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
-  const isOutputCards = subSteps.length > 0 && subSteps.some(s => /^[📊📋💡⚠️]\|/.test(s));
+  // Check for emoji patterns at the start: 📊|, 📋|, 💡|, ⚠️|
+  const emojiPattern = /^(📊|📋|💡|⚠️)\|/;
+  const isOutputCards = subSteps.length > 0 && subSteps.some(s => emojiPattern.test(s));
 
   if (!isOutputCards) return null;
 
   const outputItems = subSteps
-    .filter(s => /^[📊📋💡⚠️]\|/.test(s))
+    .filter(s => emojiPattern.test(s))
     .map(s => {
       const parts = s.split('|');
       if (parts.length >= 3) {
@@ -976,7 +978,7 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-5]️⃣/.test(s));
 
   // Check if this is the "Output Cards" type (📊|, 📋|, 💡|, ⚠️|)
-  const isOutputCards = subSteps.length > 0 && subSteps.some(s => /^[📊📋💡⚠️]\|/.test(s));
+  const isOutputCards = subSteps.length > 0 && subSteps.some(s => /^(📊|📋|💡|⚠️)\|/.test(s));
 
   // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
   const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
