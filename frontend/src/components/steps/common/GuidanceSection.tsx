@@ -111,10 +111,10 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
   ];
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="mt-4 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-0.5">
         {criteriaItems.map((item, idx) => (
-          <div key={idx} className={`rounded-xl border overflow-hidden ${colors[idx % colors.length].border}`}>
+          <div key={idx} className={`rounded-lg border ${colors[idx % colors.length].border} overflow-hidden bg-white`}>
             <div className={`px-3 py-2 ${colors[idx % colors.length].header} flex items-center gap-2`}>
               <span className={`w-6 h-6 rounded-full ${colors[idx % colors.length].icon} flex items-center justify-center font-bold text-xs`}>
                 {idx + 1}
