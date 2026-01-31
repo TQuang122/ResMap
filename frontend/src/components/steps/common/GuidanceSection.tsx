@@ -108,7 +108,7 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
     { bg: 'bg-purple-50', border: 'border-purple-200', header: 'bg-gradient-to-r from-purple-500 to-purple-600', text: 'text-purple-900', icon: 'bg-purple-100 text-purple-600' },
     { bg: 'bg-orange-50', border: 'border-orange-200', header: 'bg-gradient-to-r from-orange-400 to-orange-500', text: 'text-orange-900', icon: 'bg-orange-100 text-orange-600' },
     { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600' },
-    { bg: 'bg-pink-50', border: 'border-pink-200', header: 'bg-gradient-to-r from-pink-500 to-rose-500', text: 'text-pink-900', icon: 'bg-pink-100 text-pink-600' }
+    { bg: 'bg-cyan-50', border: 'border-cyan-200', header: 'bg-gradient-to-r from-cyan-500 to-teal-500', text: 'text-cyan-900', icon: 'bg-cyan-100 text-cyan-600' }
   ];
 
   return (
@@ -809,8 +809,8 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Two Column Output" type (OUTPUT|...)
   const isOutput = subSteps.length > 0 && subSteps.some(s => s.startsWith('OUTPUT|'));
 
-  // Check if this is the "Criteria Grid" type (1️⃣, 2️⃣, 3️⃣, 4️⃣)
-  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
+  // Check if this is the "Criteria Grid" type (1️⃣, 2️⃣, 3️⃣, 4️⃣, 5️⃣)
+  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-5]️⃣/.test(s));
 
   // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
   const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));

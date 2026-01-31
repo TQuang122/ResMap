@@ -373,31 +373,6 @@ export const STEPS_DATA: StepFullData[] = [
           '⚠️ Nếu không trả lời được đồng thời: làm gì – ra kết quả gì – trong bao lâu – để trả lời câu hỏi nào → chưa đạt',
           'Đầu ra cuối cùng: 1 đoạn mô tả hướng tiếp cận + 1 đoạn mô tả phương pháp chính, cùng lý do vì sao chọn'
         ]
-      },
-      {
-        id: 'step3_g7',
-        stepNumber: 7,
-        title: 'Thiết kế pipeline triển khai nghiên cứu',
-        description: 'Chuyển phương pháp đã chọn thành pipeline triển khai với dữ liệu, nguồn lực, thời gian cụ thể.',
-        subSteps: [
-          'Mục tiêu: Chuyển phương pháp thành pipeline triển khai để nghiên cứu có thể triển khai được, có điểm dừng rõ ràng, không còn ở mức giả định, và có thể tái lập.',
-          'OUTPUT|Mô tả dữ liệu & thông tin sẽ sử dụng|Định lượng/định tính/tài liệu/hiện trường/mô phỏng; Có sẵn hay cần tự thu thập|OUTPUT|Kế hoạch thu thập dữ liệu|Nguồn dữ liệu (ai/ở đâu); Cách thu thập (quan sát, đo lường, khảo sát, phỏng vấn); Quy mô tối thiểu dự kiến',
-          'OUTPUT|Kế hoạch xử lý & phân tích|Phân tích, so sánh, mã hóa, mô hình hóa, diễn giải theo hướng nào|OUTPUT|Kế hoạch thực hiện|Các bước chính theo thứ tự thời gian; Ước lượng thời gian cho từng bước',
-          '1️⃣ Hình dung dữ liệu: Mô tả được dữ liệu bằng ví dụ cụ thể (một bảng, một đoạn ghi chép, một tài liệu)? Người khác có thể tưởng tượng dữ liệu trông như thế nào không?',
-          '2️⃣ Đủ trả lời RQ: Mỗi loại dữ liệu tương ứng với phần nào của câu hỏi? Có phần nào của câu hỏi chưa có dữ liệu phù hợp không?',
-          '3️⃣ Tiếp cận được: Nguồn dữ liệu có thực sự tiếp cận được không? Có rào cản đạo đức, pháp lý, hay hành chính nào không?',
-          '4️⃣ Vừa thời gian: Nếu bị cắt 30–50% thời gian, giữ lại phần dữ liệu nào? Có xác định được phiên bản tối thiểu của dataset không?',
-          '5️⃣ Logic các bước: Thứ tự các bước có phụ thuộc nhau hợp lý không? Có bước nào "để cho đủ" nhưng không thực sự cần thiết không?',
-          'Bước 1 – Truy ngược từ phương pháp sang dữ liệu: Lấy phương pháp đã chốt và tự hỏi: Mỗi bước cần loại dữ liệu nào? Dữ liệu đó ở dạng nào để phân tích được? Viết "Để làm X, cần dữ liệu Y"',
-          'Bước 2 – Đối chiếu với LR: Quay lại các bài chính trong Bước 2. Họ dùng dữ liệu gì? Quy mô bao nhiêu? Tôi có thể giảm mà vẫn giữ logic nghiên cứu không?',
-          'Bước 3 – Thiết kế phiên bản dữ liệu tối thiểu: Xác định tập dữ liệu nhỏ nhất nhưng đủ dùng. Điều kiện để coi dữ liệu là "đủ". Hỏi: Nếu chỉ có dữ liệu này, trả lời được câu hỏi nghiên cứu không?',
-          'Bước 4 – Lập kế hoạch thực hiện theo timeline: Viết kế hoạch dạng gạch đầu dòng: Tuần 1–2: ..., Tuần 3–4: ... Chỉ cần ở mức logic & ước lượng.',
-          'Nói nhiều về phương pháp nhưng không rõ dữ liệu: Nhận biết là mô tả rất kỹ cách phân tích nhưng không biết dữ liệu từ đâu ra. Xử lý: Buộc viết rõ "Dữ liệu này đến từ đâu, ở dạng gì?"',
-          'Thiết kế dữ liệu quá lớn so với quy mô: Nhận biết là kế hoạch thu thập kéo dài, vượt quá thời gian. Xử lý: Cắt về phiên bản tối thiểu đã xác định',
-          'Bỏ qua rào cản đạo đức/tiếp cận: Nhận biết là chỉ khi bắt đầu mới nhận ra không xin được dữ liệu. Xử lý: Kiểm tra sớm vấn đề đạo đức, quyền truy cập, sự đồng ý',
-          'Kế hoạch thực hiện không có mốc dừng: Nhận biết là không biết khi nào dữ liệu là "đủ" để dừng. Xử lý: Đặt điều kiện dừng rõ ràng (đủ mẫu, đủ trường hợp, đủ tài liệu)',
-          '✓ Tôi mô tả được dữ liệu bằng ví dụ cụ thể? • Mỗi loại dữ liệu tương ứng phần nào của câu hỏi nghiên cứu? • Nguồn dữ liệu thực sự tiếp cận được? • Nếu cắt 30-50% thời gian, giữ lại phần nào? • Thứ tự các bước có phụ thuộc hợp lý?'
-        ]
       }
     ],
     support: {
@@ -433,8 +408,8 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step4',
     stepNumber: "04",
-    title: "Thiết kế công cụ & Lập kế hoạch",
-    description: "Thiết kế bảng hỏi, kịch bản phỏng vấn và lập kế hoạch thu thập dữ liệu thực tế tại FPTU hoặc doanh nghiệp.",
+    title: "Thiết kế pipeline triển khai nghiên cứu",
+    description: "Chuyển phương pháp nghiên cứu thành pipeline triển khai (dữ liệu, nguồn lực, thời gian), đảm bảo nghiên cứu có thể thực hiện được.",
     theme: THEMES.step4,
     deliverables: [
       {
@@ -460,25 +435,71 @@ export const STEPS_DATA: StepFullData[] = [
       {
         id: 'step4_g1',
         stepNumber: 1,
-        title: 'Thiết kế công cụ thu thập dữ liệu',
-        description: 'Tạo bảng hỏi (questionnaire) hoặc kịch bản phỏng vấn (interview guide) phù hợp.',
-        subSteps: [
-          'Dùng Likert scale 5-7 điểm cho survey',
-          'Thiết kế câu hỏi mở cho phỏng vấn',
-          'Thực hiện pilot test với 5-10 người',
-          'Revise dựa trên feedback'
-        ]
+        title: 'Mục tiêu của bước này',
+        description: 'Chuyển phương pháp nghiên cứu đã chọn (Bước 3) thành pipeline triển khai nghiên cứu (dữ liệu, nguồn lực, thời gian), đảm bảo nghiên cứu có thể triển khai được, có điểm dừng rõ ràng, không còn ở mức giả định, và có thể tái lập bởi bạn và người khác.',
+        subSteps: []
       },
       {
         id: 'step4_g2',
         stepNumber: 2,
-        title: 'Lập Gantt Chart và Timeline',
-        description: 'Phân chia công việc theo tuần, xác định deadline cho từng milestone.',
+        title: 'Đầu ra cụ thể',
+        description: 'Sau bước này, bạn cần có 4 nhóm đầu ra chính:',
         subSteps: [
-          'List tất cả tasks cần làm',
-          'Estimate thời gian cho mỗi task',
-          'Xác định dependencies',
-          'Buffer 20% cho unexpected issues'
+          'Mô tả rõ loại dữ liệu sẽ sử dụng: định lượng/định tính/tài liệu/hiện trường/mô phỏng; dữ liệu có sẵn hay cần tự thu thập',
+          'Kế hoạch thu thập dữ liệu: nguồn dữ liệu (ai/ở đâu), cách thu thập (khảo sát/phỏng vấn/quan sát), quy mô tối thiểu dự kiến',
+          'Kế hoạch xử lý & phân tích dữ liệu: phân tích/so sánh/mã hoá/mô hình hoá/diễn giải theo hướng nào',
+          'Kế hoạch thực hiện sơ bộ: các bước theo thứ tự thời gian, ước lượng thời gian cho từng bước'
+        ]
+      },
+      {
+        id: 'step4_g3',
+        stepNumber: 3,
+        title: 'Tiêu chí đánh giá (5 Tests)',
+        description: 'Kế hoạch dữ liệu & thực hiện được coi là đủ tốt nếu bạn trả lời được CÓ cho các câu hỏi sau:',
+        subSteps: [
+          '1️⃣ Hình dung dữ liệu: Tôi mô tả được dữ liệu bằng ví dụ cụ thể (bảng, ghi chép, tài liệu)? Người khác có thể tưởng tượng dữ liệu trông như thế nào?',
+          '2️⃣ Đủ trả lời RQ: Mỗi loại dữ liệu tương ứng với phần nào của câu hỏi? Có phần nào của câu hỏi chưa có dữ liệu phù hợp?',
+          '3️⃣ Tiếp cận được: Nguồn dữ liệu thực sự tiếp cận được với tôi? Có rào cản đạo đức, pháp lý, hay hành chính nào không?',
+          '4️⃣ Vừa thời gian: Nếu bị cắt 30-50% thời gian, tôi sẽ giữ lại phần dữ liệu nào? Có xác định được phiên bản tối thiểu?',
+          '5️⃣ Logic các bước: Thứ tự các bước có phụ thuộc nhau hợp lý không? Có bước nào "để cho đủ" nhưng không thực sự cần thiết?'
+        ]
+      },
+      {
+        id: 'step4_g4',
+        stepNumber: 4,
+        title: 'Cách làm từng bước',
+        description: 'Thực hiện theo 4 bước sau để thiết kế pipeline triển khai nghiên cứu:',
+        subSteps: [
+          'Bước 1 – Truy ngược từ phương pháp sang dữ liệu: Lấy phương pháp đã chốt ở Bước 3 và tự hỏi: mỗi bước cần loại dữ liệu nào? Dữ liệu phải ở dạng nào để phân tích được? • Viết dưới dạng "Để làm X, tôi cần dữ liệu Y" • Xác định rõ format dữ liệu cần có',
+          'Bước 2 – Đối chiếu với literature review: Quay lại các bài chính trong Bước 2: • Họ dùng loại dữ liệu gì? Quy mô dữ liệu của họ là bao nhiêu? • Tôi có thể giảm quy mô mà vẫn giữ logic nghiên cứu không? • Nếu dữ liệu khác hoàn toàn literature mà không có lý do rõ ràng → cần xem lại',
+          'Bước 3 – Thiết kế phiên bản dữ liệu tối thiểu: Xác định tập dữ liệu nhỏ nhất nhưng đủ dùng, điều kiện để coi dữ liệu là "đủ" • Tự hỏi: Nếu chỉ có dữ liệu này, tôi có trả lời được câu hỏi nghiên cứu không? • Đặt điều kiện dừng rõ ràng (đủ mẫu, đủ trường hợp, đủ tài liệu)',
+          'Bước 4 – Lập kế hoạch thực hiện theo dòng thời gian: Viết kế hoạch dạng gạch đầu dòng: Tuần 1-2: ..., Tuần 3-4: ... • Chỉ cần ở mức logic & ước lượng, chưa cần chi tiết kỹ thuật • Xác định dependencies giữa các bước'
+        ]
+      },
+      {
+        id: 'step4_g5',
+        stepNumber: 5,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến trong quá trình thiết kế pipeline triển khai.',
+        subSteps: [
+          'Nói nhiều về phương pháp nhưng không rõ dữ liệu: Nhận biết là mô tả rất kỹ cách phân tích, nhưng không biết dữ liệu từ đâu ra. Xử lý: Buộc viết rõ "Dữ liệu này đến từ đâu, ở dạng gì?"',
+          'Thiết kế dữ liệu quá lớn so với quy mô: Nhận biết là kế hoạch thu thập kéo dài, vượt quá thời gian cho phép. Xử lý: Cắt về phiên bản tối thiểu đã xác định',
+          'Bỏ qua rào cản đạo đức/tiếp cận dữ liệu: Nhận biết là chỉ khi bắt đầu mới nhận ra không xin được dữ liệu/không được phép dùng. Xử lý: Kiểm tra sớm vấn đề đạo đức, quyền truy cập, sự đồng ý',
+          'Kế hoạch thực hiện không có mốc dừng: Nhận biết là không biết khi nào thì dữ liệu là "đủ" để dừng thu thập. Xử lý: Đặt điều kiện dừng rõ ràng (đủ mẫu, đủ trường hợp, đủ tài liệu)'
+        ]
+      },
+      {
+        id: 'step4_g6',
+        stepNumber: 6,
+        title: 'Test nhanh & Kết luận',
+        description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
+        subSteps: [
+          'Tôi mô tả được dữ liệu bằng ví dụ cụ thể (một bảng, một đoạn ghi chép, một tài liệu)?',
+          'Mỗi loại dữ liệu tương ứng phần nào của câu hỏi nghiên cứu?',
+          'Nguồn dữ liệu thực sự tiếp cận được với tôi?',
+          'Nếu cắt 30-50% thời gian, tôi biết giữ lại phần nào?',
+          'Thứ tự các bước có phụ thuộc nhau hợp lý?',
+          'Nếu không chỉ ra được dữ liệu cụ thể, nguồn dữ liệu, và cách dùng dữ liệu để trả lời câu hỏi → bước này chưa đạt.'
         ]
       }
     ],
