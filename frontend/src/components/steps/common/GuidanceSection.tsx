@@ -8,15 +8,11 @@ interface SubStepsDisplayProps {
 }
 
 const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps, theme }) => {
-  // Check if this is the "Pitfalls" type (Contains "Dấu hiệu" AND "Xử lý:")
   const isPitfalls = subSteps.length > 0 && subSteps.some(s => s.includes('Dấu hiệu') && s.includes('Xử lý:'));
 
   if (!isPitfalls) return null;
 
-  // Parse pitfalls
-  // Format: "Title: Dấu hiệu là/hoặc/... Content. Xử lý: Content"
   const pitfalls = subSteps.map(s => {
-    // Match pattern: Title: Dấu hiệu [optional : or là] Content Xử lý: Content
     const match = s.match(/^(.*?):\s*Dấu hiệu(?:[:\s]|là)?\s*(.*?)\s*Xử lý:\s*(.*)$/i);
     if (match) {
       return {
@@ -28,12 +24,6 @@ const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
     return null;
   }).filter((p): p is { title: string; signs: string; solution: string } => p !== null);
 
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const toggleExpand = (idx: number) => {
-    setOpenIndex(prev => prev === idx ? null : idx);
-  };
-
   return (
     <div className="mt-4 relative">
       <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-300 via-orange-300 to-green-300 rounded-full" />
@@ -41,66 +31,53 @@ const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
       <div className="space-y-5">
         {pitfalls.map((pitfall, idx) => (
           <div key={idx} className="relative pl-8">
-            <button
-              onClick={() => toggleExpand(idx)}
-              className="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md z-10 hover:scale-110 transition-transform"
-            >
+            <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md z-10">
               <AlertTriangle size={12} className="text-white" />
-            </button>
+            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <button
-                onClick={() => toggleExpand(idx)}
-                className="w-full px-4 py-2.5 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100/50 flex items-center justify-between text-left"
-              >
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-4 py-2.5 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100/50">
                 <h5 className="font-bold text-red-800 text-sm md:text-base">
                   {pitfall.title}
                 </h5>
-                {openIndex === idx ? (
-                  <ChevronUp size={16} className="text-red-600" />
-                ) : (
-                  <ChevronDown size={16} className="text-red-600" />
-                )}
-              </button>
+              </div>
 
-              {openIndex === idx && (
-                <div className="flex flex-col md:flex-row">
-                  <div className="flex-1 p-3 md:p-4 bg-gray-50/50 relative">
-                    <div className="flex items-start gap-2">
-                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                        Dấu hiệu
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 leading-relaxed mt-2">
-                      {pitfall.signs}
-                    </p>
-                    <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-6 h-6 rounded-full bg-white shadow border border-gray-200 items-center justify-center">
-                      <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
+              <div className="flex flex-col md:flex-row">
+                <div className="flex-1 p-3 md:p-4 bg-gray-50/50 relative">
+                  <div className="flex items-start gap-2">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      Nhận biết
+                    </span>
                   </div>
-
-                  <div className="md:hidden flex items-center justify-center py-1 bg-gray-100">
-                    <svg className="w-4 h-4 text-green-600 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <p className="text-sm text-gray-700 leading-relaxed mt-2">
+                    {pitfall.signs}
+                  </p>
+                  <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-6 h-6 rounded-full bg-white shadow border border-gray-200 items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-
-                  <div className="flex-1 p-3 md:p-4 bg-green-50/50 md:border-l border-green-100">
-                    <div className="flex items-start gap-2">
-                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
-                        <CheckCircle2 size={10} className="text-green-600" />
-                        Cách xử lý
-                      </span>
-                    </div>
-                    <p className="text-sm text-green-800 leading-relaxed mt-2 font-medium">
-                      {pitfall.solution}
-                    </p>
-                  </div>
                 </div>
-              )}
+
+                <div className="md:hidden flex items-center justify-center py-1 bg-gray-100">
+                  <svg className="w-4 h-4 text-green-600 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <div className="flex-1 p-3 md:p-4 bg-green-50/50 md:border-l border-green-100">
+                  <div className="flex items-start gap-2">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
+                      <CheckCircle2 size={10} className="text-green-600" />
+                      Xử lý
+                    </span>
+                  </div>
+                  <p className="text-sm text-green-800 leading-relaxed mt-2 font-medium">
+                    {pitfall.solution}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -109,13 +86,11 @@ const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
   );
 };
 
-// CriteriaAccordionDisplay - For "Tiêu chí đánh giá" with 4 expandable cards (Step 3.3)
-const CriteriaAccordionDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+// CriteriaGridDisplay - For "Tiêu chí đánh giá" with 4 cards grid (Step 3.3)
+const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
 
-  const isCriteriaAccordion = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
-
-  if (!isCriteriaAccordion) return null;
+  if (!isCriteriaGrid) return null;
 
   const criteriaItems = subSteps
     .filter(s => /^[1-4]️⃣/.test(s))
@@ -129,44 +104,33 @@ const CriteriaAccordionDisplay: React.FC<{ subSteps: string[]; theme: ThemeColor
     .filter((p): p is { number: string; title: string; content: string } => p !== null);
 
   const colors = [
-    { bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-gradient-to-r from-blue-500 to-blue-600', text: 'text-blue-900', icon: 'bg-blue-100 text-blue-600', dot: 'bg-blue-500' },
-    { bg: 'bg-purple-50', border: 'border-purple-200', header: 'bg-gradient-to-r from-purple-500 to-purple-600', text: 'text-purple-900', icon: 'bg-purple-100 text-purple-600', dot: 'bg-purple-500' },
-    { bg: 'bg-orange-50', border: 'border-orange-200', header: 'bg-gradient-to-r from-orange-400 to-orange-500', text: 'text-orange-900', icon: 'bg-orange-100 text-orange-600', dot: 'bg-orange-500' },
-    { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600', dot: 'bg-green-500' }
+    { bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-gradient-to-r from-blue-500 to-blue-600', text: 'text-blue-900', icon: 'bg-blue-100 text-blue-600' },
+    { bg: 'bg-purple-50', border: 'border-purple-200', header: 'bg-gradient-to-r from-purple-500 to-purple-600', text: 'text-purple-900', icon: 'bg-purple-100 text-purple-600' },
+    { bg: 'bg-orange-50', border: 'border-orange-200', header: 'bg-gradient-to-r from-orange-400 to-orange-500', text: 'text-orange-900', icon: 'bg-orange-100 text-orange-600' },
+    { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600' }
   ];
 
   return (
-    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-      {criteriaItems.map((item, idx) => (
-        <div key={idx} className={`rounded-xl border overflow-hidden ${colors[idx % colors.length].border}`}>
-          <button
-            onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-            className={`w-full px-4 py-3 ${colors[idx % colors.length].header} flex items-center justify-between`}
-          >
-            <div className="flex items-center gap-3">
-              <span className={`w-8 h-8 rounded-full ${colors[idx % colors.length].icon} flex items-center justify-center font-bold text-sm`}>
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {criteriaItems.map((item, idx) => (
+          <div key={idx} className={`rounded-xl border overflow-hidden ${colors[idx % colors.length].border}`}>
+            <div className={`px-3 py-2 ${colors[idx % colors.length].header} flex items-center gap-2`}>
+              <span className={`w-6 h-6 rounded-full ${colors[idx % colors.length].icon} flex items-center justify-center font-bold text-xs`}>
                 {idx + 1}
               </span>
-              <span className="font-bold text-white">
+              <span className="font-bold text-white text-sm">
                 {item.title}
               </span>
             </div>
-            {openIndex === idx ? (
-              <ChevronUp size={18} className="text-white/80" />
-            ) : (
-              <ChevronDown size={18} className="text-white/80" />
-            )}
-          </button>
-
-          {openIndex === idx && (
-            <div className={`p-4 ${colors[idx % colors.length].bg}`}>
+            <div className={`p-3 ${colors[idx % colors.length].bg}`}>
               <p className={`text-sm ${colors[idx % colors.length].text} leading-relaxed`}>
                 {item.content}
               </p>
             </div>
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -822,14 +786,14 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Two Column Output" type (OUTPUT|...)
   const isOutput = subSteps.length > 0 && subSteps.some(s => s.startsWith('OUTPUT|'));
 
-  // Check if this is the "Criteria Accordion" type (1️⃣, 2️⃣, 3️⃣, 4️⃣)
-  const isCriteriaAccordion = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
+  // Check if this is the "Criteria Grid" type (1️⃣, 2️⃣, 3️⃣, 4️⃣)
+  const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
 
   // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
   const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
 
-  if (isCriteriaAccordion) {
-    return <CriteriaAccordionDisplay subSteps={subSteps} theme={theme} />;
+  if (isCriteriaGrid) {
+    return <CriteriaGridDisplay subSteps={subSteps} theme={theme} />;
   }
 
   if (isTimelineSteps) {
