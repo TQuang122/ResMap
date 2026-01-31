@@ -8,12 +8,12 @@ interface SubStepsDisplayProps {
 }
 
 const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps, theme }) => {
-  const isPitfalls = subSteps.length > 0 && subSteps.some(s => s.includes('Dấu hiệu') && s.includes('Xử lý:'));
+  const isPitfalls = subSteps.length > 0 && subSteps.some(s => (s.includes('Dấu hiệu') || s.includes('Nhận biết')) && s.includes('Xử lý:'));
 
   if (!isPitfalls) return null;
 
   const pitfalls = subSteps.map(s => {
-    const match = s.match(/^(.*?):\s*Dấu hiệu(?:[:\s]|là)?\s*(.*?)\s*Xử lý:\s*(.*)$/i);
+    const match = s.match(/^(.*?):\s*(?:Dấu hiệu|Nhận biết)(?:[:\s]|là)?\s*(.*?)\s*Xử lý:\s*(.*)$/i);
     if (match) {
       return {
         title: match[1].trim(),
@@ -771,8 +771,8 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Process Steps" type (Starts with "Bước A", "Bước B"...)
   const isProcessSteps = subSteps.length > 0 && subSteps[0].startsWith('Bước A');
   
-  // Check if this is the "Pitfalls" type (Contains "Dấu hiệu" AND "Xử lý:")
-  const isPitfalls = subSteps.length > 0 && subSteps.some(s => s.includes('Dấu hiệu') && s.includes('Xử lý:'));
+  // Check if this is the "Pitfalls" type (Contains "Dấu hiệu" or "Nhận biết" AND "Xử lý:")
+  const isPitfalls = subSteps.length > 0 && subSteps.some(s => (s.includes('Dấu hiệu') || s.includes('Nhận biết')) && s.includes('Xử lý:'));
 
   // Check if this is the "Criteria Comparison" type (Giữ:/Loại:)
   const isCriteria = subSteps.length > 0 && subSteps.some(s => s.startsWith('Giữ:') || s.startsWith('Loại:'));
