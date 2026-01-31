@@ -178,7 +178,7 @@ export const STEPS_DATA: StepFullData[] = [
           'Biết người khác đã làm gì (state of the art / prior work)',
           'Biết những gì không cần làm lại',
           'Xác định khoảng trống để đặt câu hỏi hoặc thiết kế nghiên cứu',
-          '💡 Literature review còn giúp bạn nhận diện các hướng tiếp cận, phương pháp, cách đo lường, và chuẩn bị nền tảng cho quyết định ở Bước 3.',
+          'Literature review còn giúp bạn nhận diện các hướng tiếp cận, phương pháp, cách đo lường, và chuẩn bị nền tảng cho quyết định ở Bước 3.',
           '⚠️ Nếu chưa trả lời được "Mình đang đứng ở đâu trong bức tranh nghiên cứu hiện tại?" → bước này chưa đạt'
         ]
       },
@@ -215,7 +215,7 @@ export const STEPS_DATA: StepFullData[] = [
         description: 'Kết hợp chiến lược macro (chọn & thu hẹp tài liệu) và micro (đọc từng tài liệu theo Three-Pass Method của S. Keshav).',
         subSteps: [
           'A|Chọn & thu hẹp tài liệu (macro)|A1 – Chọn seed paper: Seed là điểm xuất phát của literature map.\n\nSeed tốt thường là:\n• Survey / review uy tín\n• Công trình nền tảng, được trích dẫn nhiều\n• Bài gần đây, định nghĩa rõ vấn đề hoặc khung nghiên cứu\n\n⚠️ Không nên dùng seed nếu bài quá hẹp, references mỏng, hoặc đọc mà không hiểu trọng tâm.',
-          'A|Chọn & thu hẹp tài liệu (macro)|A2 – Đọc "đồ thị nghiên cứu": Khi dùng Connected Papers / citation graph:\n\n• Nút trung tâm → công trình nền\n• Cụm → các trường phái / hướng tiếp cận\n• Bridge papers → nối các cụm (rất giá trị)\n\n💡 Luôn hỏi: "Vì sao bài này nằm ở vị trí này trong mạng lưới?"',
+          'A|Chọn & thu hẹp tài liệu (macro)|A2 – Đọc "đồ thị nghiên cứu": Khi dùng Connected Papers / citation graph:\n\n• Nút trung tâm → công trình nền\n• Cụm → các trường phái / hướng tiếp cận\n• Bridge papers → nối các cụm (rất giá trị)\n\nLuôn hỏi: "Vì sao bài này nằm ở vị trí này trong mạng lưới?"',
           'A|Chọn & thu hẹp tài liệu (macro)|A3 – Dùng để ưu tiên, không phải để gom: Kết quả mong muốn là 5–10 bài tiềm năng, không phải 50 PDF.\n\n🎯 Với mỗi bài, quyết định rõ:\n• Chỉ đọc abstract\n• Pass 1\n• Đọc sâu (Pass 2/3)',
           'B|Đọc từng tài liệu (Three-Pass Method)|Pass 1 (5–10 phút) – Bird\'s-eye view: Đọc title, abstract, intro, conclusion; lướt headings và glance references. Sau Pass 1, trả lời "5 Cs": (1) Category – loại paper gì? (2) Context – liên quan papers nào, dùng lý thuyết nền nào? (3) Correctness – giả định có valid? (4) Contributions – đóng góp chính? (5) Clarity – viết có rõ ràng? → Không rõ/không liên quan/giả định không valid → DỪNG.',
           'B|Đọc từng tài liệu (Three-Pass Method)|Pass 2 (1 tiếng) – Nắm nội dung chính: Đọc kỹ hơn nhưng bỏ qua details như proofs. Ghi chú key points. CHÚ Ý ĐẶC BIỆT: figures, diagrams, graphs – axes có labeled đúng? Có error bars? Đánh dấu references chưa đọc. Sau pass này: tóm tắt được main thrust với supporting evidence cho người khác. Nếu vẫn không hiểu → đọc background hoặc tiếp Pass 3.',
@@ -229,7 +229,7 @@ export const STEPS_DATA: StepFullData[] = [
         description: 'Biết nơi nào để tìm papers chất lượng và cách phân biệt uy tín thông qua conference/journal rankings.',
         subSteps: [
           'N|Nguồn tìm kiếm|• Google Scholar: Tổng hợp từ mọi nguồn học thuật, miễn phí\n• Scopus: Thuộc Elsevier, phủ sóng rộng Law, Social Sciences\n• Web of Science: Thuộc Clarivate, index các tạp chí uy tín nhất\n• JSTOR: Law reviews, legal scholarship cổ điển và đương đại\n• Springer Nature: International Law, Human Rights\n• Wiley Online Library: Law journals, Legal Studies\n• HeinOnline: Legal research database với historical documents',
-          'N|Conference vs Journal|Conference: Công bố tại hội nghị, peer review ngắn hơn. Trong Law, hội nghị thường tập trung vào interdisciplinary research và policy discussions. Journal: Công bố trên tạp chí law reviews là kênh chính của legal scholarship. Law reviews có truyền thống lâu đời và được đánh giá cao trong academia.',
+          'N|Conference vs Journal|• Conference: Công bố tại hội nghị khoa học\n- Peer review ngắn hơn\n- Tập trung thảo luận policy & interdisciplinary\n- Phù hợp: Law (trao đổi học thuật, chính sách)\n\n• Journal: Công bố trên tạp chí law reviews\n- Kênh chính của legal scholarship\n- Truyền thống lâu đời, uy tín trong academia',
           'N|Conference Ranking|A*: Hội nghị elite trong Law & Legal Studies, acceptance rate 5-15%\nA: Hội nghị top-tier, well-known trong lĩnh vực, acceptance rate 15-25%\nB: Hội nghị tốt, solid venues, acceptance rate 25-35%\nC: Hội nghị chấp nhận được, bổ sung cho danh mục, acceptance rate 35-50%',
           'N|Journal Ranking|Q1 (Quartile 1): Top 25% các tạp chí trong lĩnh vực, impact factor cao nhất\nQ2 (Quartile 2): 25-50%, tạp chí tốt, cân bằng giữa quality và accessibility\nQ3 (Quartile 3): 50-75%, tạp chí trung bình\nQ4 (Quartile 4): Bottom 25%, các tạp chí chuyên ngành nhỏ hơn'
         ]
@@ -445,10 +445,10 @@ export const STEPS_DATA: StepFullData[] = [
         title: 'Đầu ra cụ thể',
         description: 'Sau bước này, bạn cần có 4 nhóm đầu ra chính:',
         subSteps: [
-          'Mô tả rõ loại dữ liệu sẽ sử dụng: định lượng/định tính/tài liệu/hiện trường/mô phỏng; dữ liệu có sẵn hay cần tự thu thập',
-          'Kế hoạch thu thập dữ liệu: nguồn dữ liệu (ai/ở đâu), cách thu thập (khảo sát/phỏng vấn/quan sát), quy mô tối thiểu dự kiến',
-          'Kế hoạch xử lý & phân tích dữ liệu: phân tích/so sánh/mã hoá/mô hình hoá/diễn giải theo hướng nào',
-          'Kế hoạch thực hiện sơ bộ: các bước theo thứ tự thời gian, ước lượng thời gian cho từng bước'
+          'TABLE|Loại dữ liệu|Định lượng/định tính/tài liệu/hiện trường/mô phỏng; dữ liệu có sẵn hay cần tự thu thập',
+          'TABLE|Thu thập dữ liệu|Nguồn dữ liệu (ai/ở đâu), cách thu thập (khảo sát/phỏng vấn/quan sát), quy mô tối thiểu dự kiến',
+          'TABLE|Xử lý & phân tích|Phân tích/so sánh/mã hóa/mô hình hóa/diễn giải theo hướng nào',
+          'TABLE|Kế hoạch thực hiện|Các bước theo thứ tự thời gian, ước lượng thời gian cho từng bước'
         ]
       },
       {

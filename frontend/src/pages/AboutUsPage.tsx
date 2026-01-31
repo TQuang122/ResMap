@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Sparkles, Compass, Zap, ShieldCheck, Rocket, Flame, Clock, FileWarning, HelpCircle } from 'lucide-react';
 import Footer from '../components/Footer';
-import Logo from '../assets/Logo.png';
 
 const AboutUsPage: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -32,14 +31,17 @@ const AboutUsPage: React.FC = () => {
         animate="visible"
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-orange-500 via-orange-400 to-amber-500 text-white shadow-2xl">
+        <div className="max-w-[1400px] mx-auto px-4">
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[54px] bg-gradient-to-br from-[#FE8C00]/35 to-[#F83600]/35 blur-xl" />
+            <div className="absolute -inset-2 rounded-[48px] bg-gradient-to-br from-[#FE8C00]/20 to-[#F83600]/20 blur-lg" />
+            <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-[#FE8C00] to-[#F83600] bg-[length:400%_400%] animate-gradient-normal text-white shadow-2xl">
             <div className="absolute inset-0 opacity-25">
               <div className="absolute -top-16 -left-20 h-56 w-56 rounded-full bg-white/30 blur-3xl" />
               <div className="absolute bottom-10 right-8 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
             </div>
 
-            <div className="relative px-6 py-12 md:px-10 md:py-16">
+            <div className="relative px-6 py-14 md:px-10 md:py-24">
               <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10">
                 <div className="flex-1">
                   <div className="inline-flex items-center gap-2 rounded-full bg-white/20 border border-white/30 px-4 py-1.5 text-xs uppercase tracking-[0.3em]">
@@ -72,13 +74,10 @@ const AboutUsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full lg:w-[420px] bg-white/15 border border-white/30 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
-                  <div className="flex items-center gap-3">
-                    <img src={Logo} alt="ResMap" className="h-20 w-20 rounded-2xl bg-white/80 p-2" />
-                    <div>
-                      <div className="text-sm uppercase tracking-[0.3em]">FPTU</div>
-                      <div className="text-xl font-black">RESMAP</div>
-                    </div>
+                <div className="w-full lg:w-[540px] bg-white/15 border border-white/30 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
+                  <div>
+                    <div className="text-sm uppercase tracking-[0.3em]">FPTU</div>
+                    <div className="text-xl font-black">RESMAP</div>
                   </div>
                   <p className="mt-4 text-sm text-white/90 leading-relaxed">
                     Hướng dẫn nghiên cứu khoa học, công cụ học thuật, và cộng đồng chia sẻ kiến thức dành cho Gen Z.
@@ -100,12 +99,13 @@ const AboutUsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
       </motion.section>
 
       <motion.section
-        className="max-w-6xl mx-auto px-4 pt-16 w-full"
+        className="max-w-6xl mx-auto px-4 pt-24 w-full"
         variants={fadeUp}
         initial="hidden"
         animate="visible"
@@ -179,13 +179,13 @@ const AboutUsPage: React.FC = () => {
       </motion.section>
 
       <motion.section
-        className="max-w-6xl mx-auto px-4 pb-20 w-full"
+        className="max-w-[1400px] mx-auto px-4 pb-20 w-full"
         variants={fadeUp}
         initial="hidden"
         animate="visible"
         transition={{ duration: 0.5, ease: 'easeOut', delay: 0.24 }}
       >
-        <div className="rounded-[32px] bg-slate-900 text-white px-6 py-10 md:px-10 md:py-12 relative overflow-hidden">
+        <div className="rounded-[32px] bg-slate-900 text-white px-8 py-14 md:px-14 md:py-16 relative overflow-hidden">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-orange-500/40 blur-2xl" />
           <div className="relative">
             <p className="text-xs uppercase tracking-[0.3em] text-orange-300">Join the Squad</p>

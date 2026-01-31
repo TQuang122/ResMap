@@ -136,6 +136,44 @@ const CriteriaGridDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> 
   );
 };
 
+const TableDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isTable = subSteps.length > 0 && subSteps.some(s => s.startsWith('TABLE|'));
+
+  if (!isTable) return null;
+
+  const rows = subSteps
+    .filter(s => s.startsWith('TABLE|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 3) {
+        const label = parts[1].trim();
+        const detail = parts.slice(2).join('|').trim();
+        return { label, detail };
+      }
+      return null;
+    })
+    .filter((row): row is { label: string; detail: string } => row !== null);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white/70">
+      <div className="grid grid-cols-[1fr_2.2fr] bg-slate-100/80 text-slate-600 text-xs font-bold uppercase tracking-wider px-4 py-2">
+        <div>Hạng mục</div>
+        <div>Mô tả</div>
+      </div>
+      <div className="divide-y divide-slate-200">
+        {rows.map((row, idx) => (
+          <div key={idx} className="grid grid-cols-[1fr_2.2fr] gap-4 px-4 py-3">
+            <div className="font-semibold text-slate-800">{row.label}</div>
+            <div className="text-sm text-slate-600 leading-relaxed">{row.detail}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // OutputCardsDisplay - For "Đầu ra cụ thể" with emoji cards (Step 5.2)
 const OutputCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
   // Check for emoji patterns at the start: 📊|, 📋|, 💡|, ⚠️|
@@ -896,11 +934,11 @@ const RankingDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
                       else if (rank === 'C') rankColor = 'bg-gradient-to-r from-orange-400 to-orange-500 text-white';
 
                       return (
-                        <div key={i} className="rounded-lg p-3 border border-gray-100">
-                          <div className={`inline-flex px-2 py-1 rounded text-xs font-bold mb-2 ${rankColor}`}>
+                        <div key={i} className="rounded-lg p-4 border border-gray-100">
+                          <div className={`inline-flex px-2.5 py-1 rounded text-sm font-bold mb-3 ${rankColor}`}>
                             {rank}
                           </div>
-                          <p className="text-xs text-gray-600">{desc}</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
                         </div>
                       );
                     }
@@ -930,11 +968,11 @@ const RankingDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
                       else if (rank === 'Q4') rankColor = 'bg-gradient-to-r from-orange-400 to-orange-500 text-white';
 
                       return (
-                        <div key={i} className="rounded-lg p-3 border border-gray-100">
-                          <div className={`inline-flex px-2 py-1 rounded text-xs font-bold mb-2 ${rankColor}`}>
+                        <div key={i} className="rounded-lg p-4 border border-gray-100">
+                          <div className={`inline-flex px-2.5 py-1 rounded text-sm font-bold mb-3 ${rankColor}`}>
                             {rank}
                           </div>
-                          <p className="text-xs text-gray-600">{desc}</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
                         </div>
                       );
                     }
@@ -1124,6 +1162,9 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Two Column Output" type (OUTPUT|...)
   const isOutput = subSteps.length > 0 && subSteps.some(s => s.startsWith('OUTPUT|'));
 
+  // Check if this is the "Table" type (TABLE|...)
+  const isTable = subSteps.length > 0 && subSteps.some(s => s.startsWith('TABLE|'));
+
   // Check if this is the "Criteria Grid" type (1️⃣, 2️⃣, 3️⃣, 4️⃣, 5️⃣)
   const isCriteriaGrid = subSteps.length > 0 && subSteps.some(s => /^[1-5]️⃣/.test(s));
 
@@ -1172,6 +1213,10 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
 
   if (isOutput) {
     return <TwoColumnOutputDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  if (isTable) {
+    return <TableDisplay subSteps={subSteps} theme={theme} />;
   }
 
   // Check Ranking BEFORE NestedTabs because N| matches [A-Z]|
