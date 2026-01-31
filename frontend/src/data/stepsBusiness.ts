@@ -281,66 +281,128 @@ export const STEPS_DATA: StepFullData[] = [
   {
     id: 'step3',
     stepNumber: "03",
-    title: "Chọn thiết kế & Phương pháp",
-    description: "Chọn phương pháp nghiên cứu (Quantitative/Qualitative) phù hợp với yêu cầu của Hội đồng chuyên môn.",
+    title: "Xây dựng hướng tiếp cận & Phương pháp nghiên cứu",
+    description: "Chuyển câu hỏi nghiên cứu thành cách tiếp cận và phương pháp có thể triển khai, đủ rõ để người khác hiểu bạn làm gì và vì sao.",
     theme: THEMES.step3,
     deliverables: [
       {
         id: 'step3_d1',
-        label: 'Đầu ra 1',
-        criteria: ['Tiêu chí 1: Loại nghiên cứu (Định lượng/Định tính/Hỗn hợp)', 'Tiêu chí 2: Justification'],
-        placeholder: 'Ghi chú lý do chọn phương pháp...'
+        label: 'Hướng tiếp cận (Approach)',
+        criteria: ['Logic rõ ràng để giải quyết vấn đề', 'Giải thích được vì sao chọn cách này', 'Nêu được những gì sẽ làm và không làm'],
+        placeholder: 'Ghi chú hướng tiếp cận của bạn...'
       },
       {
         id: 'step3_d2',
-        label: 'Đầu ra 2',
-        criteria: ['Tiêu chí 1: Quần thể và mẫu nghiên cứu', 'Tiêu chí 2: Phương pháp lấy mẫu'],
-        placeholder: 'Ghi chú về sampling...'
+        label: 'Phương pháp chính (Methodology)',
+        criteria: ['Thực nghiệm/Đo lường', 'Phân tích dữ liệu', 'Mô hình hóa/Mô phỏng', 'Khảo sát/Phỏng vấn', 'Nghiên cứu lý thuyết/Tổng quan hệ thống'],
+        placeholder: 'Ghi chú phương pháp chính...'
       },
       {
         id: 'step3_d3',
-        label: 'Đầu ra 3',
-        criteria: ['Tiêu chí 1: Công cụ phân tích dự kiến', 'Tiêu chí 2: Biến số nghiên cứu'],
-        placeholder: 'Ghi chú về công cụ và biến số...'
+        label: 'Giải thích ngắn gọn',
+        criteria: ['Vì sao phương pháp này phù hợp với câu hỏi nghiên cứu', 'Nguồn lực và thời gian cần thiết', 'Đầu ra dự kiến của phương pháp'],
+        placeholder: 'Ghi chú giải thích...'
       }
     ],
     guidance: [
       {
         id: 'step3_g1',
         stepNumber: 1,
-        title: 'Xác định loại nghiên cứu phù hợp',
-        description: 'Định lượng (khảo sát, thí nghiệm) vs Định tính (phỏng vấn, case study) - tùy thuộc vào câu hỏi nghiên cứu.',
+        title: 'Mục tiêu',
+        description: 'Chuyển câu hỏi nghiên cứu thành cách tiếp cận và phương pháp có thể triển khai, đủ rõ để người khác hiểu bạn làm gì và vì sao.',
         subSteps: [
-          'Nếu cần đo lường, thống kê → Định lượng',
-          'Nếu cần hiểu sâu, khám phá → Định tính',
-          'Có thể kết hợp (Mixed methods)'
+          'Chuyển câu hỏi nghiên cứu thành cách tiếp cận và phương pháp có thể triển khai',
+          'Đủ rõ để người khác hiểu bạn làm gì và vì sao',
+          'Xác định được đầu ra cụ thể của từng bước trong phương pháp'
         ]
       },
       {
         id: 'step3_g2',
         stepNumber: 2,
-        title: 'Thiết kế Sampling Strategy',
-        description: 'Xác định quần thể, kích thước mẫu và phương pháp lấy mẫu phù hợp.',
+        title: 'Đầu ra cụ thể',
+        description: 'Sau bước này, bạn cần có:',
         subSteps: [
-          'Xác định quần thể mục tiêu',
-          'Tính sample size (dùng công thức hoặc G*Power)',
-          'Chọn sampling method (random, purposive, convenience)'
+          'OUTPUT|Hướng tiếp cận (Approach)|Logic bạn dùng để giải quyết vấn đề|Giải thích vì sao chọn cách này|Những gì bạn sẽ làm và không làm',
+          'OUTPUT|Phương pháp chính (Methodology)|Thực nghiệm/Đo lường|Phân tích dữ liệu|Mô hình hóa/Mô phỏng|Khảo sát/Phỏng vấn|Nghiên cứu lý thuyết/Tổng quan hệ thống',
+          'OUTPUT|Giải thích ngắn gọn|Vì sao phương pháp này phù hợp với câu hỏi nghiên cứu|Nguồn lực và thời gian cần thiết|Đầu ra dự kiến của phương pháp'
+        ]
+      },
+      {
+        id: 'step3_g3',
+        stepNumber: 3,
+        title: 'Tiêu chí đánh giá',
+        description: 'Sử dụng 4 tiêu chí sau để đánh giá hướng tiếp cận và phương pháp của bạn:',
+        subSteps: [
+          "1️⃣ Rõ ràng: Mô tả được phương pháp bằng 2–3 câu đơn giản; Hình dung được output cuối cùng",
+          "2️⃣ Khả thi: Với thời gian, kỹ năng, nguồn lực hiện tại, có làm được không?; Trong LR có ít nhất một nghiên cứu gần dùng cách tiếp cận tương tự không?",
+          "3️⃣ Gắn đúng câu hỏi: Chỉ ra được bước nào trả lời phần nào của câu hỏi; Có bước nào 'làm cho hay' nhưng không cần thiết?",
+          "4️⃣ Có điểm dừng: Xác định được phiên bản tối thiểu; Biết khi nào thì đủ để chuyển sang bước tiếp theo"
+        ]
+      },
+      {
+        id: 'step3_g4',
+        stepNumber: 4,
+        title: 'Cách làm từng bước',
+        description: 'Thực hiện theo 4 bước sau để xây dựng hướng tiếp cận và phương pháp:',
+        subSteps: [
+          'Bước 1 – Bóc tách cách người khác trả lời câu hỏi: Trong LR, mỗi bài dùng cách tiếp cận nào? Phương pháp cụ thể là gì? Tại sao họ chọn như vậy?',
+          'Bước 2 – Ánh xạ câu hỏi của bạn ↔ cách làm trong literature: Câu hỏi bạn thuộc loại nào? Phương pháp nào thường được dùng? Có dùng được không hay cần điều chỉnh?',
+          'Bước 3 – Rút gọn còn 1–2 hướng phương pháp khả thi: Dựa trên 4 tiêu chí (Rõ ràng, Khả thi, Gắn câu hỏi, Có điểm dừng), loại bỏ những hướng không khả thi',
+          'Bước 4 – Chốt hướng tiếp cận chính (phiên bản của bạn): Viết 1–2 đoạn mô tả phương pháp sẽ dùng, giải thích vì sao phù hợp với câu hỏi và bối cảnh của bạn'
+        ]
+      },
+      {
+        id: 'step3_g5',
+        stepNumber: 5,
+        title: 'Lỗi thường gặp & cách xử lý',
+        description: 'Tránh các cạm bẫy phổ biến trong quá trình xây dựng hướng tiếp cận và phương pháp.',
+        subSteps: [
+          'Phương pháp nghe "xịn" nhưng không trả lời câu hỏi: Nhận biết là phương pháp phức tạp nhưng khi hỏi "nó giúp trả lời câu nào" thì không trả lời được. Xử lý: Quay lại câu hỏi nghiên cứu, hỏi "phương pháp nào giúp mình trả lời chính xác câu hỏi này?"',
+          'Nhầm giữa chủ đề và phương pháp: Nhận biết là nói "tôi nghiên cứu về AI" thay vì "tôi dùng phương pháp phân tích thống kê để đánh giá...". Xử lý: Tách rõ chủ đề (cái gì) khỏi phương pháp (làm thế nào)',
+          'Phương pháp quá tham, vượt khả năng: Nhận biết là liệt kê nhiều phương pháp hoặc phạm vi quá rộng so với thời gian. Xử lý: Áp dụng nguyên tắc MVP - phiên bản tối thiểu khả thi, hoàn thành rồi mới mở rộng',
+          'Không hình dung được kết quả: Nhận biết là không biết output của phương pháp sẽ như thế nào (bảng số liệu, biểu đồ, bài viết...). Xử lý: Vẽ ra hoặc mô tả bằng lời output cuối cùng trước khi bắt đầu'
+        ]
+      },
+      {
+        id: 'step3_g6',
+        stepNumber: 6,
+        title: 'Test nhanh & Kết luận',
+        description: 'Trước khi kết thúc bước này, hãy kiểm tra:',
+        subSteps: [
+          'Test nhanh: Giải thích phương pháp cho mentor và 2–3 người khác. Nếu họ hiểu → đạt.',
+          '⚠️ Nếu không trả lời được đồng thời: làm gì – ra kết quả gì – trong bao lâu – để trả lời câu hỏi nào → chưa đạt',
+          'Đầu ra cuối cùng: 1 đoạn mô tả hướng tiếp cận + 1 đoạn mô tả phương pháp chính, cùng lý do vì sao chọn'
         ]
       }
     ],
     support: {
       tools: [
-        { label: 'SPSS', description: 'Phân tích thống kê định lượng' },
-        { label: 'NVivo', description: 'Phân tích dữ liệu định tính' },
-        { label: 'G*Power', description: 'Tính sample size' }
+        { label: 'Connected Papers', description: 'Tìm papers liên quan với cách tiếp cận tương tự' },
+        { label: 'Research Methodologist', description: 'Hỏi về phương pháp phù hợp với câu hỏi nghiên cứu' },
+        { label: 'Google Scholar', description: 'Tìm các nghiên cứu dùng phương pháp tương tự' }
       ],
       tips: [
         'Phương pháp phải align với câu hỏi nghiên cứu',
-        'Chuẩn bị justify cho Hội đồng tại sao chọn method này',
-        'Tham khảo các bài tương tự đã publish'
+        'Kiểm tra 4 tiêu chí: Rõ ràng, Khả thi, Gắn câu hỏi, Có điểm dừng',
+        'Giải thích phương pháp cho người khác để test tính rõ ràng',
+        'Bắt đầu từ phiên bản tối thiểu, rồi mở rộng nếu có thời gian'
       ],
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      videoTitle: 'Hướng dẫn chọn phương pháp nghiên cứu'
+      videoUrl: 'https://www.youtube.com/embed/C2a00y9WXjM',
+      videoTitle: 'Research Methodology Basics',
+      blogs: [
+        {
+          title: 'Choosing a Research Methodology',
+          url: 'https://www.scribbr.com/methodology/research-methodology/',
+          author: 'Scribbr',
+          description: 'Hướng dẫn chọn phương pháp nghiên cứu phù hợp'
+        },
+        {
+          title: 'Research Methods: An Overview',
+          url: 'https://www.scribbr.com/methodology/research-methods-overview/',
+          author: 'Scribbr',
+          description: 'Tổng quan về các phương pháp nghiên cứu phổ biến'
+        }
+      ]
     }
   },
   {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles, Brain, AlertTriangle, CheckCircle2, XCircle, Layers, BookOpen, Award, Globe, TrendingUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles, Brain, AlertTriangle, CheckCircle2, XCircle, Layers, BookOpen, Award, Globe, TrendingUp, Target, Clock, CheckSquare, BarChart3 } from 'lucide-react';
 import { GuidanceItem, ThemeColors } from '../../../types';
 
 interface SubStepsDisplayProps {
@@ -28,73 +28,234 @@ const PitfallDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ 
     return null;
   }).filter((p): p is { title: string; signs: string; solution: string } => p !== null);
 
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleExpand = (idx: number) => {
+    setOpenIndex(prev => prev === idx ? null : idx);
+  };
+
   return (
     <div className="mt-4 relative">
-      {/* Timeline vertical line */}
       <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-300 via-orange-300 to-green-300 rounded-full" />
-      
-      {/* Pitfall items */}
+
       <div className="space-y-5">
         {pitfalls.map((pitfall, idx) => (
           <div key={idx} className="relative pl-8">
-            {/* Timeline dot */}
-            <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md z-10">
+            <button
+              onClick={() => toggleExpand(idx)}
+              className="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md z-10 hover:scale-110 transition-transform"
+            >
               <AlertTriangle size={12} className="text-white" />
-            </div>
-            
-            {/* Content */}
+            </button>
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              {/* Header: Problem Title */}
-              <div className="px-4 py-2.5 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100/50">
+              <button
+                onClick={() => toggleExpand(idx)}
+                className="w-full px-4 py-2.5 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100/50 flex items-center justify-between text-left"
+              >
                 <h5 className="font-bold text-red-800 text-sm md:text-base">
                   {pitfall.title}
                 </h5>
-              </div>
-              
-              {/* Body: Two columns layout */}
-              <div className="flex flex-col md:flex-row">
-                {/* Signs */}
-                <div className="flex-1 p-3 md:p-4 bg-gray-50/50 relative">
-                  <div className="flex items-start gap-2">
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                      Dấu hiệu
-                    </span>
+                {openIndex === idx ? (
+                  <ChevronUp size={16} className="text-red-600" />
+                ) : (
+                  <ChevronDown size={16} className="text-red-600" />
+                )}
+              </button>
+
+              {openIndex === idx && (
+                <div className="flex flex-col md:flex-row">
+                  <div className="flex-1 p-3 md:p-4 bg-gray-50/50 relative">
+                    <div className="flex items-start gap-2">
+                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        Dấu hiệu
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed mt-2">
+                      {pitfall.signs}
+                    </p>
+                    <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-6 h-6 rounded-full bg-white shadow border border-gray-200 items-center justify-center">
+                      <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed mt-2">
-                    {pitfall.signs}
-                  </p>
-                  {/* Arrow indicator on desktop */}
-                  <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-6 h-6 rounded-full bg-white shadow border border-gray-200 items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+
+                  <div className="md:hidden flex items-center justify-center py-1 bg-gray-100">
+                    <svg className="w-4 h-4 text-green-600 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                </div>
-                
-                {/* Divider on mobile */}
-                <div className="md:hidden flex items-center justify-center py-1 bg-gray-100">
-                  <svg className="w-4 h-4 text-green-600 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                
-                {/* Solution */}
-                <div className="flex-1 p-3 md:p-4 bg-green-50/50 md:border-l border-green-100">
-                  <div className="flex items-start gap-2">
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
-                      <CheckCircle2 size={10} className="text-green-600" />
-                      Cách xử lý
-                    </span>
+
+                  <div className="flex-1 p-3 md:p-4 bg-green-50/50 md:border-l border-green-100">
+                    <div className="flex items-start gap-2">
+                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
+                        <CheckCircle2 size={10} className="text-green-600" />
+                        Cách xử lý
+                      </span>
+                    </div>
+                    <p className="text-sm text-green-800 leading-relaxed mt-2 font-medium">
+                      {pitfall.solution}
+                    </p>
                   </div>
-                  <p className="text-sm text-green-800 leading-relaxed mt-2 font-medium">
-                    {pitfall.solution}
-                  </p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+// CriteriaAccordionDisplay - For "Tiêu chí đánh giá" with 4 expandable cards (Step 3.3)
+const CriteriaAccordionDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const isCriteriaAccordion = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
+
+  if (!isCriteriaAccordion) return null;
+
+  const criteriaItems = subSteps
+    .filter(s => /^[1-4]️⃣/.test(s))
+    .map(s => {
+      const match = s.match(/^[1-4]️⃣\s*(.*?):\s*(.*)$/);
+      if (match) {
+        return { number: match[1].trim(), title: match[1].trim(), content: match[2].trim() };
+      }
+      return null;
+    })
+    .filter((p): p is { number: string; title: string; content: string } => p !== null);
+
+  const colors = [
+    { bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-gradient-to-r from-blue-500 to-blue-600', text: 'text-blue-900', icon: 'bg-blue-100 text-blue-600', dot: 'bg-blue-500' },
+    { bg: 'bg-purple-50', border: 'border-purple-200', header: 'bg-gradient-to-r from-purple-500 to-purple-600', text: 'text-purple-900', icon: 'bg-purple-100 text-purple-600', dot: 'bg-purple-500' },
+    { bg: 'bg-orange-50', border: 'border-orange-200', header: 'bg-gradient-to-r from-orange-400 to-orange-500', text: 'text-orange-900', icon: 'bg-orange-100 text-orange-600', dot: 'bg-orange-500' },
+    { bg: 'bg-green-50', border: 'border-green-200', header: 'bg-gradient-to-r from-green-500 to-emerald-500', text: 'text-green-900', icon: 'bg-green-100 text-green-600', dot: 'bg-green-500' }
+  ];
+
+  return (
+    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {criteriaItems.map((item, idx) => (
+        <div key={idx} className={`rounded-xl border overflow-hidden ${colors[idx % colors.length].border}`}>
+          <button
+            onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+            className={`w-full px-4 py-3 ${colors[idx % colors.length].header} flex items-center justify-between`}
+          >
+            <div className="flex items-center gap-3">
+              <span className={`w-8 h-8 rounded-full ${colors[idx % colors.length].icon} flex items-center justify-center font-bold text-sm`}>
+                {idx + 1}
+              </span>
+              <span className="font-bold text-white">
+                {item.title}
+              </span>
+            </div>
+            {openIndex === idx ? (
+              <ChevronUp size={18} className="text-white/80" />
+            ) : (
+              <ChevronDown size={18} className="text-white/80" />
+            )}
+          </button>
+
+          {openIndex === idx && (
+            <div className={`p-4 ${colors[idx % colors.length].bg}`}>
+              <p className={`text-sm ${colors[idx % colors.length].text} leading-relaxed`}>
+                {item.content}
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// VerticalTimelineStepsDisplay - For "Cách làm từng bước" with vertical timeline (Step 3.4)
+const VerticalTimelineStepsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
+
+  if (!isTimelineSteps) return null;
+
+  const steps = subSteps
+    .filter(s => /^Bước \d+/.test(s))
+    .map(s => {
+      const match = s.match(/^Bước (\d+) – (.*?):\s*(.*)$/);
+      if (match) {
+        return { step: parseInt(match[1]), title: match[2], content: match[3] };
+      }
+      return null;
+    })
+    .filter((p): p is { step: number; title: string; content: string } => p !== null);
+
+  const stepColors = [
+    { bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50' },
+    { bg: 'bg-purple-500', text: 'text-purple-600', light: 'bg-purple-50' },
+    { bg: 'bg-orange-500', text: 'text-orange-600', light: 'bg-orange-50' },
+    { bg: 'bg-green-500', text: 'text-green-600', light: 'bg-green-50' }
+  ];
+
+  return (
+    <div className="mt-4">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="md:w-1/3">
+          <div className="flex flex-col gap-3">
+            {steps.map((step, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveStep(idx)}
+                className={`
+                  relative p-4 rounded-xl border-2 text-left transition-all duration-300
+                  ${activeStep === idx
+                    ? `${stepColors[idx % stepColors.length].border} border-current bg-white shadow-md`
+                    : 'border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm'}
+                `}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-md
+                    ${activeStep === idx ? stepColors[idx % stepColors.length].bg : 'bg-gray-400'}
+                  `}>
+                    {step.step}
+                  </div>
+                  <div>
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${activeStep === idx ? stepColors[idx % stepColors.length].text : 'text-gray-500'}`}>
+                      Bước {step.step}
+                    </span>
+                    <h5 className={`font-bold text-sm ${activeStep === idx ? 'text-gray-900' : 'text-gray-700'}`}>
+                      {step.title}
+                    </h5>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="md:w-2/3">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg h-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stepColors[activeStep % stepColors.length].bg}`}>
+                <span className="text-white font-bold text-lg">{steps[activeStep]?.step}</span>
+              </div>
+              <div>
+                <span className={`text-xs font-semibold uppercase tracking-wider ${stepColors[activeStep % stepColors.length].text}`}>
+                  Bước {steps[activeStep]?.step}
+                </span>
+                <h5 className="font-bold text-xl text-gray-900">
+                  {steps[activeStep]?.title}
+                </h5>
+              </div>
+            </div>
+            <div className={`p-4 rounded-xl ${stepColors[activeStep % stepColors.length].light}`}>
+              <p className="text-gray-700 leading-relaxed">
+                {steps[activeStep]?.content}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -646,7 +807,7 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   // Check if this is the "Process Steps" type (Starts with "Bước A", "Bước B"...)
   const isProcessSteps = subSteps.length > 0 && subSteps[0].startsWith('Bước A');
   
-  // Check if this is the "Pitfalls" type
+  // Check if this is the "Pitfalls" type (Contains "Dấu hiệu" AND "Xử lý:")
   const isPitfalls = subSteps.length > 0 && subSteps.some(s => s.includes('Dấu hiệu') && s.includes('Xử lý:'));
 
   // Check if this is the "Criteria Comparison" type (Giữ:/Loại:)
@@ -660,6 +821,20 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
 
   // Check if this is the "Two Column Output" type (OUTPUT|...)
   const isOutput = subSteps.length > 0 && subSteps.some(s => s.startsWith('OUTPUT|'));
+
+  // Check if this is the "Criteria Accordion" type (1️⃣, 2️⃣, 3️⃣, 4️⃣)
+  const isCriteriaAccordion = subSteps.length > 0 && subSteps.some(s => /^[1-4]️⃣/.test(s));
+
+  // Check if this is the "Vertical Timeline Steps" type (Bước 1, Bước 2, ...)
+  const isTimelineSteps = subSteps.length > 0 && subSteps.some(s => /^Bước \d+/.test(s));
+
+  if (isCriteriaAccordion) {
+    return <CriteriaAccordionDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  if (isTimelineSteps) {
+    return <VerticalTimelineStepsDisplay subSteps={subSteps} theme={theme} />;
+  }
 
   if (isPitfalls) {
     return <PitfallDisplay subSteps={subSteps} theme={theme} />;
