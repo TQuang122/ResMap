@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.limiter import limiter
 from app.api import health
-from app.api.endpoints import topic, citation, plagiarism, writing
+from app.api.endpoints import topic, citation, plagiarism, writing, papers
 
 app = FastAPI(title=settings.PROJECT_NAME)
 app.state.limiter = limiter
@@ -26,6 +26,7 @@ app.include_router(topic.router, prefix="/api/chat", tags=["chat"])
 app.include_router(citation.router, prefix="/api/tools", tags=["tools"])
 app.include_router(plagiarism.router, prefix="/api/tools", tags=["tools"])
 app.include_router(writing.router, prefix="/api/tools", tags=["tools"])
+app.include_router(papers.router, prefix="/api/papers", tags=["papers"])
 
 
 @app.get("/")

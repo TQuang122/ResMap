@@ -11,9 +11,10 @@ interface StepLayoutProps {
   onResExploreOpen?: () => void;
   onResearchSuggestionOpen?: () => void;
   onAiUsageOpen?: () => void;
+  onPaperHunterOpen?: () => void;
 }
 
-const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen }) => {
+const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { stepNumber, title, description, theme, deliverables, guidance, support } = stepData;
 
@@ -81,7 +82,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <GuidanceSection items={guidance} theme={theme} stepNumber={stepNumber} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} onAiUsageOpen={onAiUsageOpen} />
+              <GuidanceSection items={guidance} theme={theme} stepNumber={stepNumber} onResExploreOpen={onResExploreOpen} onResearchSuggestionOpen={onResearchSuggestionOpen} onAiUsageOpen={onAiUsageOpen} onPaperHunterOpen={onPaperHunterOpen} />
             </motion.div>
 
             {/* Support Panel */}
