@@ -1314,7 +1314,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
         const isExpanded = expandedId === item.id;
         const hasResExplore = !!item.resExploreBox;
         const hasResearchSuggestion = stepNumber === "01" && item.stepNumber === 1;
-        const hasAiUsage = stepNumber === "01" && item.stepNumber === 1;
+        const hasAiUsage = (stepNumber === "01" || stepNumber === "02") && item.stepNumber === 1;
         const hasPaperHunter = stepNumber === "02" && item.stepNumber === 1;
         
         return (
@@ -1435,6 +1435,35 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                         </div>
                       )}
 
+                      {/* ResHunter Button - Step 02 */}
+                      {hasPaperHunter && (
+                        <div className="bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-xl p-4 border border-blue-400/30 h-full flex flex-col">
+                          <div className="flex items-start gap-3 h-full">
+                            <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
+                              <BookOpen className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1 flex flex-col h-full">
+                              <h5 className="font-semibold text-blue-900 mb-1">
+                                ResHunter
+                              </h5>
+                              <p className="text-sm text-blue-700/80 mb-3">
+                                Tìm kiếm tài liệu học thuật, tạo queries chuẩn và đánh giá papers với AI
+                              </p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onPaperHunterOpen?.();
+                                }}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-sm font-medium rounded-lg transition-colors w-full sm:w-auto justify-center mt-auto"
+                              >
+                                <BookOpen className="w-4 h-4" />
+                                Mở Paper Hunter
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* AI Use in Research Button */}
                       {hasAiUsage && (
                         <div className="bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-xl p-4 border border-purple-400/30 h-full flex flex-col">
@@ -1458,35 +1487,6 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                               >
                                 <Brain className="w-4 h-4" />
                                 Xem hướng dẫn
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Paper Hunter Button - Step 02 */}
-                      {hasPaperHunter && (
-                        <div className="bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-xl p-4 border border-blue-400/30 h-full flex flex-col lg:col-span-3">
-                          <div className="flex items-start gap-3 h-full">
-                            <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
-                              <BookOpen className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="flex-1 flex flex-col h-full">
-                              <h5 className="font-semibold text-blue-900 mb-1">
-                                ResHunter
-                              </h5>
-                              <p className="text-sm text-blue-700/80 mb-3">
-                                Tìm kiếm tài liệu học thuật, tạo queries chuẩn và đánh giá papers với AI
-                              </p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onPaperHunterOpen?.();
-                                }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-sm font-medium rounded-lg transition-colors w-full sm:w-auto justify-center mt-auto"
-                              >
-                                <BookOpen className="w-4 h-4" />
-                                Mở Paper Hunter
                               </button>
                             </div>
                           </div>
