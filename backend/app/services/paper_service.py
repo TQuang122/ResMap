@@ -73,24 +73,33 @@ class PaperService:
     async def _gemini_generate(self, prompt: str) -> str:
         """Generate text using Gemini API."""
         if not self.gemini_api_key or not self._client:
-            raise RuntimeError("Gemini API is not configured")
+            raise RuntimeError(
+                "Gemini API is not configured. Please set GEMINI_API_KEY in .env file."
+            )
 
         def _run() -> str:
-            resp = self._client.models.generate_content(
-                model="models/gemini-2.0-flash", contents=prompt
-            )
-            text = getattr(resp, "text", None)
-            if isinstance(text, str):
-                return text.strip()
-            cand = getattr(resp, "candidates", None)
-            if isinstance(cand, list) and cand:
-                content = getattr(cand[0], "content", None)
-                parts = getattr(content, "parts", None) if content else None
-                if isinstance(parts, list) and parts:
-                    t = getattr(parts[0], "text", None)
-                    if isinstance(t, str):
-                        return t.strip()
-            return ""
+            try:
+                client = self._client
+                if client is None:
+                    raise RuntimeError("Gemini client is not initialized")
+                resp = client.models.generate_content(
+                    model="models/gemini-2.5-flash", contents=prompt
+                )
+                text = getattr(resp, "text", None)
+                if isinstance(text, str):
+                    return text.strip()
+                cand = getattr(resp, "candidates", None)
+                if isinstance(cand, list) and cand:
+                    content = getattr(cand[0], "content", None)
+                    parts = getattr(content, "parts", None) if content else None
+                    if isinstance(parts, list) and parts:
+                        t = getattr(parts[0], "text", None)
+                        if isinstance(t, str):
+                            return t.strip()
+                return ""
+            except Exception as e:
+                print(f"[Gemini] API Error: {type(e).__name__}: {e}")
+                raise e
 
         return await asyncio.to_thread(_run)
 
@@ -164,12 +173,20 @@ Topic: {request.topic}
 Domain: {request.domain or "General"}
 Paper types needed: {[pt.value for pt in request.paper_types] if request.paper_types else "all"}
 
+INSTRUCTIONS:
+1. Extract the core concepts from the topic (remove words like "implementing", "study of", "using", etc.).
+2. Generate 3-5 keywords that are optimized for academic search engines (short, specific).
+3. Generate 3-5 synonyms or related terms.
+4. IMPORTANT: Do NOT simply repeat the full topic sentence as a keyword. Break it down.
+5. If the topic is long (e.g., > 10 words), extract the 2-3 most important nouns/phrases.
+
 Output JSON with:
 - keywords: list of 3-5 key search terms
 - synonyms: list of 3-5 alternative/related terms
 
-Example output:
-{{"keywords": ["machine learning", "sentiment analysis", "NLP"], "synonyms": ["deep learning", "opinion mining", "text classification"]}}
+Example:
+Topic: "Implementing Quantum-Inspired Tensor Network Models for Image Compression"
+Output: {{"keywords": ["Quantum Tensor Networks", "Image Compression", "Quantum-Inspired Models"], "synonyms": ["Tensor Decomposition", "Quantum Image Processing", "Dimensionality Reduction"]}}
 """
 
         keywords = [request.topic]
@@ -184,6 +201,47 @@ Example output:
                     synonyms = data.get("synonyms", [])
             except Exception:
                 pass
+
+        # Post-process keywords to avoid full topic repetition
+        topic_norm = request.topic.lower().strip()
+        filtered_keywords = []
+        for k in keywords:
+            if not isinstance(k, str):
+                continue
+            k_norm = k.lower().strip()
+            # Remove exact matches or overly long phrases (>= 80% of topic length)
+            if k_norm == topic_norm:
+                continue
+            if len(k_norm) >= int(len(topic_norm) * 0.8):
+                continue
+            filtered_keywords.append(k)
+
+        if filtered_keywords:
+            keywords = filtered_keywords
+        else:
+            # Fallback: extract core nouns/phrases by splitting and removing stopwords
+            stopwords = {
+                "the",
+                "a",
+                "an",
+                "of",
+                "for",
+                "and",
+                "in",
+                "on",
+                "to",
+                "with",
+                "by",
+                "using",
+                "implementing",
+                "study",
+                "studies",
+                "impact",
+                "analysis",
+            }
+            tokens = [t for t in re.split(r"\W+", request.topic) if t]
+            core_terms = [t for t in tokens if t.lower() not in stopwords]
+            keywords = core_terms[:3] if core_terms else [request.topic]
 
         # Build queries for different sources
         base_query = " ".join(keywords[:3])
@@ -397,6 +455,7 @@ Return ONLY the JSON, no other text.
             overall_score=5.0,
             decision="maybe",
             summary="Automatic evaluation unavailable. Please review manually.",
+            error=None,  # No error, just default scores
         )
 
         if not self.gemini_api_key:
@@ -449,8 +508,23 @@ Return ONLY the JSON, no other text.
                 summary=str(data.get("summary", ""))[:300],
             )
 
-        except Exception:
-            return default_response
+        except Exception as e:
+            error_msg = f"AI evaluation failed: {str(e)}"
+            print(f"Error scoring paper: {error_msg}")
+            return ScoreResponse(
+                paper_id=paper.id,
+                paper_title=paper.title,
+                relevance=default_score,
+                novelty=default_score,
+                methodology=default_score,
+                reproducibility=default_score,
+                citation_context=default_score,
+                dataset_fit=default_score,
+                overall_score=5.0,
+                decision="maybe",
+                summary="Automatic evaluation unavailable. Please review manually.",
+                error=error_msg,
+            )
 
 
 # Create singleton instance

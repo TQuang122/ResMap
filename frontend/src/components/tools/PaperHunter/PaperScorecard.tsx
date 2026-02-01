@@ -59,7 +59,7 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const handleScore = async () => {
+    const handleScore = async () => {
     setLoading(true);
     setError(null);
 
@@ -72,7 +72,8 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
       onScored(response);
     } catch (e) {
       console.error(e);
-      setError('Không thể đánh giá paper. Vui lòng thử lại.');
+      const errorMessage = e instanceof Error ? e.message : 'Không thể đánh giá paper. Vui lòng thử lại.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -261,6 +262,14 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
 
           {result && (
             <div className="space-y-4">
+              {/* Backend Error Warning */}
+              {result.error && (
+                <div className="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 text-sm">
+                  <p className="font-medium">AI Evaluation Failed:</p>
+                  <p className="mt-1 opacity-80">{result.error}</p>
+                </div>
+              )}
+
               {/* Decision Banner */}
               <div
                 className={`p-4 rounded-xl border-2 flex items-center gap-4 ${getDecisionColor(

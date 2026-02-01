@@ -102,6 +102,9 @@ class ScoreResponse(BaseModel):
     decision: str  # "keep", "maybe", "skip"
     summary: str  # 1-2 sentence summary of why to keep/skip
 
+    # Error field for debugging
+    error: Optional[str] = None  # Error message if AI evaluation failed
+
 
 class BatchScoreRequest(BaseModel):
     papers: List[Paper]

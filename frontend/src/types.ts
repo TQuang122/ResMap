@@ -153,4 +153,5 @@ export interface ScoreResponse {
   overall_score: number;
   decision: 'keep' | 'maybe' | 'skip';
   summary: string;
+  error?: string;
 }
