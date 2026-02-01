@@ -101,11 +101,15 @@ const AppContent: React.FC = () => {
   );
 }
 
+import { ResearchProvider } from './context/ResearchContext';
+
 const App: React.FC = () => {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ResearchProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </ResearchProvider>
   );
 };
 

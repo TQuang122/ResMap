@@ -1299,7 +1299,18 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
   );
 };
 
-const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen }) => {
+interface GuidanceSectionProps {
+  items: GuidanceItem[];
+  theme: ThemeColors;
+  stepNumber: string;
+  onResExploreOpen?: () => void;
+  onResearchSuggestionOpen?: () => void;
+  onAiUsageOpen?: () => void;
+  onPaperHunterOpen?: () => void;
+  onResBlueprintOpen?: () => void;
+}
+
+const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen, onResBlueprintOpen }) => {
   const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id || null);
 
   const toggleExpand = (id: string) => {
@@ -1317,6 +1328,11 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
         const hasAiUsage = (stepNumber === "01" || stepNumber === "02") && item.stepNumber === 1;
         const hasPaperHunter = stepNumber === "02" && item.stepNumber === 1;
         
+        // Detect BUTTON|BLUEPRINT_WIZARD in subSteps
+        const hasBlueprintButton = item.subSteps?.some(s => s === 'BUTTON|BLUEPRINT_WIZARD');
+        // Filter out the button token from subSteps prop
+        const cleanSubSteps = item.subSteps?.filter(s => s !== 'BUTTON|BLUEPRINT_WIZARD') || [];
+
         return (
           <div
             key={item.id}
@@ -1368,13 +1384,53 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                   </p>
                   
                   {/* Sub-steps Display (List or Tabs) */}
-                  {item.subSteps && item.subSteps.length > 0 && (
-                    <SubStepsDisplay subSteps={item.subSteps} theme={theme} />
+                  {cleanSubSteps.length > 0 && (
+                    <SubStepsDisplay subSteps={cleanSubSteps} theme={theme} />
                   )}
 
                   {/* Action Buttons Row */}
-                  {(hasResExplore || hasResearchSuggestion || hasAiUsage || hasPaperHunter) && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {(hasResExplore || hasResearchSuggestion || hasAiUsage || hasPaperHunter || hasBlueprintButton) && (
+                    <div className={`grid grid-cols-1 ${stepNumber === '02' ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-4`}>
+                      {/* ResBlueprint Wizard Button */}
+                      {hasBlueprintButton && (
+                        <div className={`bg-gradient-to-r from-emerald-600/20 to-teal-600/20 rounded-xl p-4 border border-emerald-400/30 h-full flex flex-col col-span-1 ${stepNumber === '02' ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+                          <div className="flex items-start gap-3 h-full">
+                            <div className="shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                              <Target className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1 flex flex-col h-full">
+                              <h5 className="font-bold text-emerald-900 mb-1 text-lg">
+                                ResBlueprint
+                              </h5>
+                              <p className="text-sm text-emerald-800/80 mb-4 max-w-2xl">
+                                Công cụ tương tác giúp bạn xây dựng phương pháp nghiên cứu từ con số 0. Đi từ ý tưởng đến bản thảo hoàn chỉnh chỉ trong vài phút.
+                              </p>
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onResBlueprintOpen) {
+                                      onResBlueprintOpen();
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-lg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                >
+                                  <Sparkles className="w-4 h-4" />
+                                  Mở ResBlueprint
+                                </button>
+                                <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium px-3 py-1 bg-white/50 rounded-lg border border-emerald-100">
+                                  <span>✨ Tự động gợi ý</span>
+                                  <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+                                  <span>🗺️ Methodology Canvas</span>
+                                  <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+                                  <span>📄 Xuất PDF 1 trang</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* ResExplore Button */}
                       {hasResExplore && item.resExploreBox && (
                         <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 border border-blue-400/30 h-full flex flex-col">

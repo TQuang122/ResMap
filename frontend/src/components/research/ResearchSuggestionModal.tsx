@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Loader2, X, Save, CheckCircle, BookOpen, Lightbulb } from 'lucide-react';
+import { Sparkles, Loader2, X, Save, CheckCircle, BookOpen, Lightbulb, ArrowRight } from 'lucide-react';
 import { postData } from '../../utils/api';
 import { supabase } from '../../lib/supabase';
 import { logHistory } from '../../utils/logger';
+import { useResearch } from '../../context/ResearchContext';
 
 interface TopicSuggestion {
   title: string;
@@ -24,6 +25,8 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { setTopic, topic: currentTopic } = useResearch();
 
   useEffect(() => {
     if (isOpen) {
@@ -106,6 +109,15 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
 
     setSavedIds((prev) => ({ ...prev, [topic.title]: true }));
     setSavingId(null);
+  };
+
+  const handleSelectTopic = (topic: TopicSuggestion) => {
+    setTopic({
+      title: topic.title,
+      description: topic.description
+    });
+    // Optional: close modal or show success feedback
+    // onClose(); 
   };
 
   const filteredTopics = topics.filter(t => 
@@ -242,6 +254,28 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
                         </span>
                       </div>
                       <div className="mt-4 flex items-center gap-2">
+                        <button
+                          onClick={() => handleSelectTopic(t)}
+                          className={`
+                            inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors
+                            ${currentTopic?.title === t.title 
+                              ? 'bg-green-100 border-green-200 text-green-700' 
+                              : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
+                          `}
+                        >
+                          {currentTopic?.title === t.title ? (
+                            <>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              Đang chọn
+                            </>
+                          ) : (
+                            <>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                              Chọn đề tài này
+                            </>
+                          )}
+                        </button>
+
                         <button
                           onClick={() => handleSave(t)}
                           disabled={savingId === t.title || savedIds[t.title]}

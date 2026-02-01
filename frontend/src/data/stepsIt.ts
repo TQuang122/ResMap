@@ -311,6 +311,7 @@ export const STEPS_DATA: StepFullData[] = [
         title: 'Mục tiêu',
         description: 'Chuyển câu hỏi nghiên cứu thành cách tiếp cận và phương pháp có thể triển khai, đủ rõ để người khác hiểu bạn làm gì và vì sao.',
         subSteps: [
+          'BUTTON|BLUEPRINT_WIZARD',
           'Chuyển câu hỏi nghiên cứu thành cách tiếp cận và phương pháp có thể triển khai',
           'Đủ rõ để người khác hiểu bạn làm gì và vì sao',
           'Xác định được đầu ra cụ thể của từng bước trong phương pháp'

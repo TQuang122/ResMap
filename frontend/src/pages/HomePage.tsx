@@ -17,6 +17,7 @@ import MediaResExploreModal from '../components/research/MediaResExploreModal';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import AiUsageModal from '../components/research/AiUsageModal';
 import PaperHunterModal from '../components/tools/PaperHunter';
+import ResBlueprintModal from '../components/research/ResBlueprintModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { StepFullData } from '../types';
@@ -62,6 +63,7 @@ const HomePage: React.FC = () => {
   const [isResearchSuggestionOpen, setIsResearchSuggestionOpen] = useState(false);
   const [isAiUsageOpen, setIsAiUsageOpen] = useState(false);
   const [isPaperHunterOpen, setIsPaperHunterOpen] = useState(false);
+  const [isResBlueprintOpen, setIsResBlueprintOpen] = useState(false);
 
   // Check auth state on mount and listen for changes
   useEffect(() => {
@@ -273,6 +275,7 @@ const HomePage: React.FC = () => {
                 onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
                 onAiUsageOpen={() => setIsAiUsageOpen(true)}
                 onPaperHunterOpen={() => setIsPaperHunterOpen(true)}
+                onResBlueprintOpen={() => setIsResBlueprintOpen(true)}
               />
             ))}
           </>
@@ -331,6 +334,11 @@ const HomePage: React.FC = () => {
       <PaperHunterModal
         isOpen={isPaperHunterOpen}
         onClose={() => setIsPaperHunterOpen(false)}
+      />
+
+      <ResBlueprintModal
+        isOpen={isResBlueprintOpen}
+        onClose={() => setIsResBlueprintOpen(false)}
       />
 
         <SidebarDots 
