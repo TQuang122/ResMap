@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request
 from app.schemas.paper import (
     QueryRequest,
     QueryResponse,
@@ -11,7 +11,6 @@ from app.schemas.paper import (
 )
 from app.services.paper_service import paper_service
 from app.core.limiter import limiter
-from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -21,7 +20,6 @@ router = APIRouter()
 async def generate_queries(
     request: Request,
     payload: QueryRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Generate search queries for different academic sources.
@@ -37,7 +35,6 @@ async def generate_queries(
 async def search_papers(
     request: Request,
     payload: SearchRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Search papers using OpenAlex API.
@@ -52,7 +49,6 @@ async def search_papers(
 async def score_paper(
     request: Request,
     payload: ScoreRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Score a single paper using AI based on 6 criteria:
@@ -73,7 +69,6 @@ async def score_paper(
 async def score_papers_batch(
     request: Request,
     payload: BatchScoreRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Score multiple papers in batch. Limited to 5 papers per request.

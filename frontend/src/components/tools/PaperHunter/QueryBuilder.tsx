@@ -267,7 +267,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
             className="w-full px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
           >
             <Search size={18} />
-            Tìm kiếm với OpenAlex
+            Tìm kiếm với ResHunter
           </button>
         </div>
       )}
