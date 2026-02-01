@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Loader2, ExternalLink, FileText, Users, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Loader2, ExternalLink, FileText, Users, Calendar, Award, ChevronDown, ChevronUp, Bookmark, Check } from 'lucide-react';
 import { postData } from '../../../utils/api';
 import { Paper, SearchResponse, PaperType } from '../../../types';
+import { supabase } from '../../../lib/supabase';
 
 interface SearchResultsProps {
   initialQuery?: string;
@@ -26,6 +27,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedPapers, setExpandedPapers] = useState<Set<string>>(new Set());
+  const [savingPaperId, setSavingPaperId] = useState<string | null>(null);
+  const [savedPaperIds, setSavedPaperIds] = useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (initialQuery) {
@@ -73,6 +76,46 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   const isSelected = (paper: Paper) => {
     return selectedPapers.some(p => p.id === paper.id);
+  };
+
+  const handleSavePaper = async (paper: Paper) => {
+    if (!supabase) {
+      setError('Supabase chưa được cấu hình.');
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      setError('Bạn cần đăng nhập để lưu paper.');
+      return;
+    }
+
+    setSavingPaperId(paper.id);
+    setError(null);
+
+    const payload = {
+      user_id: user.id,
+      paper_id: paper.id,
+      title: paper.title,
+      authors: paper.authors,
+      year: paper.year ?? null,
+      venue: paper.venue ?? null,
+      abstract: paper.abstract ?? null,
+      cited_by_count: paper.cited_by_count,
+      open_access_url: paper.open_access_url ?? null,
+    };
+
+    const { error: saveError } = await supabase
+      .from('saved_papers')
+      .upsert(payload, { onConflict: 'user_id,paper_id' });
+
+    if (saveError) {
+      setError('Không thể lưu paper.');
+    } else {
+      setSavedPaperIds(prev => new Set(prev).add(paper.id));
+    }
+    setSavingPaperId(null);
   };
 
   const formatCitations = (count: number) => {
@@ -221,6 +264,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     className="px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                   >
                     Đánh giá
+                  </button>
+                  <button
+                    onClick={() => handleSavePaper(paper)}
+                    disabled={savingPaperId === paper.id}
+                    className="px-3 py-1.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors flex items-center gap-1 disabled:opacity-60"
+                    title="Lưu vào Profile"
+                  >
+                    {savedPaperIds.has(paper.id) ? <Check size={14} /> : <Bookmark size={14} />}
+                    {savedPaperIds.has(paper.id) ? 'Đã lưu' : savingPaperId === paper.id ? 'Đang lưu' : 'Lưu'}
                   </button>
                   {paper.open_access_url && (
                     <a

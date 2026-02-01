@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Heart, Trash2, ExternalLink, Mail, Pencil } from 'lucide-react';
+import { Heart, Trash2, ExternalLink, Mail, Pencil, BookOpen, Bookmark } from 'lucide-react';
 import CleanupButton from '../components/profile/CleanupButton';
 
 type SavedTopic = {
@@ -31,7 +31,21 @@ type HistoryLog = {
   created_at: string;
 };
 
-type TabKey = 'topics' | 'lecturers' | 'history';
+type SavedPaper = {
+  id: string;
+  paper_id: string;
+  title: string;
+  authors: { name: string; affiliation?: string }[] | null;
+  year: number | null;
+  venue: string | null;
+  abstract: string | null;
+  cited_by_count: number | null;
+  open_access_url: string | null;
+  decision: string | null;
+  created_at: string;
+};
+
+type TabKey = 'topics' | 'lecturers' | 'history' | 'papers';
 
 const ProfilePage: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('topics');
@@ -44,9 +58,11 @@ const ProfilePage: React.FC = () => {
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
   const [deletingLecturerId, setDeletingLecturerId] = useState<string | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
+  const [deletingPaperId, setDeletingPaperId] = useState<string | null>(null);
   const [topics, setTopics] = useState<SavedTopic[]>([]);
   const [lecturers, setLecturers] = useState<InterestedLecturer[]>([]);
   const [logs, setLogs] = useState<HistoryLog[]>([]);
+  const [papers, setPapers] = useState<SavedPaper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +100,7 @@ const ProfilePage: React.FC = () => {
         setAvatarUrl(profileRes.data.avatar_url ?? avatarUrl);
       }
 
-      const [topicsRes, logsRes, lecturersRes] = await Promise.all([
+      const [topicsRes, logsRes, lecturersRes, papersRes] = await Promise.all([
         supabase
           .from('saved_topics')
           .select('id,title,description,difficulty,created_at')
@@ -97,6 +113,10 @@ const ProfilePage: React.FC = () => {
         supabase
           .from('interested_lecturers')
           .select('id,lecturer_id,lecturer_name,department,research_areas,research_topics,lab,email,created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('saved_papers')
+          .select('id,paper_id,title,authors,year,venue,abstract,cited_by_count,open_access_url,decision,created_at')
           .order('created_at', { ascending: false }),
       ]);
 
@@ -116,6 +136,12 @@ const ProfilePage: React.FC = () => {
         setError('Không thể tải lịch sử hoạt động.');
       } else {
         setLogs((logsRes.data as HistoryLog[]) ?? []);
+      }
+
+      if (papersRes.error) {
+        setError('Không thể tải danh sách papers đã lưu.');
+      } else {
+        setPapers((papersRes.data as SavedPaper[]) ?? []);
       }
 
       setLoading(false);
@@ -199,8 +225,24 @@ const ProfilePage: React.FC = () => {
     setDeletingLogId(null);
   };
 
+  const handleDeletePaper = async (paperId: string) => {
+    if (!supabase) return;
+    setDeletingPaperId(paperId);
+    const { error: deleteError } = await supabase
+      .from('saved_papers')
+      .delete()
+      .eq('id', paperId);
+    if (deleteError) {
+      setError('Không thể xoá paper đã lưu.');
+    } else {
+      setPapers((prev) => prev.filter((paper) => paper.id !== paperId));
+    }
+    setDeletingPaperId(null);
+  };
+
   const emptyState = useMemo(() => {
     if (tab === 'topics') return 'Chưa có đề tài nào được lưu.';
+    if (tab === 'papers') return 'Chưa có paper nào được lưu.';
     if (tab === 'lecturers') return 'Chưa có giảng viên nào được quan tâm.';
     return 'Chưa có lịch sử hoạt động.';
   }, [tab]);
@@ -221,6 +263,13 @@ const ProfilePage: React.FC = () => {
         ))}
       </div>
     );
+  };
+
+  const formatAuthors = (authors: SavedPaper['authors']) => {
+    if (!authors || authors.length === 0) return 'Unknown authors';
+    const names = authors.slice(0, 3).map((a) => a.name).filter(Boolean);
+    const more = authors.length > 3 ? ` +${authors.length - 3}` : '';
+    return `${names.join(', ')}${more}`;
   };
 
   return (
@@ -264,6 +313,17 @@ const ProfilePage: React.FC = () => {
                 }`}
               >
                 Đề tài đã lưu
+              </button>
+              <button
+                onClick={() => setTab('papers')}
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors flex items-center gap-2 ${
+                  tab === 'papers'
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'border-slate-200 text-slate-500 hover:border-orange-200'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Papers đã lưu
               </button>
               <button
                 onClick={() => setTab('lecturers')}
@@ -363,6 +423,76 @@ const ProfilePage: React.FC = () => {
                           className="text-xs font-semibold text-red-500 hover:text-red-600 disabled:opacity-60"
                         >
                           {deletingTopicId === topic.id ? 'Đang xoá...' : 'Xoá'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tab === 'papers' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {papers.length === 0 && (
+                    <div className="text-sm text-slate-500">{emptyState}</div>
+                  )}
+                  {papers.map((paper) => (
+                    <div key={paper.id} className="border border-slate-200 rounded-2xl p-4 bg-white">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className="text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full flex items-center gap-1">
+                              <Bookmark className="w-3 h-3" />
+                              Saved
+                            </span>
+                            {paper.decision && (
+                              <span className="text-xs font-semibold px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                {paper.decision}
+                              </span>
+                            )}
+                            {paper.year && (
+                              <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                {paper.year}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="font-bold text-slate-900">{paper.title}</h3>
+                          <p className="text-xs text-slate-500 mt-1">{formatAuthors(paper.authors)}</p>
+                          {paper.venue && (
+                            <p className="text-xs text-slate-400 mt-1">{paper.venue}</p>
+                          )}
+                          {paper.abstract && (
+                            <p className="text-sm text-slate-600 mt-3 line-clamp-3">
+                              {paper.abstract}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {paper.open_access_url && (
+                            <a
+                              href={paper.open_access_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs flex items-center gap-1 text-blue-600 hover:underline"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Open Access
+                            </a>
+                          )}
+                          {paper.cited_by_count !== null && (
+                            <span className="text-xs text-slate-400">
+                              Citations: {paper.cited_by_count}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeletePaper(paper.id)}
+                          disabled={deletingPaperId === paper.id}
+                          className="text-xs font-semibold flex items-center gap-1 text-red-500 hover:text-red-600 disabled:opacity-60"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {deletingPaperId === paper.id ? 'Đang xoá...' : 'Xoá'}
                         </button>
                       </div>
                     </div>

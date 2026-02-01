@@ -1473,7 +1473,7 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
                             </div>
                             <div className="flex-1 flex flex-col h-full">
                               <h5 className="font-semibold text-blue-900 mb-1">
-                                Paper Hunter + Sieve
+                                ResHunter
                               </h5>
                               <p className="text-sm text-blue-700/80 mb-3">
                                 Tìm kiếm tài liệu học thuật, tạo queries chuẩn và đánh giá papers với AI

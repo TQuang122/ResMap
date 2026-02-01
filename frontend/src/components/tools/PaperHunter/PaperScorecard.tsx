@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Loader2, CheckCircle, XCircle, AlertCircle, X, FileText } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, AlertCircle, X, FileText, Bookmark, Check } from 'lucide-react';
 import { postData } from '../../../utils/api';
 import { Paper, ScoreResponse, ScoreItem } from '../../../types';
+import { supabase } from '../../../lib/supabase';
 
 interface PaperScorecardProps {
   paper: Paper;
@@ -55,6 +56,8 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScoreResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const handleScore = async () => {
     setLoading(true);
@@ -80,6 +83,49 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
       handleScore();
     }
   }, [paper.id]);
+
+  const handleSave = async () => {
+    if (!result) return;
+    if (!supabase) {
+      setError('Supabase chưa được cấu hình.');
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      setError('Bạn cần đăng nhập để lưu paper.');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const payload = {
+      user_id: user.id,
+      paper_id: paper.id,
+      title: paper.title,
+      authors: paper.authors,
+      year: paper.year ?? null,
+      venue: paper.venue ?? null,
+      abstract: paper.abstract ?? null,
+      cited_by_count: paper.cited_by_count,
+      open_access_url: paper.open_access_url ?? null,
+      scores: result,
+      decision: result.decision,
+    };
+
+    const { error: saveError } = await supabase
+      .from('saved_papers')
+      .upsert(payload, { onConflict: 'user_id,paper_id' });
+
+    if (saveError) {
+      setError('Không thể lưu paper.');
+    } else {
+      setSaved(true);
+    }
+    setSaving(false);
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'bg-green-500';
@@ -256,12 +302,22 @@ const PaperScorecard: React.FC<PaperScorecardProps> = ({
         {/* Footer */}
         {result && (
           <div className="p-4 border-t border-slate-200 bg-slate-50">
-            <button
-              onClick={onClose}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              Đóng
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleSave}
+                disabled={saving || saved}
+                className="flex-1 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
+              >
+                {saved ? <Check size={18} /> : <Bookmark size={18} />}
+                {saved ? 'Đã lưu vào Profile' : saving ? 'Đang lưu...' : 'Lưu vào Profile'}
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         )}
       </div>

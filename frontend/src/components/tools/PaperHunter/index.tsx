@@ -101,7 +101,7 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
                   <BookOpen size={24} className="text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Paper Hunter + Sieve</h2>
+                  <h2 className="text-xl font-bold text-white">ResHunter</h2>
                   <p className="text-blue-100 text-sm">Tìm và sàng lọc tài liệu học thuật</p>
                 </div>
               </div>
