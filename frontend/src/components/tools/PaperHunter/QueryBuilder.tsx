@@ -5,6 +5,18 @@ import { QueryResponse, QueryVariant, PaperType } from '../../../types';
 
 interface QueryBuilderProps {
   onSearch: (query: string) => void;
+  topic: string;
+  onTopicChange: (value: string) => void;
+  yearStart: number;
+  onYearStartChange: (value: number) => void;
+  yearEnd: number;
+  onYearEndChange: (value: number) => void;
+  selectedTypes: PaperType[];
+  onSelectedTypesChange: (value: PaperType[]) => void;
+  domain: string;
+  onDomainChange: (value: string) => void;
+  result: QueryResponse | null;
+  onResultChange: (value: QueryResponse | null) => void;
 }
 
 const PAPER_TYPES: { value: PaperType; label: string; description: string }[] = [
@@ -30,23 +42,30 @@ const SOURCE_NAMES: Record<string, string> = {
   acm: 'ACM Digital Library',
 };
 
-const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
-  const [topic, setTopic] = useState('');
-  const [yearStart, setYearStart] = useState(2020);
-  const [yearEnd, setYearEnd] = useState(2025);
-  const [selectedTypes, setSelectedTypes] = useState<PaperType[]>([]);
-  const [domain, setDomain] = useState('');
-  
+const QueryBuilder: React.FC<QueryBuilderProps> = ({
+  onSearch,
+  topic,
+  onTopicChange,
+  yearStart,
+  onYearStartChange,
+  yearEnd,
+  onYearEndChange,
+  selectedTypes,
+  onSelectedTypesChange,
+  domain,
+  onDomainChange,
+  result,
+  onResultChange,
+}) => {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<QueryResponse | null>(null);
   const [copiedQuery, setCopiedQuery] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleTypeToggle = (type: PaperType) => {
-    setSelectedTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
+    onSelectedTypesChange(
+      selectedTypes.includes(type)
+        ? selectedTypes.filter(t => t !== type)
+        : [...selectedTypes, type]
     );
   };
 
@@ -64,7 +83,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
         paper_types: selectedTypes,
         domain: domain.trim() || null,
       });
-      setResult(response);
+      onResultChange(response);
     } catch (e) {
       console.error(e);
       setError('Không thể tạo queries. Vui lòng thử lại.');
@@ -99,7 +118,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
           <input
             type="text"
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+            onChange={(e) => onTopicChange(e.target.value)}
             placeholder="VD: sentiment analysis using deep learning"
             className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
           />
@@ -113,7 +132,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
             <input
               type="number"
               value={yearStart}
-              onChange={(e) => setYearStart(parseInt(e.target.value) || 2020)}
+              onChange={(e) => onYearStartChange(parseInt(e.target.value) || 2020)}
               min={2000}
               max={2025}
               className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
@@ -126,7 +145,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
             <input
               type="number"
               value={yearEnd}
-              onChange={(e) => setYearEnd(parseInt(e.target.value) || 2025)}
+              onChange={(e) => onYearEndChange(parseInt(e.target.value) || 2025)}
               min={2000}
               max={2025}
               className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
@@ -163,7 +182,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({ onSearch }) => {
           <input
             type="text"
             value={domain}
-            onChange={(e) => setDomain(e.target.value)}
+            onChange={(e) => onDomainChange(e.target.value)}
             placeholder="VD: Computer Science, Business, Healthcare..."
             className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
           />

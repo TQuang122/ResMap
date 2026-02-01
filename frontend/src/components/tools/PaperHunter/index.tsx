@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import QueryBuilder from './QueryBuilder';
 import SearchResults from './SearchResults';
 import PaperScorecard from './PaperScorecard';
-import { Paper, ScoreResponse } from '../../../types';
+import { Paper, ScoreResponse, PaperType, QueryResponse } from '../../../types';
 
 interface PaperHunterModalProps {
   isOpen: boolean;
@@ -31,6 +31,12 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
   const [scoredPapers, setScoredPapers] = useState<Map<string, ScoreResponse>>(new Map());
   const [scoringPaper, setScoringPaper] = useState<Paper | null>(null);
   const [rq, setRq] = useState(researchQuestion);
+  const [queryTopic, setQueryTopic] = useState('');
+  const [queryYearStart, setQueryYearStart] = useState(2020);
+  const [queryYearEnd, setQueryYearEnd] = useState(2025);
+  const [querySelectedTypes, setQuerySelectedTypes] = useState<PaperType[]>([]);
+  const [queryDomain, setQueryDomain] = useState('');
+  const [queryResult, setQueryResult] = useState<QueryResponse | null>(null);
 
   const handleSearchFromQuery = (query: string) => {
     setSearchQuery(query);
@@ -59,6 +65,17 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
     setScoredPapers((prev) => {
       const newMap = new Map(prev);
       newMap.set(score.paper_id, score);
+      return newMap;
+    });
+  };
+
+  const handleBatchScored = (scores: ScoreResponse[]) => {
+    if (!scores || scores.length === 0) return;
+    setScoredPapers((prev) => {
+      const newMap = new Map(prev);
+      scores.forEach((score) => {
+        newMap.set(score.paper_id, score);
+      });
       return newMap;
     });
   };
@@ -154,13 +171,29 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
             {activeTab === 'query' && (
-              <QueryBuilder onSearch={handleSearchFromQuery} />
+              <QueryBuilder
+                onSearch={handleSearchFromQuery}
+                topic={queryTopic}
+                onTopicChange={setQueryTopic}
+                yearStart={queryYearStart}
+                onYearStartChange={setQueryYearStart}
+                yearEnd={queryYearEnd}
+                onYearEndChange={setQueryYearEnd}
+                selectedTypes={querySelectedTypes}
+                onSelectedTypesChange={setQuerySelectedTypes}
+                domain={queryDomain}
+                onDomainChange={setQueryDomain}
+                result={queryResult}
+                onResultChange={setQueryResult}
+              />
             )}
 
             {activeTab === 'search' && (
               <SearchResults
                 initialQuery={searchQuery}
                 onScorePaper={handleScorePaper}
+                onBatchScored={handleBatchScored}
+                researchQuestion={rq}
                 selectedPapers={selectedPapers}
                 onToggleSelect={handleToggleSelect}
               />

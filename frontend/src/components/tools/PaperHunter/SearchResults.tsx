@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Search, Loader2, ExternalLink, FileText, Users, Calendar, Award, ChevronDown, ChevronUp, Bookmark, Check } from 'lucide-react';
+import { Search, Loader2, ExternalLink, FileText, Users, Calendar, Award, ChevronDown, ChevronUp, Bookmark, Check, Sparkles } from 'lucide-react';
 import { postData } from '../../../utils/api';
-import { Paper, SearchResponse, PaperType } from '../../../types';
+import { Paper, SearchResponse, PaperType, ScoreResponse } from '../../../types';
 import { supabase } from '../../../lib/supabase';
 
 interface SearchResultsProps {
   initialQuery?: string;
   onScorePaper: (paper: Paper) => void;
+  onBatchScored: (scores: ScoreResponse[]) => void;
+  researchQuestion: string;
   selectedPapers: Paper[];
   onToggleSelect: (paper: Paper) => void;
 }
@@ -14,6 +16,8 @@ interface SearchResultsProps {
 const SearchResults: React.FC<SearchResultsProps> = ({ 
   initialQuery = '', 
   onScorePaper,
+  onBatchScored,
+  researchQuestion,
   selectedPapers,
   onToggleSelect
 }) => {
@@ -29,6 +33,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const [expandedPapers, setExpandedPapers] = useState<Set<string>>(new Set());
   const [savingPaperId, setSavingPaperId] = useState<string | null>(null);
   const [savedPaperIds, setSavedPaperIds] = useState<Set<string>>(new Set());
+  const [batchScoring, setBatchScoring] = useState(false);
 
   React.useEffect(() => {
     if (initialQuery) {
@@ -125,6 +130,41 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     return count.toString();
   };
 
+  const handleScoreAll = async () => {
+    if (!researchQuestion.trim()) {
+      setError('Vui lòng nhập câu hỏi nghiên cứu trước khi đánh giá.');
+      return;
+    }
+
+    const targetPapers = selectedPapers.length > 0
+      ? selectedPapers
+      : (result?.papers ?? []);
+
+    if (targetPapers.length === 0) {
+      setError('Chưa có paper nào để đánh giá.');
+      return;
+    }
+
+    setBatchScoring(true);
+    setError(null);
+
+    const batch = targetPapers.slice(0, 5);
+
+    try {
+      const response = await postData('/papers/score/batch', {
+        papers: batch,
+        research_question: researchQuestion.trim(),
+      });
+      const scores = (response?.scores as ScoreResponse[]) ?? [];
+      onBatchScored(scores);
+    } catch (e) {
+      console.error(e);
+      setError('Không thể đánh giá hàng loạt. Vui lòng thử lại.');
+    } finally {
+      setBatchScoring(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Search Bar */}
@@ -189,7 +229,18 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm text-slate-600">
             <span>Tìm thấy {result.total_count.toLocaleString()} papers</span>
-            <span>{selectedPapers.length} đã chọn để đánh giá</span>
+            <div className="flex items-center gap-3">
+              <span>{selectedPapers.length} đã chọn để đánh giá</span>
+              <button
+                onClick={handleScoreAll}
+                disabled={batchScoring}
+                className="px-3 py-1.5 text-xs font-semibold bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-1 disabled:opacity-60"
+                title="Đánh giá tối đa 5 paper mỗi lần"
+              >
+                {batchScoring ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {batchScoring ? 'Đang đánh giá...' : 'Đánh giá tất cả (tối đa 5)'}
+              </button>
+            </div>
           </div>
 
           {result.papers.map((paper) => (
