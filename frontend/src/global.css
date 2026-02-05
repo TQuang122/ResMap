@@ -22,8 +22,13 @@
   animation: gradientShift 2s ease infinite;
 }
 
-.animate-gradient-very-fast {
-  animation: gradientShift 1.33s ease infinite;
+@keyframes shine {
+  0% { transform: translateX(-150%) skewX(-12deg); }
+  100% { transform: translateX(150%) skewX(-12deg); }
+}
+
+.animate-shine {
+  animation: shine 2s ease-in-out infinite;
 }
 
 .no-scrollbar::-webkit-scrollbar {
