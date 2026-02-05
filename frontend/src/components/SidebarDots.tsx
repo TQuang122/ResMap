@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { THEMES } from '../constants';
-import { ArrowDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface SidebarDotsProps {
   activeIndex: number;
@@ -84,12 +84,19 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
       role="navigation"
       aria-label="Section navigation"
     >
-      <div className="absolute top-2.5 bottom-2.5 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full">
-        <div
-          className="absolute inset-0 bg-[#F36F21] origin-top rounded-full"
-          style={{ transform: `scaleY(${progressScale})` }}
+      <motion.div 
+        className="absolute top-2.5 bottom-2.5 left-1/2 -translate-x-1/2 w-px bg-slate-200/45 overflow-hidden rounded-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-b from-[#F36F21] to-[#FF8C42] origin-top rounded-full"
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: progressScale }}
+          transition={{ duration: 0.3 }}
         />
-      </div>
+      </motion.div>
 
       <div className="relative flex flex-col items-center gap-1 lg:gap-1">
         {Array.from({ length: totalSections }).map((_, index) => {
@@ -101,7 +108,7 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
           const isLabelVisible = visibleIndex === index;
 
           return (
-            <div
+            <motion.div
               key={index}
               onClick={() => setVisibleIndex((prev) => (prev === index ? null : index))}
               className={
@@ -112,6 +119,9 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                 ${isMajorSelectionStep ? 'h-7 w-7' : 'h-6 w-6 rounded-full hover:scale-105 active:scale-95'}
               `
               }
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
             >
               <button
                 type="button"
@@ -131,18 +141,17 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                 title={label}
               >
                 {isMajorSelectionStep ? (
-                  <div className="relative flex items-center justify-center animate-pulse">
-                    <div className="absolute inset-0 bg-[#F36F21]/20 rounded-full animate-ping" />
-                    <div className={`
-                      relative z-10 flex items-center justify-center w-5.5 h-5.5 rounded-full 
-                      bg-[#F36F21] text-white shadow-lg shadow-orange-500/30
-                      transition-transform duration-300 group-hover:translate-y-1
-                    `}>
-                      <ArrowDown size={11} strokeWidth={3} />
-                    </div>
-                  </div>
+                  <motion.span
+                    className={`
+                      rounded-full transition-all duration-250 ease-out
+                      w-2.5 h-2.5
+                      ${dotColorClass} ring-2 ring-[#F36F21]/40
+                    `}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
                 ) : (
-                  <span
+                  <motion.span
                     className={
                       `
                       rounded-full transition-all duration-250 ease-out
@@ -152,11 +161,12 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                       ${!isActive && !isVisited ? 'bg-slate-300/80 group-hover:bg-slate-400' : ''}
                     `
                     }
+                    whileHover={{ scale: 1.2 }}
                   />
                 )}
               </button>
 
-              <span
+              <motion.span
                 className={
                   `
                   hidden lg:block
@@ -172,10 +182,13 @@ const SidebarDots: React.FC<SidebarDotsProps> = ({
                   ${isMajorSelectionStep ? 'mr-4 bg-[#F36F21]' : ''}
                 `
                 }
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: isLabelVisible ? 1 : 0, x: isLabelVisible ? 0 : -10 }}
+                transition={{ duration: 0.2 }}
               >
                 {label}
-              </span>
-            </div>
+              </motion.span>
+            </motion.div>
           );
         })}
       </div>

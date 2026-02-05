@@ -134,17 +134,6 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
               <span>Trang chủ</span>
             </Link>
             <Link
-              to="/about-us"
-              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                location.pathname === '/about-us'
-                  ? 'text-[#F36F21] bg-orange-50'
-                  : 'hover:text-[#F36F21] hover:bg-slate-50'
-              }`}
-            >
-              <Info size={16} />
-              <span>Giới thiệu</span>
-            </Link>
-            <Link
               to="/starter-kit"
               className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
                 location.pathname === '/starter-kit'
@@ -155,10 +144,21 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
               <FolderOpen size={16} />
               <span>Starter Kit</span>
             </Link>
+            <Link
+              to="/reshowto"
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                location.pathname === '/reshowto'
+                  ? 'text-[#F36F21] bg-orange-50'
+                  : 'hover:text-[#F36F21] hover:bg-slate-50'
+              }`}
+            >
+              <Sparkles size={16} />
+              <span>ResHowTo</span>
+            </Link>
             <div className="relative group">
               <button
                 className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 outline-none ${
-                  location.pathname.includes('-check')
+                  location.pathname.includes('-check') || location.pathname === '/ai-assistant'
                     ? 'text-[#F36F21] bg-orange-50'
                     : 'hover:text-[#F36F21] hover:bg-slate-50'
                 }`}
@@ -191,19 +191,30 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                     <ShieldCheck size={16} />
                     <span>Plagiarism Checker</span>
                   </Link>
+                  <Link
+                    to="/ai-assistant"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                      location.pathname === '/ai-assistant'
+                        ? 'text-[#F36F21] bg-orange-50 font-bold'
+                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 hover:translate-x-0.5'
+                    }`}
+                  >
+                    <Sparkles size={16} />
+                    <span>AI Assistant</span>
+                  </Link>
                 </div>
               </div>
             </div>
             <Link
-              to="/ai-assistant"
+              to="/about-us"
               className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                location.pathname === '/ai-assistant'
+                location.pathname === '/about-us'
                   ? 'text-[#F36F21] bg-orange-50'
                   : 'hover:text-[#F36F21] hover:bg-slate-50'
               }`}
             >
-              <Sparkles size={16} />
-              <span>AI Assistant</span>
+              <Info size={16} />
+              <span>Giới thiệu</span>
             </Link>
           </nav>
 
