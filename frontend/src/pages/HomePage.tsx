@@ -26,6 +26,7 @@ import { BUSINESS_LECTURERS } from '../data/lecturers/businessLecturers';
 import { LANGUAGES_LECTURERS } from '../data/lecturers/languagesLecturers';
 import { DESIGN_LECTURERS } from '../data/lecturers/designLecturers';
 import { LAW_LECTURERS } from '../data/lecturers/lawLecturers';
+import { Skeleton, SkeletonCard } from '../components/ui/Skeleton';
 
 const PENDING_TOPIC_KEY = 'resmap_pending_topic';
 
@@ -54,6 +55,7 @@ const HomePage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
+  const [isStepsLoading, setIsStepsLoading] = useState(false);
   const [isResExploreOpen, setIsResExploreOpen] = useState(false);
   const [isBusinessResExploreOpen, setIsBusinessResExploreOpen] = useState(false);
   const [isLanguagesResExploreOpen, setIsLanguagesResExploreOpen] = useState(false);
@@ -118,23 +120,28 @@ const HomePage: React.FC = () => {
       // Save pending topic to localStorage
       localStorage.setItem(PENDING_TOPIC_KEY, topic);
       // Redirect to auth page
-      navigate('/auth', { 
-        state: { 
+      navigate('/auth', {
+        state: {
           from: location.pathname,
           pendingTopic: topic,
           message: 'Vui lòng đăng nhập để xem hướng dẫn chi tiết theo khối ngành.'
-        } 
+        }
       });
       return;
     }
 
     // User is authenticated, proceed with selection
     setSelectedTopic(topic);
+    setIsStepsLoading(true);
 
     // Load topic-specific data
     const loadData = STEPS_BY_TOPIC[topic];
     if (loadData) {
-      loadData().then(m => setStepsData(m.STEPS_DATA));
+      loadData()
+        .then(m => setStepsData(m.STEPS_DATA))
+        .finally(() => setIsStepsLoading(false));
+    } else {
+      setIsStepsLoading(false);
     }
   }, [isAuthenticated, navigate, location.pathname]);
 
@@ -251,34 +258,48 @@ const HomePage: React.FC = () => {
         </motion.div>
 
         {/* 5+. Steps (Only if topic selected) */}
-        {selectedTopic && stepsData.length > 0 && (
-          <>
-            {stepsData.map((step) => (
-              <StepLayout
-                key={step.id}
-                stepData={step}
-                onResExploreOpen={() => {
-                  if (selectedTopic === 'Kinh doanh, Quản trị & Tài chính') {
-                    setIsBusinessResExploreOpen(true);
-                  } else if (selectedTopic === 'Ngôn ngữ') {
-                    setIsLanguagesResExploreOpen(true);
-                  } else if (selectedTopic === 'Thiết kế') {
-                    setIsDesignResExploreOpen(true);
-                  } else if (selectedTopic === 'Luật & Luật kinh tế') {
-                    setIsLawResExploreOpen(true);
-                  } else if (selectedTopic === 'Truyền thông & Media') {
-                    setIsMediaResExploreOpen(true);
-                  } else {
-                    setIsResExploreOpen(true);
-                  }
-                }}
-                onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
-                onAiUsageOpen={() => setIsAiUsageOpen(true)}
-                onPaperHunterOpen={() => setIsPaperHunterOpen(true)}
-                onResBlueprintOpen={() => setIsResBlueprintOpen(true)}
-              />
-            ))}
-          </>
+        {selectedTopic && (
+          isStepsLoading ? (
+            <section className="py-16 px-4 max-w-5xl mx-auto">
+              <div className="text-center mb-8">
+                <Skeleton className="h-8 w-64 mx-auto mb-4" />
+                <Skeleton className="h-4 w-96 mx-auto" />
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <SkeletonCard key={i} showImage={false} showDescription lines={3} />
+                ))}
+              </div>
+            </section>
+          ) : stepsData.length > 0 ? (
+            <>
+              {stepsData.map((step) => (
+                <StepLayout
+                  key={step.id}
+                  stepData={step}
+                  onResExploreOpen={() => {
+                    if (selectedTopic === 'Kinh doanh, Quản trị & Tài chính') {
+                      setIsBusinessResExploreOpen(true);
+                    } else if (selectedTopic === 'Ngôn ngữ') {
+                      setIsLanguagesResExploreOpen(true);
+                    } else if (selectedTopic === 'Thiết kế') {
+                      setIsDesignResExploreOpen(true);
+                    } else if (selectedTopic === 'Luật & Luật kinh tế') {
+                      setIsLawResExploreOpen(true);
+                    } else if (selectedTopic === 'Truyền thông & Media') {
+                      setIsMediaResExploreOpen(true);
+                    } else {
+                      setIsResExploreOpen(true);
+                    }
+                  }}
+                  onResearchSuggestionOpen={() => setIsResearchSuggestionOpen(true)}
+                  onAiUsageOpen={() => setIsAiUsageOpen(true)}
+                  onPaperHunterOpen={() => setIsPaperHunterOpen(true)}
+                  onResBlueprintOpen={() => setIsResBlueprintOpen(true)}
+                />
+              ))}
+            </>
+          ) : null
         )}
         
         <Footer />

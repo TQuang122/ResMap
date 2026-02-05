@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   25% { background-position: 100% 50%; }
@@ -21,3 +25,13 @@
 .animate-gradient-very-fast {
   animation: gradientShift 1.33s ease infinite;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

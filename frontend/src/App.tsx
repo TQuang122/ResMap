@@ -12,6 +12,8 @@ import ProfilePage from './pages/ProfilePage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import AboutUsPage from './pages/AboutUsPage';
+import { ToastProvider } from './components/ui/Toast';
+import { PageTransition } from './components/ui/PageTransition';
 
 // Wrapper to handle scroll state for Navigation across pages
 const AppContent: React.FC = () => {
@@ -56,46 +58,78 @@ const AppContent: React.FC = () => {
       <Navigation isScrolled={isScrolled} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/starter-kit" element={<StarterKitPage />} />
-        <Route
-          path="/citation-check"
-          element={
-            <ProtectedRoute>
-              <CitationCheckPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/plagiarism-check"
-          element={
-            <ProtectedRoute>
-              <PlagiarismCheckPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/ai-assistant"
-          element={
-            <ProtectedRoute>
-              <AiAssistantPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/about-us" element={<AboutUsPage />} />
-      </Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={
+            <PageTransition animation="fade">
+              <HomePage />
+            </PageTransition>
+          } />
+          <Route path="/starter-kit" element={
+            <PageTransition animation="fade">
+              <StarterKitPage />
+            </PageTransition>
+          } />
+          <Route
+            path="/citation-check"
+            element={
+              <PageTransition animation="fade">
+                <ProtectedRoute>
+                  <CitationCheckPage />
+                </ProtectedRoute>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/plagiarism-check"
+            element={
+              <PageTransition animation="fade">
+                <ProtectedRoute>
+                  <PlagiarismCheckPage />
+                </ProtectedRoute>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/ai-assistant"
+            element={
+              <PageTransition animation="fade">
+                <ProtectedRoute>
+                  <AiAssistantPage />
+                </ProtectedRoute>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PageTransition animation="fade">
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              </PageTransition>
+            }
+          />
+          <Route path="/auth" element={
+            <PageTransition animation="fade">
+              <AuthPage />
+            </PageTransition>
+          } />
+          <Route path="/terms" element={
+            <PageTransition animation="fade">
+              <TermsPage />
+            </PageTransition>
+          } />
+          <Route path="/privacy" element={
+            <PageTransition animation="fade">
+              <PrivacyPage />
+            </PageTransition>
+          } />
+          <Route path="/about-us" element={
+            <PageTransition animation="fade">
+              <AboutUsPage />
+            </PageTransition>
+          } />
+        </Routes>
       </main>
     </div>
   );
@@ -106,9 +140,11 @@ import { ResearchProvider } from './context/ResearchContext';
 const App: React.FC = () => {
   return (
     <ResearchProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <ToastProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ToastProvider>
     </ResearchProvider>
   );
 };

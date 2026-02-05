@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Sparkles, Info } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, recoverSession } from '../lib/supabase';
 import GoogleLogo from '../assets/google-logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -44,25 +44,37 @@ const AuthPage: React.FC = () => {
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      const authed = Boolean(data.session);
-      setIsAuthed(authed);
-      if (authed && !redirected) {
-        setRedirected(true);
-        navigate(returnPath, { state: buildRedirectState() });
+
+    let mounted = true;
+
+    const checkAuth = async () => {
+      try {
+        const session = await recoverSession();
+        if (!mounted) return;
+        setIsAuthed(!!session);
+        if (session && !redirected) {
+          setRedirected(true);
+          navigate(returnPath, { state: buildRedirectState() });
+        }
+      } catch (err) {
+        if (!mounted) return;
+        console.error('Auth check failed:', err);
+        setIsAuthed(false);
       }
-    });
+    };
+
+    checkAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const authed = Boolean(session);
-      setIsAuthed(authed);
-      if (authed && !redirected) {
+      setIsAuthed(!!session);
+      if (session && !redirected) {
         setRedirected(true);
         navigate(returnPath, { state: buildRedirectState() });
       }
     });
 
     return () => {
+      mounted = false;
       listener.subscription.unsubscribe();
     };
   }, [navigate, redirected, returnPath, pendingTopic]);

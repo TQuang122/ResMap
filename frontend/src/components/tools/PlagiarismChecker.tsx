@@ -94,15 +94,15 @@ const PlagiarismChecker: React.FC = () => {
         </div>
 
         {/* Action Button */}
-        <button 
+        <button
           onClick={handleCheck}
           disabled={loading || text.length < 50}
-          className="self-start px-8 py-3 bg-[#F36F21] text-white font-bold rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+          className="self-start px-8 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95"
         >
           {loading ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Đang phân tích (có thể mất 30-60s)...
+              Đang phân tích...
             </>
           ) : (
             <>

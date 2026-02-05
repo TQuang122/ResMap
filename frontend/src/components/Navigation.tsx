@@ -121,37 +121,48 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
           </div>
 
           {/* Center: Navigation (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-500">
-            <Link to="/home" className={`flex items-center gap-2 transition-colors ${
-              location.pathname === '/home' 
-                ? 'text-[#F36F21] font-bold' 
-                : 'hover:text-[#F36F21]'
-            }`}>
+          <nav className="hidden lg:flex items-center gap-1 text-sm font-semibold text-slate-500">
+            <Link
+              to="/home"
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                location.pathname === '/home'
+                  ? 'text-[#F36F21] bg-orange-50'
+                  : 'hover:text-[#F36F21] hover:bg-slate-50'
+              }`}
+            >
               <Home size={16} />
               <span>Trang chủ</span>
             </Link>
-            <Link to="/about-us" className={`flex items-center gap-2 transition-colors ${
-              location.pathname === '/about-us' 
-                ? 'text-[#F36F21] font-bold' 
-                : 'hover:text-[#F36F21]'
-            }`}>
+            <Link
+              to="/about-us"
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                location.pathname === '/about-us'
+                  ? 'text-[#F36F21] bg-orange-50'
+                  : 'hover:text-[#F36F21] hover:bg-slate-50'
+              }`}
+            >
               <Info size={16} />
               <span>Giới thiệu</span>
             </Link>
-            <Link to="/starter-kit" className={`flex items-center gap-2 transition-colors ${
-              location.pathname === '/starter-kit' 
-                ? 'text-[#F36F21] font-bold' 
-                : 'hover:text-[#F36F21]'
-            }`}>
+            <Link
+              to="/starter-kit"
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                location.pathname === '/starter-kit'
+                  ? 'text-[#F36F21] bg-orange-50'
+                  : 'hover:text-[#F36F21] hover:bg-slate-50'
+              }`}
+            >
               <FolderOpen size={16} />
               <span>Starter Kit</span>
             </Link>
             <div className="relative group">
-              <button className={`flex items-center gap-2 transition-colors py-2 outline-none ${
-                location.pathname.includes('-check') 
-                  ? 'text-[#F36F21] font-bold' 
-                  : 'hover:text-[#F36F21]'
-              }`}>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 outline-none ${
+                  location.pathname.includes('-check')
+                    ? 'text-[#F36F21] bg-orange-50'
+                    : 'hover:text-[#F36F21] hover:bg-slate-50'
+                }`}
+              >
                 <Wrench size={16} />
                 <span>Công cụ</span>
                 <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
@@ -160,10 +171,10 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                 <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-2 flex flex-col gap-1 overflow-hidden">
                   <Link
                     to="/citation-check"
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                       location.pathname === '/citation-check'
                         ? 'text-[#F36F21] bg-orange-50 font-bold'
-                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50'
+                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 hover:translate-x-0.5'
                     }`}
                   >
                     <Quote size={16} />
@@ -171,10 +182,10 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                   </Link>
                   <Link
                     to="/plagiarism-check"
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                       location.pathname === '/plagiarism-check'
                         ? 'text-[#F36F21] bg-orange-50 font-bold'
-                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50'
+                        : 'text-slate-600 hover:text-[#F36F21] hover:bg-orange-50 hover:translate-x-0.5'
                     }`}
                   >
                     <ShieldCheck size={16} />
@@ -183,11 +194,14 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                 </div>
               </div>
             </div>
-            <Link to="/ai-assistant" className={`flex items-center gap-2 transition-colors ${
-              location.pathname === '/ai-assistant' 
-                ? 'text-[#F36F21] font-bold' 
-                : 'hover:text-[#F36F21]'
-            }`}>
+            <Link
+              to="/ai-assistant"
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                location.pathname === '/ai-assistant'
+                  ? 'text-[#F36F21] bg-orange-50'
+                  : 'hover:text-[#F36F21] hover:bg-slate-50'
+              }`}
+            >
               <Sparkles size={16} />
               <span>AI Assistant</span>
             </Link>
@@ -206,25 +220,25 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
               <div ref={userRef} className="relative">
                 <button
                   onClick={() => setIsUserOpen((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-orange-200 hover:text-orange-500 transition-colors"
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-orange-300 hover:text-orange-600 hover:shadow-md transition-all duration-200 active:scale-95"
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="h-6 w-6 rounded-full object-cover" />
+                    <img src={avatarUrl} alt="Avatar" className="h-6 w-6 rounded-full object-cover ring-2 ring-transparent hover:ring-orange-200 transition-all" />
                   ) : (
-                    <span className="h-6 w-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold">
+                    <span className="h-6 w-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold ring-2 ring-transparent hover:ring-orange-200 transition-all">
                       {(displayName[0] || 'U').toUpperCase()}
                     </span>
                   )}
                   <span className="hidden md:inline-block max-w-[120px] truncate">{displayName}</span>
-                  <ChevronDown size={14} />
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isUserOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <AnimatePresence>
                   {isUserOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.95 }}
                       transition={{ duration: 0.16 }}
                       className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
                     >
@@ -235,15 +249,15 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                       </div>
                       <Link
                         to="/profile"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-orange-50 hover:text-[#F36F21] transition-colors"
                         onClick={() => setIsUserOpen(false)}
                       >
-                        <UserIcon size={16} className="text-slate-400" />
+                        <UserIcon size={16} className="text-slate-400 group-hover:text-[#F36F21] transition-colors" />
                         Hồ sơ cá nhân
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <LogOut size={16} />
                         Đăng xuất
@@ -255,14 +269,14 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             ) : (
               <Link
                 to="/auth"
-                className="border border-orange-200 text-[#F36F21] text-xs md:text-sm font-bold px-4 md:px-5 py-2 md:py-2.5 rounded-full hover:bg-orange-50 transition-all active:scale-95"
+                className="border border-orange-200 text-[#F36F21] text-xs md:text-sm font-bold px-4 md:px-5 py-2 md:py-2.5 rounded-full hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 active:scale-95"
               >
                 Đăng nhập
               </Link>
             )}
             <button
               onClick={() => window.dispatchEvent(new Event('resmap:scrollToFooter'))}
-              className="bg-[#F36F21] text-white text-xs md:text-sm font-bold px-4 md:px-5 py-2 md:py-2.5 rounded-full hover:shadow-lg hover:bg-orange-600 transition-all active:scale-95"
+              className="bg-[#F36F21] text-white text-xs md:text-sm font-bold px-4 md:px-5 py-2 md:py-2.5 rounded-full hover:shadow-lg hover:bg-orange-600 hover:-translate-y-0.5 transition-all duration-200 active:scale-95"
             >
               Liên hệ
             </button>

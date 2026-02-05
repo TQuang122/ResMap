@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Check, Copy, FileText, Loader2, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { postData } from '../../utils/api';
 import { logHistory } from '../../utils/logger';
 
@@ -122,32 +123,36 @@ const WritingAssistant: React.FC = () => {
         <button
           onClick={handleRun}
           disabled={loading || !canSubmit}
-          className="self-start px-6 py-2 bg-[#F36F21] text-white font-bold rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+          className="self-start px-6 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-          Chạy
+          {loading ? 'Đang xử lý...' : 'Xử lý văn bản'}
         </button>
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">
-            {error}
+          <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm flex items-center gap-2">
+            <span className="font-bold">Lỗi:</span> {error}
           </div>
         )}
 
         {result && (
-          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl border border-slate-200 bg-slate-50"
+          >
             <div className="flex items-center justify-between gap-3 mb-3">
               <h4 className="font-bold text-slate-800">Kết quả</h4>
               <button
                 onClick={handleCopy}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-sm font-semibold text-slate-700 flex items-center gap-2"
+                className="px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 text-sm font-semibold text-slate-700 flex items-center gap-2 transition-all duration-200"
               >
                 {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
                 {copied ? 'Đã copy' : 'Copy'}
               </button>
             </div>
             <pre className="whitespace-pre-wrap text-sm text-slate-800 leading-relaxed font-sans">{result}</pre>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

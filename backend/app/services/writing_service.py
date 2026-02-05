@@ -7,9 +7,7 @@ from app.core.config import settings
 
 
 class WritingService:
-    def __init__(
-        self, gemini_api_key: str = "", model: str = "models/gemini-flash-latest"
-    ):
+    def __init__(self, gemini_api_key: str = "", model: str = "models/gemini-1.5-pro"):
         self.gemini_api_key = gemini_api_key
         self.model = model if model.startswith("models/") else f"models/{model}"
 

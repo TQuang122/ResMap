@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, recoverSession } from '../lib/supabase';
 
 type AuthState = 'loading' | 'authed' | 'guest';
 
@@ -20,10 +20,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
 
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setState(data.session ? 'authed' : 'guest');
-    });
+
+    const checkSession = async () => {
+      try {
+        const session = await recoverSession();
+        if (!mounted) return;
+        setState(session ? 'authed' : 'guest');
+      } catch (err) {
+        if (!mounted) return;
+        console.error('Auth check failed:', err);
+        setState('guest');
+      }
+    };
+
+    checkSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setState(session ? 'authed' : 'guest');

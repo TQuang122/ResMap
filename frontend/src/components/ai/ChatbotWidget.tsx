@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Loader2, Sparkles, BookOpen } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, BookOpen } from 'lucide-react';
 import { postData } from '../../utils/api';
 
 interface TopicSuggestion {
@@ -124,8 +124,13 @@ const ChatbotWidget: React.FC = () => {
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-white p-3 rounded-2xl rounded-bl-none shadow-sm border border-slate-100">
-                <Loader2 size={18} className="animate-spin text-[#F36F21]" />
+              <div className="bg-white p-3 rounded-2xl rounded-bl-none shadow-sm border border-slate-100 flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 bg-[#F36F21] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="h-2 w-2 bg-[#F36F21] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="h-2 w-2 bg-[#F36F21] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-xs text-slate-500">Đang suy nghĩ...</span>
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Lightbulb, Loader2, Sparkles } from 'lucide-react';
 import { postData } from '../../utils/api';
 import { supabase } from '../../lib/supabase';
@@ -117,22 +118,28 @@ const TopicGenerator: React.FC = () => {
         <button
           onClick={handleGenerate}
           disabled={loading || !major.trim()}
-          className="self-start px-6 py-2 bg-[#F36F21] text-white font-bold rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+          className="self-start px-6 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          Tạo 5 đề tài
+          {loading ? 'Đang tạo...' : 'Tạo 5 đề tài'}
         </button>
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">
-            {error}
+          <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm flex items-center gap-2">
+            <span className="font-bold">Lỗi:</span> {error}
           </div>
         )}
 
         {topics.length > 0 && (
           <div className="space-y-3">
             {topics.map((t, idx) => (
-              <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-white">
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md hover:border-orange-200 transition-all duration-200"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h4 className="font-bold text-slate-900">{t.title}</h4>
@@ -146,12 +153,12 @@ const TopicGenerator: React.FC = () => {
                   <button
                     onClick={() => handleSave(t)}
                     disabled={savingId === t.title || savedIds[t.title]}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-full border border-orange-200 text-orange-600 hover:bg-orange-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="text-xs font-semibold px-4 py-2 rounded-full border border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                   >
-                    {savedIds[t.title] ? 'Đã lưu' : savingId === t.title ? 'Đang lưu...' : 'Lưu đề tài'}
+                    {savedIds[t.title] ? '✓ Đã lưu' : savingId === t.title ? 'Đang lưu...' : 'Lưu đề tài'}
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
