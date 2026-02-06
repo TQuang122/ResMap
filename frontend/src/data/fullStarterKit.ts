@@ -13,6 +13,7 @@ export const FULL_STARTER_KIT: StarterKitDetailItem[] = [
     icon: FileText,
     title: "Mẫu đề cương nghiên cứu",
     description: "Template chuẩn cấu trúc đề cương FPTU (Research Proposal), bao gồm các mục: Lý do chọn đề tài, Mục tiêu, Câu hỏi nghiên cứu, Phạm vi & Phương pháp.",
+    downloadUrl: "https://docs.google.com/document/d/1X-MyIiIQpk4pushdNp4Rd7B2VOAoYzoP/edit"
   },
   {
     icon: Table,
