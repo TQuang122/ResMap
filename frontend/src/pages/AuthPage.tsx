@@ -360,24 +360,24 @@ const AuthPage: React.FC = () => {
           <div className="relative z-10 text-white max-w-md px-10">
             <motion.div
               className="flex items-center gap-3"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.4 }}
             >
-              <Sparkles className="text-white" size={22} />
-              <span className="uppercase tracking-[0.3em] text-xs font-medium">ResMap Access</span>
+              <Sparkles className="text-white" size={28} />
+              <span className="uppercase tracking-[0.3em] text-sm font-semibold">ResMap Access</span>
             </motion.div>
             <motion.h1
-              className="mt-6 text-5xl font-black leading-tight"
-              initial={{ opacity: 0, y: 20 }}
+              className="mt-4 text-6xl md:text-7xl font-black leading-tight"
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
             >
               Chào mừng đến với ResMap
             </motion.h1>
             <motion.p
-              className="mt-5 text-lg text-white/90 leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
+              className="mt-4 text-xl md:text-2xl text-white/90 leading-relaxed"
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
             >
@@ -386,18 +386,18 @@ const AuthPage: React.FC = () => {
             
             {/* Trust Signals */}
             <motion.div
-              className="mt-10 grid grid-cols-2 gap-4"
-              initial={{ opacity: 0, y: 20 }}
+              className="mt-8 grid grid-cols-2 gap-4"
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.4 }}
             >
-              <div className="flex items-center gap-2 text-white/80">
-                <Shield size={18} />
-                <span className="text-sm">Bảo mật cao</span>
+              <div className="flex items-center gap-3 text-white/90">
+                <Shield size={24} />
+                <span className="text-base font-medium">Bảo mật cao</span>
               </div>
-              <div className="flex items-center gap-2 text-white/80">
-                <CheckCircle size={18} />
-                <span className="text-sm">5,000+ sinh viên</span>
+              <div className="flex items-center gap-3 text-white/90">
+                <CheckCircle size={24} />
+                <span className="text-base font-medium">5,000+ sinh viên</span>
               </div>
             </motion.div>
           </div>
