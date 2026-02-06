@@ -5,6 +5,7 @@ import { supabase, recoverSession } from '../lib/supabase';
 import GoogleLogo from '../assets/google-logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import NeuralNetwork from '../components/ui/NeuralNetwork';
+import Footer from '../components/Footer';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -330,12 +331,12 @@ const AuthPage: React.FC = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-slate-50 pt-16 md:pt-0"
+      className="min-h-screen bg-slate-50 flex flex-col"
       initial="hidden"
       animate="visible"
       variants={pageVariants}
     >
-      <div className="min-h-screen grid md:grid-cols-2">
+      <div className="flex-1 grid md:grid-cols-2">
         {/* Left Panel - Marketing */}
         <motion.div
           className="hidden md:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950"
@@ -809,19 +810,10 @@ const AuthPage: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Footer */}
-            <motion.p
-              className="mt-6 text-center text-xs text-slate-400"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              © 2024 ResMap. Dành cho sinh viên FPT University.
-            </motion.p>
           </motion.div>
         </div>
       </div>
+      <Footer />
     </motion.div>
   );
 };
