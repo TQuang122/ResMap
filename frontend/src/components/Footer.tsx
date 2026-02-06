@@ -94,7 +94,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="max-w-6xl mx-auto pt-8 border-t border-slate-800 text-center text-slate-500 text-xs">
-          <p>© 2024 FPT University. All rights reserved.</p>
+          <p>© 2026 ResMap. All rights reserved.</p>
         </div>
       </footer>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />

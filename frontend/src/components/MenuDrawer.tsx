@@ -226,7 +226,7 @@ const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
 
         <div className="p-5 border-t border-gray-100 bg-slate-50">
           <p className="text-xs text-slate-400 text-center">
-            © 2026 FPT University
+            © 2026 ResMap
           </p>
         </div>
       </div>
