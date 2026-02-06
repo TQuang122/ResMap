@@ -56,7 +56,7 @@ const BackgroundParticles: React.FC<BackgroundParticlesProps> = ({
           animate={{
             y: [0, -100, 0],
             x: [0, Math.random() * 50 - 25, 0],
-            opacity: [0.1, 0.25, 0.1],
+            opacity: [0.3, 0.6, 0.3],
           }}
           transition={{
             duration: particle.duration,
