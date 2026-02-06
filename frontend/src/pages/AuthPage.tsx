@@ -337,7 +337,7 @@ const AuthPage: React.FC = () => {
       <div className="min-h-screen grid md:grid-cols-2">
         {/* Left Panel - Marketing */}
         <motion.div
-          className="hidden md:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-orange-400 to-amber-300"
+          className="hidden md:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
