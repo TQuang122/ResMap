@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Sparkles, BookOpen } from 'lucide-react';
 import { postData } from '../../utils/api';
+import { useNavigate } from 'react-router-dom';
 
 interface TopicSuggestion {
   title: string;
@@ -9,10 +10,12 @@ interface TopicSuggestion {
 }
 
 const ChatbotWidget: React.FC = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [major, setMajor] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showLoginButton, setShowLoginButton] = useState(false);
   const [messages, setMessages] = useState<{type: 'bot' | 'user', content: any}[]>([
     { type: 'bot', content: "Chào bạn! Mình là AI ResMap. Bạn đang bí ý tưởng nghiên cứu? Hãy cho mình biết ngành học của bạn nhé!" }
   ]);
@@ -48,12 +51,20 @@ const ChatbotWidget: React.FC = () => {
         type: 'bot', 
         content: topics 
       }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        type: 'bot', 
-        content: "Xin lỗi, mình đang gặp sự cố kết nối tới server. Vui lòng thử lại sau! (Hãy chắc chắn backend đang chạy)" 
-      }]);
+    } catch (error: any) {
       console.error(error);
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized') || error.message?.includes('Missing or invalid authorization')) {
+        setShowLoginButton(true);
+        setMessages(prev => [...prev, { 
+          type: 'bot', 
+          content: "Xin lỗi, bạn cần đăng nhập để sử dụng tính năng gợi ý đề tài." 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          type: 'bot', 
+          content: "Xin lỗi, mình đang gặp sự cố kết nối tới server. Vui lòng thử lại sau!" 
+        }]);
+      }
     } finally {
       setLoading(false);
       setKeywords(''); // Clear keywords but keep major for refinement
@@ -169,6 +180,14 @@ const ChatbotWidget: React.FC = () => {
               <Send size={16} />
             </button>
           </div>
+          {showLoginButton && (
+            <button
+              onClick={() => navigate('/auth')}
+              className="mt-2 w-full py-2 bg-[#F36F21] text-white font-bold rounded-lg hover:bg-orange-600 transition-colors text-xs"
+            >
+              Đăng nhập để tiếp tục
+            </button>
+          )}
         </form>
       </div>
 

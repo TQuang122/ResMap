@@ -80,28 +80,28 @@ class LLMService:
             if "phần mềm" in m or "software" in m:
                 return [
                     TopicSuggestion(
-                        title=f"Ứng dụng AI trong {kw}",
-                        description=f"Nghiên cứu cách áp dụng Generative AI để tối ưu hóa quy trình {kw}.",
+                        title=f"AI Applications in {kw}",
+                        description=f"Research how to apply Generative AI to optimize {kw} processes.",
                         difficulty="Hard",
                     ),
                     TopicSuggestion(
-                        title=f"Xây dựng hệ thống {kw} dựa trên Microservices",
-                        description="Thiết kế và triển khai kiến trúc microservices có khả năng mở rộng cao.",
+                        title=f"Microservices Architecture for {kw}",
+                        description="Design and implement scalable microservices architecture.",
                         difficulty="Medium",
                     ),
                     TopicSuggestion(
-                        title=f"Phát triển ứng dụng Mobile cho {kw}",
-                        description="Xây dựng giải pháp di động cross-platform sử dụng Flutter/React Native.",
+                        title=f"Mobile App Development for {kw}",
+                        description="Build cross-platform mobile solutions using Flutter/React Native.",
                         difficulty="Easy",
                     ),
                     TopicSuggestion(
-                        title=f"Bảo mật và quyền riêng tư trong {kw}",
-                        description=f"Phân tích rủi ro bảo mật (prompt injection, data leakage) và đề xuất biện pháp bảo vệ khi triển khai {kw}.",
+                        title=f"Security and Privacy in {kw}",
+                        description=f"Analyze security risks (prompt injection, data leakage) and propose protection measures for {kw}.",
                         difficulty="Medium",
                     ),
                     TopicSuggestion(
-                        title=f"Tối ưu hiệu năng và chi phí cho hệ thống {kw}",
-                        description=f"Nghiên cứu caching, batching, quantization và routing để giảm latency/cost khi vận hành {kw}.",
+                        title=f"Performance and Cost Optimization for {kw}",
+                        description=f"Research caching, batching, quantization and routing to reduce latency/cost in {kw}.",
                         difficulty="Hard",
                     ),
                 ]
@@ -109,56 +109,56 @@ class LLMService:
             if "kinh doanh" in m or "biz" in m:
                 return [
                     TopicSuggestion(
-                        title=f"Tác động của {kw} đến hành vi người tiêu dùng Gen Z",
-                        description="Nghiên cứu định lượng về sự thay đổi thói quen mua sắm.",
+                        title=f"Impact of {kw} on Gen Z Consumer Behavior",
+                        description="Quantitative research on shopping habit changes.",
                         difficulty="Medium",
                     ),
                     TopicSuggestion(
-                        title=f"Chiến lược Digital Marketing cho {kw}",
-                        description="Phân tích hiệu quả các kênh social media trong việc quảng bá sản phẩm.",
+                        title=f"Digital Marketing Strategies for {kw}",
+                        description="Analyze effectiveness of social media channels for product promotion.",
                         difficulty="Easy",
                     ),
                     TopicSuggestion(
-                        title=f"Ứng dụng {kw} để cá nhân hóa hành trình khách hàng",
-                        description="Thiết kế mô hình phân khúc và cá nhân hóa nội dung/ưu đãi theo dữ liệu hành vi.",
+                        title=f"Personalization Using {kw} for Customer Journeys",
+                        description="Design segmentation models and content/offers personalization based on behavioral data.",
                         difficulty="Medium",
                     ),
                     TopicSuggestion(
-                        title=f"Đo lường ROI khi triển khai {kw} trong doanh nghiệp",
-                        description="Xây dựng bộ chỉ số KPI và khung đánh giá hiệu quả đầu tư theo thời gian.",
+                        title=f"Measuring ROI for {kw} Implementation",
+                        description="Build KPI framework and investment efficiency evaluation over time.",
                         difficulty="Medium",
                     ),
                     TopicSuggestion(
-                        title=f"Rủi ro pháp lý và đạo đức khi ứng dụng {kw}",
-                        description="Phân tích các rủi ro về quyền riêng tư, bản quyền và đề xuất chính sách quản trị.",
+                        title=f"Legal and Ethical Risks of {kw}",
+                        description="Analyze privacy, copyright risks and propose governance policies.",
                         difficulty="Hard",
                     ),
                 ]
 
             return [
                 TopicSuggestion(
-                    title=f"Nghiên cứu xu hướng {kw} trong năm 2024",
-                    description="Tổng quan tài liệu và phân tích xu hướng mới nổi.",
+                    title=f"Research on {kw} Trends in 2024",
+                    description="Literature review and emerging trend analysis.",
                     difficulty="Easy",
                 ),
                 TopicSuggestion(
-                    title=f"Ứng dụng công nghệ vào {major}",
-                    description="Đánh giá tác động của chuyển đổi số.",
+                    title=f"Technology Applications in {major}",
+                    description="Assessing the impact of digital transformation.",
                     difficulty="Medium",
                 ),
                 TopicSuggestion(
-                    title=f"So sánh các giải pháp {kw} hiện nay",
-                    description="Thiết kế tiêu chí so sánh (hiệu năng, chi phí, độ chính xác) và đánh giá thực nghiệm.",
+                    title=f"Comparative Analysis of {kw} Solutions",
+                    description="Design evaluation criteria (performance, cost, accuracy) and conduct empirical assessment.",
                     difficulty="Medium",
                 ),
                 TopicSuggestion(
-                    title=f"Khảo sát mức độ sẵn sàng áp dụng {kw}",
-                    description="Thiết kế khảo sát, phân tích dữ liệu và đề xuất lộ trình triển khai phù hợp.",
+                    title=f"Readiness Assessment for {kw} Adoption",
+                    description="Design survey, analyze data and propose implementation roadmap.",
                     difficulty="Easy",
                 ),
                 TopicSuggestion(
-                    title=f"Mô hình tối ưu hóa quy trình với {kw}",
-                    description="Xây dựng quy trình mẫu, đo lường cải thiện năng suất và rủi ro khi vận hành.",
+                    title=f"Process Optimization Model with {kw}",
+                    description="Build prototype process, measure productivity improvements and operational risks.",
                     difficulty="Hard",
                 ),
             ]
@@ -177,6 +177,7 @@ Constraints:
 - Return an object with key "topics".
 - "topics" is an array of 5 items.
 - Each item has: title (string), description (string, 1-2 sentences), difficulty ("Easy"|"Medium"|"Hard").
+- ALL titles and descriptions MUST be in ENGLISH.
 - Keep topics practical and feasible for a semester project.
 """
 

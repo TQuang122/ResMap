@@ -67,7 +67,9 @@ const AppContent: React.FC = () => {
           } />
           <Route path="/reshowto" element={
             <PageTransition animation="fade">
-              <ResHowToPage />
+              <ProtectedRoute>
+                <ResHowToPage />
+              </ProtectedRoute>
             </PageTransition>
           } />
           <Route

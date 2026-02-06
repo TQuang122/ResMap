@@ -4,6 +4,7 @@ import { postData } from '../../utils/api';
 import { supabase } from '../../lib/supabase';
 import { logHistory } from '../../utils/logger';
 import { useResearch } from '../../context/ResearchContext';
+import { useNavigate } from 'react-router-dom';
 
 interface TopicSuggestion {
   title: string;
@@ -17,11 +18,13 @@ interface ResearchSuggestionModalProps {
 }
 
 const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [major, setMajor] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
   const [topics, setTopics] = useState<TopicSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,9 +73,14 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
         request: { major, keywords: keywords.trim() || null },
         response: { topics: res.topics || [] },
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setError('Không thể tạo gợi ý lúc này. Vui lòng thử lại sau.');
+      if (e.message?.includes('401') || e.message?.includes('Unauthorized') || e.message?.includes('Missing or invalid authorization')) {
+        setShowLoginPrompt(true);
+        setError('Vui lòng đăng nhập để sử dụng tính năng gợi ý đề tài.');
+      } else {
+        setError('Không thể tạo gợi ý lúc này. Vui lòng thử lại sau.');
+      }
     } finally {
       setLoading(false);
     }
@@ -216,6 +224,14 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
               {error && (
                 <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">
                   {error}
+                  {showLoginPrompt && (
+                    <button
+                      onClick={() => navigate('/auth')}
+                      className="mt-3 px-4 py-2 bg-[#F36F21] text-white font-bold rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                      Đăng nhập ngay
+                    </button>
+                  )}
                 </div>
               )}
             </div>

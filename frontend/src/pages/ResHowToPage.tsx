@@ -1,13 +1,21 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { TOPICS } from '../data/topics';
 import { STEPS_BY_TOPIC } from '../data/stepsByTopic';
 import { StepFullData } from '../types';
 import StepLayout from '../components/StepLayout';
 import AcademicGridBackground from '../components/ui/AcademicGridBackground';
+import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
+import AiUsageModal from '../components/research/AiUsageModal';
+import ResExploreModal from '../components/research/ResExploreModal';
+import ResBlueprintModal from '../components/research/ResBlueprintModal';
+import PaperHunterModal from '../components/tools/PaperHunter';
+import { ALL_LECTURERS } from '../data/lecturers';
+
+// Modal types
+type ModalType = 'resExplore' | 'researchSuggestion' | 'aiUsage' | 'paperHunter' | 'resBlueprint' | null;
 
 const TopicCard: React.FC<{ icon: React.ReactNode; title: string; onClick: () => void }> = ({ icon, title, onClick }) => (
   <motion.div
@@ -31,6 +39,33 @@ const ResHowToPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+  // Close modal handler
+  const closeModal = useCallback(() => {
+    setActiveModal(null);
+  }, []);
+
+  // Open modal handlers
+  const openResExplore = useCallback(() => {
+    setActiveModal('resExplore');
+  }, []);
+
+  const openResearchSuggestion = useCallback(() => {
+    setActiveModal('researchSuggestion');
+  }, []);
+
+  const openAiUsage = useCallback(() => {
+    setActiveModal('aiUsage');
+  }, []);
+
+  const openPaperHunter = useCallback(() => {
+    setActiveModal('paperHunter');
+  }, []);
+
+  const openResBlueprint = useCallback(() => {
+    setActiveModal('resBlueprint');
+  }, []);
 
   const handleTopicSelect = useCallback((topic: string) => {
     setIsLoading(true);
@@ -76,9 +111,26 @@ const ResHowToPage: React.FC = () => {
         </section>
       ) : stepsData.length > 0 ? (
         <div className="pb-20 px-4">
-          {stepsData.map((step) => <StepLayout key={step.id} stepData={step} onResExploreOpen={() => {}} onResearchSuggestionOpen={() => {}} onAiUsageOpen={() => {}} onPaperHunterOpen={() => {}} onResBlueprintOpen={() => {}} />)}
+          {stepsData.map((step) => (
+            <StepLayout
+              key={step.id}
+              stepData={step}
+              onResExploreOpen={openResExplore}
+              onResearchSuggestionOpen={openResearchSuggestion}
+              onAiUsageOpen={openAiUsage}
+              onPaperHunterOpen={openPaperHunter}
+              onResBlueprintOpen={openResBlueprint}
+            />
+          ))}
         </div>
       ) : null}
+
+      {/* Modal Components */}
+      <ResearchSuggestionModal isOpen={activeModal === 'researchSuggestion'} onClose={closeModal} />
+      <AiUsageModal isOpen={activeModal === 'aiUsage'} onClose={closeModal} />
+      <ResExploreModal isOpen={activeModal === 'resExplore'} onClose={closeModal} lecturers={ALL_LECTURERS} />
+      <ResBlueprintModal isOpen={activeModal === 'resBlueprint'} onClose={closeModal} />
+      <PaperHunterModal isOpen={activeModal === 'paperHunter'} onClose={closeModal} />
     </div>
   );
 };
