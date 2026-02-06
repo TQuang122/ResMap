@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, Sparkles, Info, CheckCircle, AlertCircle
 import { supabase, recoverSession } from '../lib/supabase';
 import GoogleLogo from '../assets/google-logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
+import NeuralNetwork from '../components/ui/NeuralNetwork';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -354,6 +355,7 @@ const AuthPage: React.FC = () => {
               transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
+          <NeuralNetwork color="#818cf8" />
           <div className="relative z-10 text-white max-w-md px-10">
             <motion.div
               className="flex items-center gap-3"
