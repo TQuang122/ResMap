@@ -251,7 +251,7 @@ const AuthPage: React.FC = () => {
   if (success === 'signup') {
     return (
       <motion.div
-        className="min-h-screen bg-slate-50 flex items-center justify-center px-4"
+        className="min-h-screen bg-slate-50 flex items-center justify-center px-4 pt-16 md:pt-0"
         initial="hidden"
         animate="visible"
         variants={pageVariants}
@@ -291,7 +291,7 @@ const AuthPage: React.FC = () => {
   if (success === 'reset') {
     return (
       <motion.div
-        className="min-h-screen bg-slate-50 flex items-center justify-center px-4"
+        className="min-h-screen bg-slate-50 flex items-center justify-center px-4 pt-16 md:pt-0"
         initial="hidden"
         animate="visible"
         variants={pageVariants}
@@ -329,7 +329,7 @@ const AuthPage: React.FC = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-slate-50"
+      className="min-h-screen bg-slate-50 pt-16 md:pt-0"
       initial="hidden"
       animate="visible"
       variants={pageVariants}
