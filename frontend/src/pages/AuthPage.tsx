@@ -401,9 +401,9 @@ const AuthPage: React.FC = () => {
         </motion.div>
 
         {/* Right Panel - Auth Form */}
-        <div className="flex items-center justify-center px-4 py-12">
+        <div className="flex items-center justify-center px-4 py-12 md:py-8">
           <motion.div
-            className="w-full max-w-md"
+            className="w-full max-w-md pt-8 md:pt-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
