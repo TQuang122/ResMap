@@ -129,7 +129,8 @@ const AuthPage: React.FC = () => {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthed(!!session);
-      if (session && !redirected) {
+      // Only redirect if no success panel is being shown
+      if (session && !redirected && !success) {
         setRedirected(true);
         navigate(returnPath, { state: buildRedirectState() });
       }
