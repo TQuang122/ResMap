@@ -314,7 +314,7 @@ const StarterKitPage: React.FC = () => {
                   {item.description}
                 </motion.p>
                 <motion.a
-                  href={driveUrl}
+                  href={item.downloadUrl || driveUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-bold text-sm hover:border-[#F36F21] hover:text-[#F36F21] hover:bg-orange-50 transition-all flex items-center justify-center gap-2"

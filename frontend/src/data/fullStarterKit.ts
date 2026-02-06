@@ -18,6 +18,7 @@ export const FULL_STARTER_KIT: StarterKitDetailItem[] = [
     icon: Table,
     title: "Bảng tổng hợp tài liệu (LR Matrix)",
     description: "File Excel/Notion giúp tổng hợp và so sánh các bài báo khoa học (Literature Review Matrix) theo Tác giả, Năm, Phương pháp, Kết quả chính.",
+    downloadUrl: "https://docs.google.com/spreadsheets/d/1WwJNZ2hX5e4NvaDO2tRShUPlX38QeGNn1Yawnhick9c/edit?usp=sharing"
   },
   {
     icon: Users,
