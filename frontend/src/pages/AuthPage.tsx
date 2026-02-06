@@ -234,7 +234,8 @@ const AuthPage: React.FC = () => {
           password,
         });
         if (error) throw error;
-        navigate(returnPath, { state: buildRedirectState() });
+        setSuccess('signin');
+        setPassword('');
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Đăng nhập thất bại.');
@@ -322,6 +323,49 @@ const AuthPage: React.FC = () => {
               whileTap={{ scale: 0.98 }}
             >
               Quay lại đăng nhập
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (success === 'signin') {
+    return (
+      <motion.div
+        className="min-h-screen bg-slate-50 flex items-center justify-center px-4 pt-16 md:pt-0"
+        initial="hidden"
+        animate="visible"
+        variants={pageVariants}
+      >
+        <motion.div
+          className="max-w-md w-full"
+          initial="hidden"
+          animate="visible"
+          variants={successVariants}
+        >
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-8 text-center">
+            <motion.div
+              className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            >
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">Đăng nhập thành công!</h2>
+            <p className="text-slate-600 mb-8">Chào mừng bạn trở lại. Đang chuyển hướng...</p>
+            <motion.button
+              onClick={() => {
+                setSuccess(null);
+                navigate(returnPath, { state: buildRedirectState() });
+              }}
+              className="w-full py-3 px-6 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span>Tiếp tục</span>
+              <ArrowRight size={18} />
             </motion.button>
           </div>
         </motion.div>
