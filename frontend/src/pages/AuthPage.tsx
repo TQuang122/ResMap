@@ -339,7 +339,7 @@ const AuthPage: React.FC = () => {
       <div className="flex-1 grid md:grid-cols-2">
         {/* Left Panel - Marketing */}
         <motion.div
-          className="hidden md:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 pt-20"
+          className="hidden md:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 pt-32"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -404,9 +404,9 @@ const AuthPage: React.FC = () => {
         </motion.div>
 
         {/* Right Panel - Auth Form */}
-        <div className="flex items-center justify-center px-4 py-16 md:py-8">
+        <div className="flex items-center justify-center px-4 py-20 md:py-12">
           <motion.div
-            className="w-full max-w-md pt-4 md:pt-0"
+            className="w-full max-w-md pt-8 md:pt-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
