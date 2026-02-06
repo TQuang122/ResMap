@@ -60,6 +60,12 @@ const StarterKitSection: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleDownloadClick = (url?: string) => {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <>
       <section className="h-auto w-full bg-gradient-to-b from-slate-50 via-white to-slate-100 flex flex-col items-center justify-center shrink-0 relative px-4 md:px-6 lg:px-10 pt-20 pb-16 overflow-hidden">
@@ -174,6 +180,7 @@ const StarterKitSection: React.FC = () => {
                     </button>
                     <button
                       type="button"
+                      onClick={() => handleDownloadClick(item.url)}
                       className="p-2 rounded-lg bg-slate-50 text-slate-500 hover:bg-[#F36F21] hover:text-white transition-colors cursor-pointer"
                       aria-label="Tải về"
                     >
