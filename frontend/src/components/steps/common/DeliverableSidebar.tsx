@@ -189,7 +189,7 @@ const DeliverableSidebar: React.FC<DeliverableSidebarProps> = ({
                     value={notes[deliverable.id] || ''}
                     onChange={(e) => handleNoteChange(deliverable.id, e.target.value)}
                     placeholder={deliverable.placeholder}
-                    rows={3}
+                    rows={4}
                     className="w-full p-3 rounded-lg bg-white/40 border border-white/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-300 placeholder:text-gray-400"
                     maxLength={500}
                   />
