@@ -350,12 +350,19 @@ const ProfilePage: React.FC = () => {
 
           {loading ? (
             <div className="mt-8 text-sm text-slate-500">Đang tải dữ liệu...</div>
-          ) : error ? (
-            <div className="mt-8 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-4">
-              {error}
-            </div>
           ) : (
             <div className="mt-8 space-y-6">
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center justify-between">
+                  <span>{error}</span>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-red-400 hover:text-red-600 text-xs font-semibold"
+                  >
+                    Đóng
+                  </button>
+                </div>
+              )}
               {isEditing && (
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50">
                 <h2 className="text-sm font-bold text-slate-700">Cập nhật hồ sơ</h2>
