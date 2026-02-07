@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+import asyncio
 from app.schemas.paper import (
     QueryRequest,
     QueryResponse,
@@ -72,15 +73,30 @@ async def score_papers_batch(
 ):
     """
     Score multiple papers in batch. Limited to 5 papers per request.
+    Uses parallel execution for faster processing.
     """
-    scores = []
-    for paper in payload.papers[:5]:  # Limit to 5
-        score_request = ScoreRequest(
-            paper=paper,
-            research_question=payload.research_question,
-            context=payload.context,
-        )
-        result = await paper_service.score_paper(score_request)
-        scores.append(result)
+    papers = payload.papers[:5]
 
-    return BatchScoreResponse(scores=scores)
+    # Create scoring tasks for parallel execution
+    tasks = [
+        paper_service.score_paper(
+            ScoreRequest(
+                paper=paper,
+                research_question=payload.research_question,
+                context=payload.context,
+            )
+        )
+        for paper in papers
+    ]
+
+    # Execute all scoring tasks in parallel
+    results: list[ScoreResponse | BaseException] = await asyncio.gather(
+        *tasks, return_exceptions=True
+    )
+
+    # Filter out exceptions and keep only valid results
+    valid_scores: list[ScoreResponse] = [
+        score for score in results if isinstance(score, ScoreResponse)
+    ]
+
+    return BatchScoreResponse(scores=valid_scores)
