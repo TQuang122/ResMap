@@ -8,6 +8,7 @@ import { StepFullData } from '../types';
 import StepLayout from '../components/StepLayout';
 import ResearchProcessIntro from '../components/ResearchProcessIntro';
 import AcademicGridBackground from '../components/ui/AcademicGridBackground';
+import Footer from '../components/Footer';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import AiUsageModal from '../components/research/AiUsageModal';
 import ResExploreModal from '../components/research/ResExploreModal';
@@ -83,9 +84,9 @@ const ResHowToPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full min-h-screen bg-white relative">
-      <AcademicGridBackground />
-      <section className="pt-32 lg:pt-40 pb-12 px-4 relative z-10">
-        <motion.div className="max-w-5xl mx-auto text-center mb-12 lg:mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+      <section className="pt-32 lg:pt-40 pb-12 px-4 relative z-10 bg-gradient-to-b from-gray-50 to-white">
+        <AcademicGridBackground />
+        <motion.div className="max-w-5xl mx-auto text-center mb-12 lg:mb-16 relative" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-6 lg:mb-8 leading-[1.1] text-gray-900">
             Bạn thuộc khối ngành nào <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">tại FPTU?</span>
@@ -138,6 +139,7 @@ const ResHowToPage: React.FC = () => {
       <ResExploreModal isOpen={activeModal === 'resExplore'} onClose={closeModal} lecturers={ALL_LECTURERS} />
       <ResBlueprintModal isOpen={activeModal === 'resBlueprint'} onClose={closeModal} />
       <PaperHunterModal isOpen={activeModal === 'paperHunter'} onClose={closeModal} />
+      <Footer />
     </div>
   );
 };
