@@ -202,7 +202,7 @@ const IconSvg: React.FC<{ type: string; size: number }> = ({ type, size }) => {
 };
 
 const StarterKitPage: React.FC = () => {
-  const driveUrl = import.meta.env.VITE_STARTER_KIT_DRIVE_URL || 'https://drive.google.com/drive/folders/REPLACE_ME';
+  const driveUrl = import.meta.env.VITE_STARTER_KIT_DRIVE_URL || 'https://drive.google.com/drive/folders/1Fnp4bxiCK0J5XYSHyRfUVfsnws4t2j6D?usp=sharing';
 
   return (
     <motion.div
