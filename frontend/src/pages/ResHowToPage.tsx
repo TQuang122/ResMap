@@ -72,7 +72,12 @@ const ResHowToPage: React.FC = () => {
     setIsLoading(true);
     const loadData = STEPS_BY_TOPIC[topic];
     if (loadData) {
-      loadData().then(m => setStepsData(m.STEPS_DATA)).finally(() => setIsLoading(false));
+      loadData().then(m => {
+        setStepsData(m.STEPS_DATA);
+        setTimeout(() => {
+          document.getElementById('research-process-intro')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }).finally(() => setIsLoading(false));
     }
   }, []);
 
@@ -100,7 +105,6 @@ const ResHowToPage: React.FC = () => {
             <ArrowDown size={16} className="text-gray-400 animate-bounce" />
           </div>
         </motion.div>
-        <ResearchProcessIntro />
       </section>
       {isLoading ? (
         <section className="py-16 px-4 max-w-5xl mx-auto">
@@ -112,7 +116,8 @@ const ResHowToPage: React.FC = () => {
           </div>
         </section>
       ) : stepsData.length > 0 ? (
-        <div className="pb-20 px-4">
+        <div className="pb-20 px-4" id="research-process-intro">
+          <ResearchProcessIntro />
           {stepsData.map((step) => (
             <StepLayout
               key={step.id}
