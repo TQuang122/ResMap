@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { LecturerData } from '../../types';
 import { supabase } from '../../lib/supabase';
 import DesignResExploreSidebar from './DesignResExploreSidebar';
