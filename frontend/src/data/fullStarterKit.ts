@@ -40,5 +40,6 @@ export const FULL_STARTER_KIT: StarterKitDetailItem[] = [
     icon: ShieldCheck,
     title: "Hướng dẫn AI & Quản trị rủi ro",
     description: "Quy định về việc sử dụng AI trong nghiên cứu: Cách viết prompt, cách kiểm chứng nguồn tin (Hallucination check) và trích dẫn AI đúng chuẩn.",
+    downloadUrl: "https://drive.google.com/file/d/1hoWS3vJyxXk6guN0gKOI6xo_n1cLbOIB/view?usp=sharing"
   },
 ];

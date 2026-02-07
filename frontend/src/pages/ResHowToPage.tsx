@@ -6,6 +6,7 @@ import { TOPICS } from '../data/topics';
 import { STEPS_BY_TOPIC } from '../data/stepsByTopic';
 import { StepFullData } from '../types';
 import StepLayout from '../components/StepLayout';
+import ResearchProcessIntro from '../components/ResearchProcessIntro';
 import AcademicGridBackground from '../components/ui/AcademicGridBackground';
 import ResearchSuggestionModal from '../components/research/ResearchSuggestionModal';
 import AiUsageModal from '../components/research/AiUsageModal';
@@ -99,6 +100,7 @@ const ResHowToPage: React.FC = () => {
             <ArrowDown size={16} className="text-gray-400 animate-bounce" />
           </div>
         </motion.div>
+        <ResearchProcessIntro />
       </section>
       {isLoading ? (
         <section className="py-16 px-4 max-w-5xl mx-auto">
