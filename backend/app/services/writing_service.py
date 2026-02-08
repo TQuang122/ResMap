@@ -7,7 +7,9 @@ from app.core.config import settings
 
 
 class WritingService:
-    def __init__(self, gemini_api_key: str = "", model: str = "models/gemini-1.5-pro"):
+    def __init__(
+        self, gemini_api_key: str = "", model: str = "models/gemini-2.5-flash"
+    ):
         self.gemini_api_key = gemini_api_key
         self.model = model if model.startswith("models/") else f"models/{model}"
 
@@ -24,30 +26,13 @@ class WritingService:
         if not self._client:
             raise RuntimeError("Gemini client is not initialized")
 
-        action = "Summarize" if task == "summarize" else "Rewrite"
-        lang = "Vietnamese" if output_language.lower().startswith("vi") else "English"
-
-        prompt = f"""
-You are an academic writing assistant.
-
-Action: {action}
-Tone: {tone}
-Output language: {lang}
-
-Ethics:
-- Do not invent citations, authors, or facts.
-- Keep the meaning faithful to the input.
-
-Input text:
-"""
-        # Keep the input separated to reduce prompt injection risk.
-        prompt = prompt + "\n" + text.strip() + "\n"
+        # Type assertion for static type checker
+        client = self._client
+        assert client is not None
 
         def _run() -> str:
             try:
-                resp = self._client.models.generate_content(
-                    model=self.model, contents=prompt
-                )
+                resp = client.models.generate_content(model=self.model, contents=prompt)
             except genai_errors.APIError as e:
                 # Map upstream API errors to a RuntimeError so the endpoint can return 503.
                 raise RuntimeError(f"Gemini API error: {e}")

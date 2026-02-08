@@ -83,7 +83,7 @@ class PaperService:
                 if client is None:
                     raise RuntimeError("Gemini client is not initialized")
                 resp = client.models.generate_content(
-                    model="models/gemini-1.5-pro", contents=prompt
+                    model="models/gemini-2.5-flash", contents=prompt
                 )
                 text = getattr(resp, "text", None)
                 if isinstance(text, str):
