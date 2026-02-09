@@ -23,6 +23,60 @@ from app.schemas.paper import (
 )
 
 
+# ============ OpenAlex Cache ============
+
+OPENALEX_BASE = "https://api.openalex.org/works"
+
+
+@alru_cache(maxsize=512, ttl=1800)
+async def _cached_openalex_fetch(
+    query: str,
+    year_start: int,
+    year_end: int,
+    paper_types: str,
+    sort_by: str,
+    per_page: int,
+    mailto: str | None,
+) -> dict:
+    """Cached OpenAlex API fetch with TTL (30 min cache)."""
+    # Build filters
+    filters = [
+        f"from_publication_date:{year_start}-01-01",
+        f"to_publication_date:{year_end}-12-31",
+    ]
+    if paper_types:
+        type_filters = []
+        for pt in paper_types.split(","):
+            if pt == "survey":
+                type_filters.append("type:review")
+            elif pt == "empirical":
+                type_filters.append("type:article")
+        if type_filters:
+            filters.append(f"({','.join(type_filters)})")
+
+    # Determine sort
+    sort_param = "relevance_score:desc"
+    if sort_by == "cited_by_count":
+        sort_param = "cited_by_count:desc"
+    elif sort_by == "publication_date":
+        sort_param = "publication_date:desc"
+
+    params = {
+        "search": query,
+        "filter": ",".join(filters),
+        "per_page": per_page,
+        "sort": sort_param,
+        "select": "id,title,publication_year,cited_by_count,abstract_inverted_index,authorships,primary_location,best_oa_location,concepts,type,doi",
+    }
+    if mailto:
+        params["mailto"] = mailto
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(OPENALEX_BASE, params=params)
+        response.raise_for_status()
+        return response.json()
+
+
 class PaperService:
     """
     Service for searching papers (OpenAlex) and scoring them (Gemini AI).
@@ -306,53 +360,24 @@ Output: {{"keywords": ["Quantum Tensor Networks", "Image Compression", "Quantum-
     # ============ Paper Search (OpenAlex) ============
 
     async def search_papers(self, request: SearchRequest) -> SearchResponse:
-        """Search papers using OpenAlex API."""
+        """Search papers using OpenAlex API with TTL caching."""
 
-        # Build filter string
-        filters = [
-            f"from_publication_date:{request.year_start}-01-01",
-            f"to_publication_date:{request.year_end}-12-31",
-        ]
+        # Serialize paper types for cache key
+        paper_types_str = ",".join([p.value for p in (request.paper_types or [])])
 
-        # Add paper type filter if specified
-        if request.paper_types:
-            type_filters = []
-            for pt in request.paper_types:
-                if pt == PaperType.SURVEY:
-                    type_filters.append("type:review")
-                elif pt == PaperType.EMPIRICAL:
-                    type_filters.append("type:article")
-            if type_filters:
-                filters.append(f"({','.join(type_filters)})")
-
-        # Determine sort
-        sort_param = "relevance_score:desc"
-        if request.sort_by == "cited_by_count":
-            sort_param = "cited_by_count:desc"
-        elif request.sort_by == "publication_date":
-            sort_param = "publication_date:desc"
-
-        params = {
-            "search": request.query,
-            "filter": ",".join(filters),
-            "per_page": min(request.limit, 50),  # Max 50 per page
-            "sort": sort_param,
-            "select": "id,title,publication_year,cited_by_count,abstract_inverted_index,authorships,primary_location,best_oa_location,concepts,type,doi",
-        }
-
-        if self.openalex_email:
-            params["mailto"] = self.openalex_email
-
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            try:
-                response = await client.get(self.OPENALEX_BASE, params=params)
-                response.raise_for_status()
-                data = response.json()
-            except Exception as e:
-                # Return empty result on error
-                return SearchResponse(
-                    total_count=0, papers=[], query_used=request.query
-                )
+        # Use cached fetch instead of direct HTTP call
+        try:
+            data = await _cached_openalex_fetch(
+                query=request.query,
+                year_start=request.year_start,
+                year_end=request.year_end,
+                paper_types=paper_types_str,
+                sort_by=request.sort_by,
+                per_page=min(request.limit, 50),
+                mailto=self.openalex_email,
+            )
+        except Exception:
+            return SearchResponse(total_count=0, papers=[], query_used=request.query)
 
         # Parse results
         papers = []
