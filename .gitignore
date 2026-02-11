@@ -20,6 +20,10 @@ node_modules/
 dist/
 frontend/dist/
 
+# Playwright artifacts
+frontend/playwright-report/
+frontend/test-results/
+
 # Local tooling artifacts
 opencode.json
 \ opencode.json

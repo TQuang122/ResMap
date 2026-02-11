@@ -10,11 +10,12 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const authRequired = (import.meta.env.VITE_AUTH_REQUIRED ?? 'true') === 'true';
+  const e2eBypassAuth = (import.meta.env.VITE_E2E_BYPASS_AUTH ?? 'false') === 'true';
   const [state, setState] = useState<AuthState>('loading');
   const location = useLocation();
 
   useEffect(() => {
-    if (!authRequired || !supabase) {
+    if (e2eBypassAuth || !authRequired || !supabase) {
       setState('authed');
       return;
     }
@@ -43,9 +44,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       mounted = false;
       listener.subscription.unsubscribe();
     };
-  }, [authRequired]);
+  }, [authRequired, e2eBypassAuth]);
 
-  if (!authRequired) return children;
+  if (e2eBypassAuth || !authRequired) return children;
   if (state === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center text-sm text-slate-400">
