@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
-import { postData } from '../../utils/api';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge } from 'lucide-react';
+import { getData, postData } from '../../utils/api';
 import { logHistory } from '../../utils/logger';
 
 interface Source {
@@ -11,6 +11,10 @@ interface Source {
 interface SentenceResult {
   sentence: string;
   similarity: number;
+  semantic_similarity: number;
+  used_ai?: boolean;
+  fallback_used?: boolean;
+  analysis_method?: string | null;
   sources: Source[];
   is_plagiarized: boolean;
 }
@@ -21,6 +25,19 @@ interface PlagiarismResponse {
   total_sentences: number;
   plagiarized_sentences: number;
   results: SentenceResult[];
+  used_ai_similarity: boolean;
+  fallback_used: boolean;
+  analysis_method: string | null;
+  ai_quota_remaining: number | null;
+  ai_quota_percent: number | null;
+}
+
+interface QuotaResponse {
+  used: number;
+  limit: number;
+  remaining: number;
+  usage_percent: number;
+  reset_at: string;
 }
 
 const PlagiarismChecker: React.FC = () => {
@@ -28,29 +45,127 @@ const PlagiarismChecker: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlagiarismResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [useAiSimilarity, setUseAiSimilarity] = useState(true);
+  const [quota, setQuota] = useState<QuotaResponse | null>(null);
+  const [quotaLoading, setQuotaLoading] = useState(false);
+  const [quotaError, setQuotaError] = useState<string | null>(null);
+  const [quotaEndpointUnsupported, setQuotaEndpointUnsupported] = useState(false);
+
+  const canSubmit = useMemo(() => text.trim().length >= 50, [text]);
+
+  const toNumber = (value: unknown, fallback = 0) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+  const normalizeSentence = (item: any): SentenceResult => ({
+    sentence: typeof item?.sentence === 'string' ? item.sentence : '',
+    similarity: toNumber(item?.similarity),
+    semantic_similarity: toNumber(item?.semantic_similarity),
+    used_ai: Boolean(item?.used_ai),
+    fallback_used: Boolean(item?.fallback_used),
+    analysis_method: typeof item?.analysis_method === 'string' ? item.analysis_method : null,
+    sources: Array.isArray(item?.sources)
+      ? item.sources
+          .map((source: any) => ({
+            url: typeof source?.url === 'string' ? source.url : '',
+            similarity: toNumber(source?.similarity),
+          }))
+          .filter((source: Source) => source.url.length > 0)
+      : [],
+    is_plagiarized: Boolean(item?.is_plagiarized),
+  });
+
+  const normalizeResponse = (raw: any): PlagiarismResponse => ({
+    overall_score: toNumber(raw?.overall_score),
+    plagiarism_percentage: toNumber(raw?.plagiarism_percentage),
+    total_sentences: toNumber(raw?.total_sentences),
+    plagiarized_sentences: toNumber(raw?.plagiarized_sentences),
+    results: Array.isArray(raw?.results) ? raw.results.map(normalizeSentence) : [],
+    used_ai_similarity: Boolean(raw?.used_ai_similarity),
+    fallback_used: Boolean(raw?.fallback_used),
+    analysis_method: typeof raw?.analysis_method === 'string' ? raw.analysis_method : null,
+    ai_quota_remaining:
+      typeof raw?.ai_quota_remaining === 'number' ? raw.ai_quota_remaining : null,
+    ai_quota_percent: typeof raw?.ai_quota_percent === 'number' ? raw.ai_quota_percent : null,
+  });
+
+  const normalizeQuota = (raw: any): QuotaResponse => ({
+    used: toNumber(raw?.used),
+    limit: toNumber(raw?.limit),
+    remaining: toNumber(raw?.remaining),
+    usage_percent: toNumber(raw?.usage_percent),
+    reset_at: typeof raw?.reset_at === 'string' ? raw.reset_at : '',
+  });
+
+  const mapErrorMessage = (err: unknown) => {
+    const message = err instanceof Error ? err.message : '';
+    if (message.includes('401') || message.includes('Unauthorized') || message.includes('Missing or invalid authorization')) {
+      return 'Bạn cần đăng nhập để sử dụng tính năng này.';
+    }
+    if (message.includes('429') || message.toLowerCase().includes('quota')) {
+      return 'Hệ thống đang giới hạn quota. Vui lòng thử lại sau.';
+    }
+    return 'Có lỗi xảy ra khi kết nối tới server. Vui lòng thử lại sau.';
+  };
+
+  const fetchQuota = useCallback(async (showLoading = false) => {
+    if (quotaEndpointUnsupported) {
+      return;
+    }
+
+    if (showLoading) {
+      setQuotaLoading(true);
+    }
+
+    try {
+      const quotaRaw = await getData('/tools/plagiarism-check/quota');
+      setQuota(normalizeQuota(quotaRaw));
+      setQuotaError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message.includes('404')) {
+        setQuotaEndpointUnsupported(true);
+        setQuotaError(null);
+      } else {
+        setQuotaError(mapErrorMessage(err));
+      }
+    } finally {
+      if (showLoading) {
+        setQuotaLoading(false);
+      }
+    }
+  }, [quotaEndpointUnsupported]);
+
+  useEffect(() => {
+    void fetchQuota(true);
+  }, [fetchQuota]);
 
   const handleCheck = async () => {
-    if (!text.trim() || text.length < 50) return;
+    if (!canSubmit) return;
     setLoading(true);
     setResult(null);
     setError(null);
 
     try {
-      const response = await postData('/tools/plagiarism-check', { 
+      const raw = await postData('/tools/plagiarism-check', {
         text,
-        max_sentences: 20
+        max_sentences: 20,
+        use_ai_similarity: useAiSimilarity,
       });
+      const response = normalizeResponse(raw);
       setResult(response);
       await logHistory({
         tool: 'plagiarism',
-        request: { text, max_sentences: 20 },
+        request: { text, max_sentences: 20, use_ai_similarity: useAiSimilarity },
         response,
       });
     } catch (err) {
       console.error(err);
-      setError("Có lỗi xảy ra khi kết nối tới server. Vui lòng thử lại sau.");
+      setError(mapErrorMessage(err));
     } finally {
       setLoading(false);
+      if (!quotaEndpointUnsupported) {
+        await fetchQuota();
+      }
     }
   };
 
@@ -66,8 +181,37 @@ const PlagiarismChecker: React.FC = () => {
     return 'bg-green-50 border-green-200';
   };
 
+  const getMethodInfo = (method: string | null | undefined, fallbackUsed = false) => {
+    const normalized = (method || '').toLowerCase();
+    if (normalized === 'semantic') {
+      return {
+        label: fallbackUsed ? 'Semantic (Fallback)' : 'Semantic',
+        className: 'bg-blue-100 text-blue-700 border-blue-200',
+      };
+    }
+    if (normalized === 'hybrid') {
+      return {
+        label: 'Hybrid',
+        className: 'bg-violet-100 text-violet-700 border-violet-200',
+      };
+    }
+    if (normalized === 'keyword') {
+      return {
+        label: fallbackUsed ? 'Keyword (Fallback)' : 'Keyword',
+        className: 'bg-slate-100 text-slate-700 border-slate-200',
+      };
+    }
+    return {
+      label: fallbackUsed ? 'Standard (Fallback)' : 'Standard',
+      className: 'bg-slate-100 text-slate-700 border-slate-200',
+    };
+  };
+
+  const quotaPercent = Math.min(100, Math.max(0, quota?.usage_percent ?? result?.ai_quota_percent ?? 0));
+  const effectiveQuotaRemaining = quota?.remaining ?? result?.ai_quota_remaining ?? null;
+
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" aria-busy={loading}>
       <div className="bg-slate-50 p-4 border-b border-slate-200 flex items-center gap-2">
         <Search size={20} className="text-[#F36F21]" />
         <h3 className="font-bold text-slate-800">Kiểm tra Đạo văn (Plagiarism Checker)</h3>
@@ -83,20 +227,77 @@ const PlagiarismChecker: React.FC = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Dán nội dung bài làm hoặc đoạn văn cần kiểm tra vào đây..."
+            aria-label="Văn bản cần kiểm tra đạo văn"
             className="w-full p-4 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F36F21] text-sm min-h-[200px] leading-relaxed resize-y"
           />
           <div className="mt-2 flex justify-between text-xs text-slate-500">
-            <span className={text.length < 50 ? 'text-orange-500' : 'text-green-600'}>
+            <span className={canSubmit ? 'text-green-600' : 'text-orange-500'}>
               {text.length} / 50 ký tự tối thiểu
             </span>
             <span>Khuyên dùng: Kiểm tra từng đoạn ngắn để có kết quả tốt nhất.</span>
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                  <Sparkles size={16} className="text-[#F36F21]" />
+                  AI Similarity
+                </p>
+                <p className="text-xs text-slate-500 mt-1">Bật để ưu tiên semantic similarity khi quota khả dụng.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={useAiSimilarity}
+                aria-label="Bật tắt AI similarity"
+                disabled={loading}
+                onClick={() => setUseAiSimilarity((prev) => !prev)}
+                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#F36F21]/40 disabled:opacity-50 ${
+                  useAiSimilarity ? 'bg-[#F36F21]' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 ${
+                    useAiSimilarity ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-slate-200 bg-white" aria-live="polite">
+            <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <Gauge size={16} className="text-[#F36F21]" />
+              AI Quota
+            </p>
+            {quotaLoading && !quota ? (
+              <p className="text-xs text-slate-500 mt-2">Đang tải quota...</p>
+            ) : quotaEndpointUnsupported ? (
+              <p className="text-xs text-slate-500 mt-2">Quota endpoint chưa được bật ở môi trường hiện tại.</p>
+            ) : quotaError ? (
+              <p className="text-xs text-amber-600 mt-2">Không thể tải quota lúc này (không ảnh hưởng thao tác kiểm tra).</p>
+            ) : (
+              <>
+                <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full bg-[#F36F21] transition-all duration-300" style={{ width: `${quotaPercent}%` }} />
+                </div>
+                <div className="mt-2 text-xs text-slate-600 flex items-center justify-between gap-2">
+                  <span>Đã dùng: {quotaPercent.toFixed(2)}%</span>
+                  <span>Còn lại: {effectiveQuotaRemaining ?? '--'}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
         {/* Action Button */}
         <button
           onClick={handleCheck}
-          disabled={loading || text.length < 50}
+          disabled={loading || !canSubmit}
+          aria-busy={loading}
           className="self-start px-8 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95"
         >
           {loading ? (
@@ -114,7 +315,7 @@ const PlagiarismChecker: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-3 border border-red-200">
+          <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-3 border border-red-200" role="alert" aria-live="polite">
             <AlertTriangle size={20} />
             <p>{error}</p>
           </div>
@@ -122,8 +323,29 @@ const PlagiarismChecker: React.FC = () => {
 
         {/* Results Section */}
         {result && (
-          <div className="space-y-6">
+          <div className="space-y-6" aria-live="polite">
             <div className="h-px bg-slate-200 w-full" />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`text-xs font-semibold px-3 py-1 rounded-full border ${getMethodInfo(
+                  result.analysis_method,
+                  result.fallback_used
+                ).className}`}
+              >
+                {getMethodInfo(result.analysis_method, result.fallback_used).label}
+              </span>
+              {result.used_ai_similarity && (
+                <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
+                  AI Used
+                </span>
+              )}
+              {result.fallback_used && (
+                <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-amber-50 border-amber-200 text-amber-700">
+                  Fallback Active
+                </span>
+              )}
+            </div>
             
             {/* Score Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -175,7 +397,18 @@ const PlagiarismChecker: React.FC = () => {
                         <p className={`text-slate-800 leading-relaxed ${item.is_plagiarized ? 'font-medium' : ''}`}>
                           {item.sentence}
                         </p>
-                        
+
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          {item.analysis_method && (
+                            <span className={`px-2 py-0.5 rounded-full border ${getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).className}`}>
+                              {getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).label}
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
+                            Semantic: {item.semantic_similarity}%
+                          </span>
+                        </div>
+                         
                         {item.sources.length > 0 && (
                           <div className="mt-3 pl-3 border-l-2 border-slate-200 space-y-2">
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Nguồn tìm thấy:</p>
