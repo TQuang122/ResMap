@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Sparkles, Loader2, X, Save, CheckCircle, BookOpen, Lightbulb, ArrowRight } from 'lucide-react';
 import { postData } from '../../utils/api';
 import { supabase } from '../../lib/supabase';
@@ -351,4 +351,8 @@ const ResearchSuggestionModal: React.FC<ResearchSuggestionModalProps> = ({ isOpe
   );
 };
 
-export default ResearchSuggestionModal;
+const ResearchSuggestionModalMemo = memo(ResearchSuggestionModal, (prevProps, nextProps) => {
+  return prevProps.isOpen === nextProps.isOpen;
+});
+
+export default ResearchSuggestionModalMemo;

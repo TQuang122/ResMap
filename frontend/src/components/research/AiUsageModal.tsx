@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { X, Brain, AlertTriangle, CheckCircle, CircleSlash, FileText, ArrowRight } from 'lucide-react';
 
 interface AiUsageModalProps {
@@ -211,4 +211,8 @@ const AiUsageModal: React.FC<AiUsageModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default AiUsageModal;
+const AiUsageModalMemo = memo(AiUsageModal, (prevProps, nextProps) => {
+  return prevProps.isOpen === nextProps.isOpen;
+});
+
+export default AiUsageModalMemo;

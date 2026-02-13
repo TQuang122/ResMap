@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, ExternalLink, Sparkles, CheckCircle, Calculator, BookOpen } from 'lucide-react';
 import {
@@ -385,4 +385,11 @@ const Step0ExerciseModal: React.FC<Step0ExerciseModalProps> = ({
   );
 };
 
-export default Step0ExerciseModal;
+const Step0ExerciseModalMemo = memo(Step0ExerciseModal, (prevProps, nextProps) => {
+  return (
+    prevProps.isOpen === nextProps.isOpen &&
+    prevProps.topicKey === nextProps.topicKey
+  );
+});
+
+export default Step0ExerciseModalMemo;

@@ -1,4 +1,5 @@
 import asyncio
+from functools import lru_cache
 
 from google import genai
 from google.genai import errors as genai_errors
@@ -17,6 +18,28 @@ class WritingService:
             genai.Client(api_key=self.gemini_api_key) if self.gemini_api_key else None
         )
 
+    @lru_cache(maxsize=128)
+    def _build_prompt(self, task: str, tone: str, output_language: str) -> str:
+        """Build cached prompt based on task parameters."""
+        lang_instruction = ""
+        if output_language.lower() in ["vietnamese", "vi", "tiếng việt"]:
+            lang_instruction = "Output must be in Vietnamese."
+        elif output_language.lower() in ["english", "en", "tiếng anh"]:
+            lang_instruction = "Output must be in English."
+
+        tone_instruction = f"Use a {tone} tone." if tone else ""
+
+        if task == "summarize":
+            return f"Summarize the following text concisely. {tone_instruction} {lang_instruction}\n\nText: {{text}}"
+        elif task == "rewrite":
+            return f"Rewrite the following text to improve clarity and academic quality. {tone_instruction} {lang_instruction}\n\nText: {{text}}"
+        elif task == "polish":
+            return f"Polish and refine the following text for academic publication. {tone_instruction} {lang_instruction}\n\nText: {{text}}"
+        elif task == "expand":
+            return f"Expand the following text with more details and examples while maintaining academic tone. {tone_instruction} {lang_instruction}\n\nText: {{text}}"
+        else:
+            return f"Process the following text. {tone_instruction} {lang_instruction}\n\nText: {{text}}"
+
     async def assist(
         self, *, text: str, task: str, tone: str, output_language: str
     ) -> str:
@@ -26,9 +49,10 @@ class WritingService:
         if not self._client:
             raise RuntimeError("Gemini client is not initialized")
 
-        # Type assertion for static type checker
         client = self._client
         assert client is not None
+
+        prompt = self._build_prompt(task, tone, output_language).replace("{text}", text)
 
         def _run() -> str:
             try:

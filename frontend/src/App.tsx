@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ToastProvider } from './components/ui/Toast';
 import { PageTransition } from './components/ui/PageTransition';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 
 // Lazy load all page components for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -158,9 +159,11 @@ const App: React.FC = () => {
   return (
     <ResearchProvider>
       <ToastProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <ErrorBoundary>
+          <Router>
+            <AppContent />
+          </Router>
+        </ErrorBoundary>
       </ToastProvider>
     </ResearchProvider>
   );

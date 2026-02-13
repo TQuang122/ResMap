@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -117,4 +117,12 @@ const StepInfoModal: React.FC<StepInfoModalProps> = ({ isOpen, onClose, step }) 
   );
 };
 
-export default StepInfoModal;
+const StepInfoModalMemo = memo(StepInfoModal, (prevProps, nextProps) => {
+  return (
+    prevProps.isOpen === nextProps.isOpen &&
+    prevProps.step?.stepNumber === nextProps.step?.stepNumber &&
+    prevProps.step?.title === nextProps.step?.title
+  );
+});
+
+export default StepInfoModalMemo;

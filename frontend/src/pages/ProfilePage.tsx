@@ -280,7 +280,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-xl">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover" />
+                  <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover" loading="lazy" />
                 ) : (
                   (email?.[0] ?? 'U').toUpperCase()
                 )}
