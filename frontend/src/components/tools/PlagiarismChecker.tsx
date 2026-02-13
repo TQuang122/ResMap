@@ -43,6 +43,7 @@ interface QuotaResponse {
 const PlagiarismChecker: React.FC = () => {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<PlagiarismResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [useAiSimilarity, setUseAiSimilarity] = useState(true);
@@ -139,9 +140,26 @@ const PlagiarismChecker: React.FC = () => {
     void fetchQuota(true);
   }, [fetchQuota]);
 
+  useEffect(() => {
+    if (!loading) {
+      setProgress(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) return prev;
+        return Math.min(90, prev + Math.floor(Math.random() * 11) + 5);
+      });
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
   const handleCheck = async () => {
     if (!canSubmit) return;
     setLoading(true);
+    setProgress(0);
     setResult(null);
     setError(null);
 
@@ -163,6 +181,7 @@ const PlagiarismChecker: React.FC = () => {
       setError(mapErrorMessage(err));
     } finally {
       setLoading(false);
+      setProgress(100);
       if (!quotaEndpointUnsupported) {
         await fetchQuota();
       }
@@ -298,12 +317,35 @@ const PlagiarismChecker: React.FC = () => {
           onClick={handleCheck}
           disabled={loading || !canSubmit}
           aria-busy={loading}
-          className="self-start px-8 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95"
+          className="self-start px-8 py-3 bg-[#F36F21] text-white font-bold rounded-full hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 flex items-center gap-2 active:scale-95 min-w-[180px]"
         >
           {loading ? (
             <>
-              <Loader2 size={18} className="animate-spin" />
-              Đang phân tích...
+              <span
+                className="relative inline-flex items-center justify-center"
+                style={{
+                  width: 18,
+                  height: 18,
+                }}
+              >
+                <span
+                  className="absolute inset-0 rounded-full animate-ping opacity-75"
+                  style={{ backgroundColor: '#fff' }}
+                />
+                <span
+                  className="relative w-3 h-3 rounded-full"
+                  style={{
+                    background: 'repeating-conic-gradient(#fff 0 5%, #ff6b6b 20% 50%)',
+                    animation: 'spin 1.5s linear infinite',
+                  }}
+                />
+              </span>
+              <style>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+              Đang phân tích... {progress}%
             </>
           ) : (
             <>
