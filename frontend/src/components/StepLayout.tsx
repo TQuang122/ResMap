@@ -13,9 +13,10 @@ interface StepLayoutProps {
   onAiUsageOpen?: () => void;
   onPaperHunterOpen?: () => void;
   onResBlueprintOpen?: () => void;
+  onStep0ExerciseOpen?: () => void;
 }
 
-const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen, onResBlueprintOpen }) => {
+const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen, onResBlueprintOpen, onStep0ExerciseOpen }) => {
   // console.log("StepLayout rendered. onResBlueprintOpen:", !!onResBlueprintOpen);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { stepNumber, title, description, theme, deliverables, guidance, support } = stepData;
@@ -93,6 +94,7 @@ const StepLayout: React.FC<StepLayoutProps> = ({ stepData, onResExploreOpen, onR
                 onAiUsageOpen={onAiUsageOpen} 
                 onPaperHunterOpen={onPaperHunterOpen}
                 onResBlueprintOpen={onResBlueprintOpen}
+                onStep0ExerciseOpen={onStep0ExerciseOpen}
               />
             </motion.div>
 

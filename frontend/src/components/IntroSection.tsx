@@ -114,24 +114,39 @@ const TypewriterText: React.FC<{
 
   return (
     <span className="inline-flex flex-col items-start">
-      {displayedTexts.map((item, idx) => (
-        <span key={idx} className={idx > 0 ? "mt-4 relative flex justify-center w-full" : "relative"}>
-          {idx > 0 && (
-            <span className="absolute inset-0 blur-[100px] bg-gradient-to-b from-[#FF512F] to-[#F09819] opacity-40 rounded-2xl" />
-          )}
-          <span className={texts[idx].gradient ? "relative text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819]" : "text-slate-900"}>
-            {item.text}
+      {displayedTexts.map((item, idx) => {
+        const typedProgress = texts[idx].text.length > 0 ? item.text.length / texts[idx].text.length : 0;
+        const glowProgress = Math.min(1, typedProgress * 1.8);
+        const glowOpacity = idx === 0 ? glowProgress * 0.3 : glowProgress * 0.45;
+        const glowClass = idx === 0
+          ? 'from-orange-300/80 to-amber-200/80'
+          : 'from-[#FF512F] to-[#F09819]';
+
+        return (
+          <span key={idx} className={idx > 0 ? "mt-4 relative flex justify-center w-full" : "relative"}>
+            <span className="relative inline-flex items-center">
+              <span
+                className={`pointer-events-none absolute -inset-x-4 -inset-y-3 rounded-2xl bg-gradient-to-b blur-[90px] origin-left transition-[transform,opacity] duration-100 ease-out ${glowClass}`}
+                style={{
+                  transform: `scaleX(${glowProgress})`,
+                  opacity: glowOpacity,
+                }}
+              />
+              <span className={texts[idx].gradient ? "relative text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819]" : "text-slate-900"}>
+                {item.text}
+              </span>
+              {idx === activeIndex && !item.complete && (
+                <motion.span
+                  className={`ml-1 w-3 h-full rounded align-middle ${idx === 0 ? 'bg-slate-900' : 'bg-gradient-to-b from-[#FF512F] to-[#F09819]'}`}
+                  animate={{ opacity: [0, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                  style={{ display: 'inline-block', height: '1.2em', width: '0.3em', verticalAlign: 'middle' }}
+                />
+              )}
+            </span>
           </span>
-          {idx === activeIndex && !item.complete && (
-            <motion.span
-              className={`ml-1 w-3 h-full rounded align-middle ${idx === 0 ? 'bg-slate-900' : 'bg-gradient-to-b from-[#FF512F] to-[#F09819]'}`}
-              animate={{ opacity: [0, 0, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity }}
-              style={{ display: 'inline-block', height: '1.2em', width: '0.3em', verticalAlign: 'middle' }}
-            />
-          )}
-        </span>
-      ))}
+        );
+      })}
     </span>
   );
 };

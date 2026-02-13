@@ -103,7 +103,7 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMenuOpen(true)}
-              className="text-[#F36F21] hover:opacity-80 transition-all active:scale-95 p-2 md:hidden"
+              className="text-[#F36F21] hover:opacity-80 transition-all active:scale-95 p-2 lg:hidden"
             >
               <Menu size={isScrolled ? 20 : 24} />
             </button>

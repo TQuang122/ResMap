@@ -1,7 +1,9 @@
 import { THEMES } from '../constants';
 import { StepFullData } from '../types';
+import { STEP_0_DATA } from './step0Shared';
 
 export const STEPS_DATA: StepFullData[] = [
+  STEP_0_DATA,
   {
     id: 'step1',
     stepNumber: "01",

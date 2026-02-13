@@ -1,7 +1,7 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import { FULL_STARTER_KIT } from '../data/fullStarterKit';
-import { Download, ExternalLink } from 'lucide-react';
+import { Download, ExternalLink, Pencil, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const floatingIcons = [
@@ -75,12 +75,7 @@ const IconSvg: React.FC<{ type: string; size: number }> = ({ type, size }) => {
         </svg>
       );
     case 'gear':
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 00.33l.34 1.34.34a2 2 0 01-2.83 2.83l-.34-.34a1.65 1.65 0 00-1.34-.33 9 9 0 10-9.8 9.8A1.65 1.65 0 004.6 9a2 2 0 01-2.83-2.83l.34-.34a1.65 1.65 0 00.33-1.34 9 9 0 019.8-9.8z" />
-        </svg>
-      );
+      return <Settings size={size} strokeWidth={1.5} className={className} />;
     case 'ruler':
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
@@ -91,12 +86,7 @@ const IconSvg: React.FC<{ type: string; size: number }> = ({ type, size }) => {
         </svg>
       );
     case 'pencil':
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
-          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-          <path d="M19.4 15a1.65 1.65 0 00.33.12.89.89 0 00.24-.07l.34-.07a2 2 0 002.83-2.83l-.07-.34a.89.89 0 00-.07-.24 1.65 1.65 0 00-.12-.33l-.34-.34 0 00a2 2-2.83-2.83l-.34.07a.89.89 0 00-.24.07 1.65 1.65 0 00-.33.12.89.89 0 00-.07.24 2 2 0 00-2.83 2.83l.07.34a.89.89 0 00.07.24 1.65 1.65 0 00.12.33l.34.34a2 2 0 002.83 2.83l-.07.34a.89.89 0 00-.07.24 1.65 1.65 0 00-.12.33l-.34.34a2 2 0 00-2.83 2.83l-.34-.07a.89.89 0 00-.24-.07 1.65 1.65 0 00-.33-.12.89.89 0 00-.07-.24 2 2 0 00-2.83-2.83l.07-.34a.89.89 0 00-.07-.24 1.65 1.65 0 00-.12-.33l-.34-.34z" />
-        </svg>
-      );
+      return <Pencil size={size} strokeWidth={1.5} className={className} />;
     case 'book':
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>

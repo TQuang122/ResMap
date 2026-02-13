@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TOPICS } from '../data/topics';
 import { STEPS_BY_TOPIC } from '../data/stepsByTopic';
 import { StepFullData } from '../types';
@@ -14,22 +14,33 @@ import AiUsageModal from '../components/research/AiUsageModal';
 import ResExploreModal from '../components/research/ResExploreModal';
 import ResBlueprintModal from '../components/research/ResBlueprintModal';
 import PaperHunterModal from '../components/tools/PaperHunter';
+import Step0ExerciseModal from '../components/research/Step0ExerciseModal';
 import { ALL_LECTURERS } from '../data/lecturers';
 
 // Modal types
-type ModalType = 'resExplore' | 'researchSuggestion' | 'aiUsage' | 'paperHunter' | 'resBlueprint' | null;
+type ModalType = 'resExplore' | 'researchSuggestion' | 'aiUsage' | 'paperHunter' | 'resBlueprint' | 'step0Exercise' | null;
 
-const TopicCard: React.FC<{ icon: React.ReactNode; title: string; onClick: () => void }> = ({ icon, title, onClick }) => (
-  <motion.div
-    onClick={onClick}
-    className="cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 lg:gap-4 h-32 md:h-40 lg:h-48 relative"
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-  >
-    <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-200">{icon}</div>
-    <h3 className="font-bold text-xs md:text-base text-gray-800">{title}</h3>
-  </motion.div>
-);
+const TopicCard: React.FC<{ icon: React.ReactNode; title: string; onClick: () => void }> = ({ icon, title, onClick }) => {
+  const slug = title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return (
+    <motion.div
+      onClick={onClick}
+      data-testid={`topic-card-${slug}`}
+      className="cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 lg:gap-4 h-32 md:h-40 lg:h-48 relative"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-200">{icon}</div>
+      <h3 className="font-bold text-xs md:text-base text-gray-800">{title}</h3>
+    </motion.div>
+  );
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,6 +49,7 @@ const containerVariants = {
 
 const ResHowToPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [stepsData, setStepsData] = useState<StepFullData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +81,10 @@ const ResHowToPage: React.FC = () => {
     setActiveModal('resBlueprint');
   }, []);
 
+  const openStep0Exercise = useCallback(() => {
+    setActiveModal('step0Exercise');
+  }, []);
+
   const handleTopicSelect = useCallback((topic: string) => {
     setIsLoading(true);
     const loadData = STEPS_BY_TOPIC[topic];
@@ -82,6 +98,24 @@ const ResHowToPage: React.FC = () => {
     }
   }, []);
 
+  const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+  useEffect(() => {
+    const topicParam = searchParams.get('topic');
+    if (topicParam) {
+      const matchingTopic = Object.keys(STEPS_BY_TOPIC).find(t => slugify(t) === topicParam);
+      if (matchingTopic && STEPS_BY_TOPIC[matchingTopic]) {
+        setIsLoading(true);
+        STEPS_BY_TOPIC[matchingTopic]().then(m => {
+          setStepsData(m.STEPS_DATA);
+          setTimeout(() => {
+            document.getElementById('research-process-intro')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }).finally(() => setIsLoading(false));
+      }
+    }
+  }, [searchParams]);
+
   return (
     <div className="flex-1 w-full min-h-screen bg-white relative">
       <section className="pt-32 lg:pt-40 pb-12 px-4 relative z-10 bg-gradient-to-b from-gray-50 to-white">
@@ -91,7 +125,7 @@ const ResHowToPage: React.FC = () => {
             Bạn thuộc khối ngành nào <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FF512F] to-[#F09819] bg-[length:400%_400%] animate-gradient-normal">tại FPTU?</span>
           </h1>
-          <p className="text-gray-500 text-sm md:text-lg lg:text-xl font-medium">Chọn khối ngành để xem hướng dẫn 6 bước</p>
+          <p className="text-gray-500 text-sm md:text-lg lg:text-xl font-medium">Chọn khối ngành để xem hướng dẫn 7 bước</p>
         </motion.div>
         <motion.div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {TOPICS.map((topic, idx) => (
@@ -128,6 +162,7 @@ const ResHowToPage: React.FC = () => {
               onAiUsageOpen={openAiUsage}
               onPaperHunterOpen={openPaperHunter}
               onResBlueprintOpen={openResBlueprint}
+              onStep0ExerciseOpen={openStep0Exercise}
             />
           ))}
         </div>
@@ -139,6 +174,7 @@ const ResHowToPage: React.FC = () => {
       <ResExploreModal isOpen={activeModal === 'resExplore'} onClose={closeModal} lecturers={ALL_LECTURERS} />
       <ResBlueprintModal isOpen={activeModal === 'resBlueprint'} onClose={closeModal} />
       <PaperHunterModal isOpen={activeModal === 'paperHunter'} onClose={closeModal} />
+      <Step0ExerciseModal isOpen={activeModal === 'step0Exercise'} onClose={closeModal} topicKey={selectedTopic || ''} />
       <Footer />
     </div>
   );

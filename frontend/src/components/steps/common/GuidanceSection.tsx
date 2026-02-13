@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles, Brain, AlertTriangle, CheckCircle2, XCircle, Layers, BookOpen, Award, Globe, TrendingUp, Target, Clock, CheckSquare, BarChart3 } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, Search, Sparkles, Brain, AlertTriangle, CheckCircle2, XCircle, Layers, BookOpen, Award, Globe, TrendingUp, Target, Clock, CheckSquare, BarChart3, MapPin, Key, Lightbulb, Compass, Backpack, ClipboardList } from 'lucide-react';
 import { GuidanceItem, ThemeColors } from '../../../types';
 
 interface SubStepsDisplayProps {
@@ -1141,6 +1141,314 @@ const InteractiveChecklistDisplay: React.FC<{ subSteps: string[]; theme: ThemeCo
   );
 };
 
+// DetectiveCardsDisplay - For "Gu lập luận" section with detective metaphor (Step 0.3)
+const DetectiveCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isDetectiveCards = subSteps.length > 0 && subSteps.some(s => s.startsWith('DETECTIVE|'));
+
+  if (!isDetectiveCards) return null;
+
+  // Parse DETECTIVE cards (DETECTIVE|icon|tiêu đề|mô tả)
+  const detectiveItems = subSteps
+    .filter(s => s.startsWith('DETECTIVE|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 4) {
+        return {
+          icon: parts[1].trim(),
+          title: parts[2].trim(),
+          description: parts.slice(3).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { icon: string; title: string; description: string } => p !== null);
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Detective Metaphor */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-900 rounded-xl text-white font-bold shadow-lg shadow-slate-500/30">
+          <span className="text-2xl">🕵️</span>
+          <span>GU LẬP LUẬN = CÁCH TRUY TÌM SỰ THẬT</span>
+        </div>
+        <p className="text-slate-600 mt-3 text-sm">
+          Giống như thám tử - mỗi ngành có cách riêng để tìm ra bằng chứng!
+        </p>
+      </div>
+
+      {/* Detective Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {detectiveItems.map((item, idx) => (
+          <div
+            key={idx}
+            className="group relative bg-white rounded-xl border-2 border-slate-200 p-5 hover:border-slate-400 hover:shadow-xl hover:shadow-slate-500/10 transition-all duration-300"
+          >
+            <div className="flex items-start gap-4">
+              {/* Icon Circle */}
+              <div className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-300 flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <div className="flex-1">
+                <h5 className="font-bold text-slate-800 text-lg mb-2 group-hover:text-slate-900 transition-colors">
+                  {item.title}
+                </h5>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+            {/* Hover accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-slate-600 to-slate-800 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+      </div>
+
+      {/* Tip footer */}
+      <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200/50">
+        <span className="text-xl">💡</span>
+        <p className="text-sm text-amber-800 font-medium">
+          Biết "gu" ngành = Đọc đúng trọng tâm! Mỗi ngành có cách chứng minh riêng.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// MapCardsDisplay - For "Bản đồ tài liệu" section with treasure map metaphor (Step 0.4)
+const MapCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isMapCards = subSteps.length > 0 && subSteps.some(s => s.startsWith('MAP|'));
+
+  if (!isMapCards) return null;
+
+  // Parse MAP cards (MAP|icon|tiêu đề|mô tả)
+  const mapItems = subSteps
+    .filter(s => s.startsWith('MAP|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 4) {
+        return {
+          icon: parts[1].trim(),
+          title: parts[2].trim(),
+          description: parts.slice(3).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { icon: string; title: string; description: string } => p !== null);
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Treasure Map Metaphor */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white font-bold shadow-lg shadow-amber-500/30">
+          <span className="text-2xl">🗺️</span>
+          <span>BẢN ĐỒ TÀI LIỆU = KHO BÁU</span>
+        </div>
+        <p className="text-slate-600 mt-3 text-sm">
+          Đừng đọc tràn lan - tìm "kho báu" paper!
+        </p>
+      </div>
+
+      {/* Map Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {mapItems.map((item, idx) => (
+          <div
+            key={idx}
+            className="group relative bg-white rounded-xl border-2 border-amber-200 p-5 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300"
+          >
+            <div className="flex items-start gap-4">
+              {/* Icon Circle */}
+              <div className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <div className="flex-1">
+                <h5 className="font-bold text-amber-900 text-lg mb-2 group-hover:text-amber-700 transition-colors">
+                  {item.title}
+                </h5>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+            {/* Hover accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-orange-500 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+      </div>
+
+      {/* Tip footer */}
+      <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200/50">
+        <span className="text-xl">💡</span>
+        <p className="text-sm text-amber-800 font-medium">
+          Review papers = Bản đồ + Foundation = Kho báu! Người đi trước đã vạch đường cho bạn rồi!
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// KeywordCardsDisplay - For "Keyword" section with game controller metaphor (Step 0.2)
+const KeywordCardsDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isKeywordCards = subSteps.length > 0 && subSteps.some(s => s.startsWith('KEYWORD|'));
+
+  if (!isKeywordCards) return null;
+
+  // Parse KEYWORD cards (KEYWORD|icon|tiêu đề|mô tả)
+  const keywordItems = subSteps
+    .filter(s => s.startsWith('KEYWORD|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 4) {
+        return {
+          icon: parts[1].trim(),
+          title: parts[2].trim(),
+          description: parts.slice(3).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { icon: string; title: string; description: string } => p !== null);
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Game Controller Metaphor */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold shadow-lg shadow-purple-500/30">
+          <span className="text-2xl">🎮</span>
+          <span>KEYWORD = PHÍM ĐIỀU KHIỂN GAME</span>
+        </div>
+        <p className="text-slate-600 mt-3 text-sm">
+          Thay vì học vẹt cả giáo trình → Nhặt 5-10 từ khóa cốt lõi mà paper nào cũng dùng
+        </p>
+      </div>
+
+      {/* Keyword Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {keywordItems.map((item, idx) => (
+          <div
+            key={idx}
+            className="group relative bg-white rounded-xl border-2 border-slate-200 p-5 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300"
+          >
+            <div className="flex items-start gap-4">
+              {/* Icon Circle */}
+              <div className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <div className="flex-1">
+                <h5 className="font-bold text-slate-800 text-lg mb-2 group-hover:text-purple-700 transition-colors">
+                  {item.title}
+                </h5>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+            {/* Hover accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+      </div>
+
+      {/* Tip footer */}
+      <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200/50">
+        <span className="text-xl">💡</span>
+        <p className="text-sm text-amber-800 font-medium">
+          Khi đọc paper và thấy keyword đã biết = như gặp lại bạn cũ! Chỉ cần nhận ra là đủ để tự tin hơn.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// Step0IntroDisplay - For Step 0 introduction with warning box + 4 perspectives cards
+const Step0IntroDisplay: React.FC<{ subSteps: string[]; theme: ThemeColors }> = ({ subSteps }) => {
+  const isStep0Intro = subSteps.length > 0 && (
+    subSteps.some(s => s.startsWith('WARNING|')) ||
+    subSteps.some(s => s.startsWith('ANGLE|'))
+  );
+
+  if (!isStep0Intro) return null;
+
+  // Parse WARNING (WARNING|tiêu đề|nội dung)
+  const warningItem = subSteps.find(s => s.startsWith('WARNING|'));
+  const warningParts = warningItem ? warningItem.split('|').slice(1) : [];
+  const warningTitle = warningParts[0] || 'Cảnh báo';
+  const warningContent = warningParts.slice(1).join('|') || '';
+
+  // Parse ANGLE cards (ANGLE|icon|tiêu đề|mô tả)
+  const angleItems = subSteps
+    .filter(s => s.startsWith('ANGLE|'))
+    .map(s => {
+      const parts = s.split('|');
+      if (parts.length >= 4) {
+        return {
+          icon: parts[1].trim(),
+          title: parts[2].trim(),
+          description: parts.slice(3).join('|').trim()
+        };
+      }
+      return null;
+    })
+    .filter((p): p is { icon: string; title: string; description: string } => p !== null);
+
+  return (
+    <div className="space-y-6">
+      {/* Warning Box */}
+      {warningItem && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200/50 p-5 shadow-lg shadow-amber-500/10">
+          <div className="flex items-start gap-4">
+            <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <span className="text-2xl">🚫</span>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-black text-amber-900 text-lg mb-2 uppercase tracking-wide">
+                {warningTitle}
+              </h4>
+              <p className="text-amber-800/80 leading-relaxed">
+                {warningContent}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4 Perspectives Cards */}
+      {angleItems.length > 0 && (
+        <div>
+          <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <span className="text-xl">🎯</span>
+            4 góc nhìn để "soi" ngành của bạn
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {angleItems.map((item, idx) => (
+              <div
+                key={idx}
+                className="group relative bg-white rounded-xl border border-slate-200 p-4 hover:shadow-lg hover:border-amber-300 transition-all duration-300"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-xl shadow-sm">
+                    {item.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-bold text-slate-800 mb-1 group-hover:text-amber-700 transition-colors">
+                      {item.title}
+                    </h5>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+                {/* Hover effect accent */}
+                <div className="absolute left-0 top-1/2 -translate-x-1 w-1 h-12 bg-gradient-to-b from-amber-400 to-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -1228,6 +1536,26 @@ const SubStepsDisplay: React.FC<SubStepsDisplayProps> = ({ subSteps, theme }) =>
     return <NestedTabsDisplay subSteps={subSteps} theme={theme} />;
   }
 
+  // Check for Keyword Cards (KEYWORD|)
+  if (subSteps.some(s => s.startsWith('KEYWORD|'))) {
+    return <KeywordCardsDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  // Check for Map Cards (MAP|)
+  if (subSteps.some(s => s.startsWith('MAP|'))) {
+    return <MapCardsDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  // Check for Detective Cards (DETECTIVE|)
+  if (subSteps.some(s => s.startsWith('DETECTIVE|'))) {
+    return <DetectiveCardsDisplay subSteps={subSteps} theme={theme} />;
+  }
+
+  // Check for Step 0 Intro (WARNING| or ANGLE|)
+  if (subSteps.some(s => s.startsWith('WARNING|') || s.startsWith('ANGLE|'))) {
+    return <Step0IntroDisplay subSteps={subSteps} theme={theme} />;
+  }
+
   if (!isProcessSteps) {
     return (
       <div className="bg-white/20 rounded-xl p-4 space-y-2">
@@ -1308,17 +1636,54 @@ interface GuidanceSectionProps {
   onAiUsageOpen?: () => void;
   onPaperHunterOpen?: () => void;
   onResBlueprintOpen?: () => void;
+  onStep0ExerciseOpen?: () => void;
 }
 
-const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen, onResBlueprintOpen }) => {
+const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNumber, onResExploreOpen, onResearchSuggestionOpen, onAiUsageOpen, onPaperHunterOpen, onResBlueprintOpen, onStep0ExerciseOpen }) => {
   const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id || null);
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
   };
 
+  // Helper to get icon for Step 0 guidance items
+  const getStep0Icon = (stepNumber: number) => {
+    const icons = [
+      { Icon: Compass, color: 'text-amber-600', bg: 'bg-amber-100' },     // g0: Tư duy đúng
+      { Icon: Key, color: 'text-blue-600', bg: 'bg-blue-100' },            // g1: Keyword
+      { Icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-100' },  // g2: Gu lập luận
+      { Icon: MapPin, color: 'text-green-600', bg: 'bg-green-100' },       // g3: Lối tắt
+      { Icon: Backpack, color: 'text-purple-600', bg: 'bg-purple-100' },  // g4: Minimum Viable Skill
+    ];
+    const config = icons[stepNumber - 1] || icons[0];
+    return config;
+  };
+
+  const isStep0 = stepNumber === '0';
+
   return (
     <div className="space-y-4">
+      {isStep0 && (
+        <div className="mb-6 flex items-center gap-3">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full text-sm font-bold shadow-lg shadow-amber-500/30">
+            <MapPin size={16} />
+            Bước 0: Khởi Động
+          </span>
+          <span className="text-sm text-gray-500">Chuẩn bị nền tảng trước khi bắt đầu</span>
+        </div>
+      )}
+      {isStep0 && onStep0ExerciseOpen && (
+        <div className="mb-6">
+          <button
+            onClick={onStep0ExerciseOpen}
+            data-testid="step0-exercise-trigger"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#F36F21] to-[#F09819] text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all"
+          >
+            <ClipboardList size={18} />
+            Làm bài tập kiểm tra
+          </button>
+        </div>
+      )}
       <h3 className="text-xl font-black mb-6">Hướng dẫn cụ thể</h3>
       
       {items.map((item) => {
@@ -1333,37 +1698,58 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
         // Filter out the button token from subSteps prop
         const cleanSubSteps = item.subSteps?.filter(s => s !== 'BUTTON|BLUEPRINT_WIZARD') || [];
 
+        // Get icon config for Step 0
+        const iconConfig = isStep0 ? getStep0Icon(item.stepNumber) : null;
+
+        // Special Step 0 enhanced styling
+        const step0CardClass = isStep0
+          ? `rounded-2xl border-2 border-amber-200/50 overflow-hidden ${
+              isExpanded
+                ? 'bg-gradient-to-br from-amber-50/80 via-white/80 to-orange-50/80 shadow-xl shadow-amber-500/10'
+                : 'bg-white/40 hover:bg-white/60'
+            }`
+          : `rounded-2xl border transition-all duration-200 overflow-hidden ${
+              isExpanded
+                ? 'border-white/50 bg-white/30 shadow-lg'
+                : 'border-white/20 bg-white/10 hover:bg-white/20'
+            }`;
+
         return (
           <div
             key={item.id}
-            className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-              isExpanded 
-                ? 'border-white/50 bg-white/30 shadow-lg' 
-                : 'border-white/20 bg-white/10 hover:bg-white/20'
-            }`}
+            className={step0CardClass}
           >
             {/* Header */}
             <button
               onClick={() => toggleExpand(item.id)}
               className="w-full p-5 flex items-start gap-4 text-left"
             >
-              {/* Step Number Circle */}
-              <div className={`shrink-0 w-10 h-10 rounded-full ${theme.accent} text-white flex items-center justify-center font-black text-lg shadow-md`}>
-                {item.stepNumber}
+              {/* Step Number Badge with Gradient */}
+              <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg shadow-md ${
+                isStep0
+                  ? 'bg-gradient-to-br from-amber-400 to-orange-400 text-white'
+                  : `${theme.accent} text-white`
+              }`}>
+                {isStep0 ? item.stepNumber : item.stepNumber}
               </div>
-              
-              {/* Title and Preview */}
+
+              {/* Title with Icon */}
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-lg leading-tight mb-1">
+                <h4 className="font-bold text-lg leading-tight mb-1 flex items-center gap-2">
+                  {isStep0 && iconConfig && (
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg ${iconConfig.bg} ${iconConfig.color}`}>
+                      <iconConfig.Icon size={14} />
+                    </span>
+                  )}
                   {item.title}
                 </h4>
                 {!isExpanded && (
-                  <p className="text-sm opacity-70 line-clamp-2">
+                  <p className={`text-sm opacity-70 ${stepNumber === '0' ? '' : 'line-clamp-2'}`}>
                     {item.description}
                   </p>
                 )}
               </div>
-              
+
               {/* Expand Icon */}
               <div className="shrink-0 mt-1">
                 {isExpanded ? (
@@ -1376,16 +1762,60 @@ const GuidanceSection: React.FC<GuidanceSectionProps> = ({ items, theme, stepNum
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="px-5 pb-5 pt-0">
-                {/* Main Description */}
-                <div className="pl-14 space-y-4">
-                  <p className="opacity-90 leading-relaxed">
-                    {item.description}
-                  </p>
-                  
-                  {/* Sub-steps Display (List or Tabs) */}
+              <div className="px-5 pb-5 pt-2">
+                {/* Step 0 Enhanced Description with Header */}
+                <div className="pl-0 space-y-4">
+                  {/* Section Header: Mô tả - Hidden for Step 0 */}
+                  {!isStep0 && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`w-1 h-6 rounded-full ${theme.accent}`} />
+                      <h5 className={`font-bold text-sm uppercase tracking-wide ${theme.accentText}`}>
+                        Hướng dẫn cụ thể
+                      </h5>
+                    </div>
+                  )}
+                  <div className={`${isStep0 ? '' : 'pl-0'}`}>
+                    <p className="opacity-90 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* Sub-steps Display with Section Header */}
                   {cleanSubSteps.length > 0 && (
-                    <SubStepsDisplay subSteps={cleanSubSteps} theme={theme} />
+                    <div className="mt-6">
+                      {/* Section Header: Gợi ý */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className={`w-1 h-6 rounded-full ${isStep0 ? 'bg-gradient-to-b from-blue-400 to-indigo-400' : theme.accent}`} />
+                        <h5 className={`font-bold text-sm uppercase tracking-wide ${isStep0 ? 'text-blue-800' : theme.accentText}`}>
+                          Gợi ý từ ResMap
+                        </h5>
+                      </div>
+                      {/* Enhanced Step 0 Checklist Display */}
+                      {isStep0 && ((cleanSubSteps.some(s => s.startsWith('WARNING|')) || cleanSubSteps.some(s => s.startsWith('ANGLE|')) || cleanSubSteps.some(s => s.startsWith('KEYWORD|')) || cleanSubSteps.some(s => s.startsWith('DETECTIVE|')) || cleanSubSteps.some(s => s.startsWith('MAP|')))) ? (
+                        cleanSubSteps.some(s => s.startsWith('MAP|')) ? (
+                          <MapCardsDisplay subSteps={cleanSubSteps} theme={theme} />
+                        ) : cleanSubSteps.some(s => s.startsWith('DETECTIVE|')) ? (
+                          <DetectiveCardsDisplay subSteps={cleanSubSteps} theme={theme} />
+                        ) : cleanSubSteps.some(s => s.startsWith('KEYWORD|')) ? (
+                          <KeywordCardsDisplay subSteps={cleanSubSteps} theme={theme} />
+                        ) : (
+                          <Step0IntroDisplay subSteps={cleanSubSteps} theme={theme} />
+                        )
+                      ) : isStep0 ? (
+                        <div className="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 rounded-xl p-4 border border-blue-100/50 space-y-3">
+                          {cleanSubSteps.map((subStep, idx) => (
+                            <div key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg border border-blue-100/30">
+                              <div className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
+                                <CheckCircle size={14} className="text-white" />
+                              </div>
+                              <span className="text-sm text-slate-700 leading-relaxed">{subStep}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <SubStepsDisplay subSteps={cleanSubSteps} theme={theme} />
+                      )}
+                    </div>
                   )}
 
                   {/* Action Buttons Row */}
