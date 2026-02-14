@@ -39,8 +39,16 @@ interface ReportV2Caveat {
   message: string;
 }
 
+interface MatchGroup {
+  group_type: string;
+  count: number;
+  percentage: number;
+  sample_sentences: string[];
+}
+
 interface ReportV2 {
   source_groups: ReportV2SourceGroup[];
+  match_groups: MatchGroup[];
   caveats: ReportV2Caveat[];
   metadata?: Record<string, string>;
 }
@@ -116,6 +124,7 @@ const PlagiarismChecker: React.FC = () => {
     ai_quota_percent: typeof raw?.ai_quota_percent === 'number' ? raw.ai_quota_percent : null,
     report_v2: raw?.report_v2 ? {
       source_groups: Array.isArray(raw.report_v2.source_groups) ? raw.report_v2.source_groups : [],
+      match_groups: Array.isArray(raw.report_v2.match_groups) ? raw.report_v2.match_groups : [],
       caveats: Array.isArray(raw.report_v2.caveats) ? raw.report_v2.caveats : [],
       metadata: typeof raw.report_v2.metadata === 'object' ? raw.report_v2.metadata : undefined,
     } : undefined,
@@ -459,6 +468,45 @@ const PlagiarismChecker: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {result.report_v2 && result.report_v2.match_groups && result.report_v2.match_groups.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  Phân loại Trùng lặp theo Trích dẫn
+                </h4>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {result.report_v2.match_groups.map((group) => {
+                    const config = {
+                      not_cited_or_quoted: { label: 'Không trích dẫn', color: 'bg-red-100 border-red-300 text-red-800', bg: 'bg-red-50' },
+                      missing_quotations: { label: 'Thiết ngoặc', color: 'bg-orange-100 border-orange-300 text-orange-800', bg: 'bg-orange-50' },
+                      missing_citation: { label: 'Thiết trích dẫn', color: 'bg-yellow-100 border-yellow-300 text-yellow-800', bg: 'bg-yellow-50' },
+                      cited_and_quoted: { label: 'Đã trích dẫn', color: 'bg-green-100 border-green-300 text-green-800', bg: 'bg-green-50' },
+                    };
+                    const c = config[group.group_type as keyof typeof config] || config.not_cited_or_quoted;
+                    
+                    return (
+                      <div 
+                        key={group.group_type}
+                        className={`p-3 rounded-lg border ${c.color} ${c.bg}`}
+                      >
+                        <div className="text-2xl font-bold">{group.count}</div>
+                        <div className="text-xs font-medium">{c.label}</div>
+                        <div className="text-xs opacity-75">{group.percentage}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-200 rounded"></span> Không trích dẫn</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-orange-200 rounded"></span> Thiếu ngoặc</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-yellow-200 rounded"></span> Thiếu trích dẫn</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-200 rounded"></span> Đã trích dẫn đúng</span>
+                </div>
+              </div>
+            )}
 
             {result.report_v2 && result.report_v2.source_groups.length > 0 && (
               <div className="space-y-4">

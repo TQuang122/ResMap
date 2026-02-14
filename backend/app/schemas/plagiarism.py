@@ -93,10 +93,31 @@ class ReportV2Caveat(BaseModel):
     message: str = Field(..., description="Human-readable caveat summary")
 
 
+class MatchGroup(BaseModel):
+    """Match group categorized by citation and quotation status (Turnitin-style)."""
+
+    group_type: str = Field(
+        ...,
+        description="Group type: not_cited_or_quoted, missing_quotations, missing_citation, cited_and_quoted",
+    )
+    count: int = Field(default=0, ge=0, description="Number of matches in this group")
+    percentage: float = Field(
+        default=0.0, ge=0, le=100, description="Percentage of total matches"
+    )
+    sample_sentences: List[str] = Field(
+        default_factory=list,
+        description="Sample sentences from this group for display",
+    )
+
+
 class ReportV2(BaseModel):
     source_groups: List[ReportV2SourceGroup] = Field(
         default_factory=list,
         description="Source-centric grouping of matched spans",
+    )
+    match_groups: List[MatchGroup] = Field(
+        default_factory=list,
+        description="Match groups categorized by citation/quotation status",
     )
     caveats: List[ReportV2Caveat] = Field(
         default_factory=list,

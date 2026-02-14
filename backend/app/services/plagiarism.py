@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.config import settings
 from app.schemas.plagiarism import (
+    MatchGroup,
     PlagiarismCheckRequest,
     PlagiarismCheckResponse,
     ReportV2,
@@ -1174,6 +1175,84 @@ def _derive_confidence_band(
     return "low"
 
 
+CITATION_PATTERNS = [
+    re.compile(r"\([A-Z][a-zA-Z]+(?:\s+et\s+al\.?)?(?:\s*,\s*\d{4}|\s+\d{4})?\)"),
+    re.compile(r"\[\d+(?:,\s*\d+)*\]"),
+    re.compile(r"¹|²|³|⁴|⁵|⁶|⁷|⁸|⁹|⁰"),
+    re.compile(r"\([A-Z][a-zA-Z]+\s+and\s+others?,\s*\d{4}\)"),
+    re.compile(r"\(\d{4}\)"),
+]
+
+QUOTATION_PATTERNS = [
+    re.compile(r'"[^"]+"'),
+    re.compile(r"«[^»]+»"),
+    re.compile(r"『[^』]+』"),
+    re.compile(r"「[^」]+」"),
+    re.compile(r"''[^'']+''"),
+]
+
+
+def _has_citation(text: str) -> bool:
+    for pattern in CITATION_PATTERNS:
+        if pattern.search(text):
+            return True
+    return False
+
+
+def _has_quotation(text: str) -> bool:
+    for pattern in QUOTATION_PATTERNS:
+        if pattern.search(text):
+            return True
+    return False
+
+
+def _build_match_groups(results: list[SentenceResult]) -> list[MatchGroup]:
+    groups: dict[str, list[str]] = {
+        "not_cited_or_quoted": [],
+        "missing_quotations": [],
+        "missing_citation": [],
+        "cited_and_quoted": [],
+    }
+
+    for sentence_result in results:
+        if not sentence_result.sources:
+            continue
+
+        sentence = sentence_result.sentence
+        has_citation = _has_citation(sentence)
+        has_quotation = _has_quotation(sentence)
+
+        if has_citation and has_quotation:
+            groups["cited_and_quoted"].append(sentence)
+        elif has_citation and not has_quotation:
+            groups["missing_quotations"].append(sentence)
+        elif not has_citation and has_quotation:
+            groups["missing_citation"].append(sentence)
+        else:
+            groups["not_cited_or_quoted"].append(sentence)
+
+    total = sum(len(matches) for matches in groups.values())
+    if total == 0:
+        return []
+
+    match_groups = []
+    for group_type, sentences in groups.items():
+        count = len(sentences)
+        percentage = round((count / total) * 100, 1) if total > 0 else 0.0
+        sample_sentences = sentences[:3]
+
+        match_groups.append(
+            MatchGroup(
+                group_type=group_type,
+                count=count,
+                percentage=percentage,
+                sample_sentences=sample_sentences,
+            )
+        )
+
+    return match_groups
+
+
 def _build_report_v2(
     results: list[SentenceResult],
     metadata_overrides: dict[str, str] | None = None,
@@ -1185,6 +1264,7 @@ def _build_report_v2(
     fallback_sentences = sum(1 for r in results if r.fallback_used)
     total_source_matches = sum(len(r.sources) for r in results)
     source_groups = _build_report_v2_source_groups(results)
+    match_groups = _build_match_groups(results)
     total_group_spans = sum(len(group.spans) for group in source_groups)
 
     confidence_band = _derive_confidence_band(
@@ -1237,6 +1317,7 @@ def _build_report_v2(
 
     return ReportV2(
         source_groups=source_groups,
+        match_groups=match_groups,
         caveats=caveats,
         metadata=metadata,
     )
