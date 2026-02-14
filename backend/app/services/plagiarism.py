@@ -2560,3 +2560,215 @@ async def check_plagiarism(
             extra_caveats=exclusion_caveats,
         ),
     )
+
+
+async def check_plagiarism_streaming(
+    request: PlagiarismCheckRequest,
+    *,
+    user_key: str | None = None,
+):
+    resolved_user_key = user_key or "anon:global"
+
+    yield {
+        "progress": 0,
+        "current": 0,
+        "total": 0,
+        "status": "preparing",
+        "message": "Preparing text for analysis...",
+    }
+
+    sentences, exclusion_metadata, exclusion_caveats = _prepare_analysis_sentences(
+        request.text,
+        request.exclude_citations,
+    )
+
+    if not sentences:
+        quota_info = get_quota_info(user_key=resolved_user_key)
+        ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+        yield {
+            "progress": 100,
+            "current": 0,
+            "total": 0,
+            "status": "complete",
+            "message": "Analysis complete",
+        }
+        yield PlagiarismCheckResponse(
+            overall_score=0,
+            plagiarism_percentage=0,
+            total_sentences=0,
+            plagiarized_sentences=0,
+            results=[],
+            used_ai_similarity=False,
+            fallback_used=False,
+            analysis_method="keyword",
+            ai_quota_remaining=quota_info["remaining"],
+            ai_quota_percent=quota_info["usage_percent"],
+            source_counts=None,
+            source_failures=None,
+            quota_mode=quota_info.get("quota_mode"),
+            ai_detection_score=ai_detection_score,
+            ai_detection_confidence=ai_detection_confidence,
+            report_v2=_build_report_v2(
+                [],
+                metadata_overrides=exclusion_metadata,
+                extra_caveats=exclusion_caveats,
+            ),
+        ).model_dump()
+        return
+
+    sentences = sentences[: request.max_sentences]
+    total_sentences = len(sentences)
+
+    yield {
+        "progress": 5,
+        "current": 0,
+        "total": total_sentences,
+        "status": "processing",
+        "message": f"Processing {total_sentences} sentences...",
+    }
+
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    semantic_budget = max(0, int(settings.SEMANTIC_MAX_CHECKS_PER_REQUEST))
+
+    results = []
+    processed_count = 0
+
+    async with httpx.AsyncClient() as client:
+        for idx, sentence in enumerate(sentences):
+            result = await check_sentence(
+                sentence,
+                client,
+                semaphore,
+                use_ai_similarity=(request.use_ai_similarity and idx < semantic_budget),
+                user_key=resolved_user_key,
+            )
+            results.append(result)
+            processed_count += 1
+
+            progress = int((processed_count / total_sentences) * 80) + 5
+            yield {
+                "progress": progress,
+                "current": processed_count,
+                "total": total_sentences,
+                "status": "processing",
+                "message": f"Analyzed sentence {processed_count}/{total_sentences}",
+            }
+
+    yield {
+        "progress": 85,
+        "current": total_sentences,
+        "total": total_sentences,
+        "status": "scoring",
+        "message": "Calculating similarity scores...",
+    }
+
+    turnitin_stats = calculate_turnitin_score(
+        request.text,
+        results,
+        exclude_quotes=True,
+        exclude_bibliography=True,
+        small_match_threshold=10,
+    )
+
+    overall_score = turnitin_stats["overall_score"]
+    plagiarism_percentage = turnitin_stats["overall_score"]
+    plagiarized_count = sum(1 for r in results if r.is_plagiarized)
+
+    used_ai_similarity = any(r.used_ai for r in results)
+    fallback_used = any(r.fallback_used for r in results)
+    analysis_method = (
+        "hybrid"
+        if used_ai_similarity and fallback_used
+        else "semantic"
+        if used_ai_similarity
+        else "keyword"
+    )
+
+    filtered_results = results
+    small_matches_removed = 0
+
+    if request.exclude_small_matches > 0:
+        filtered_results, small_matches_removed = _filter_small_matches(
+            filtered_results, request.exclude_small_matches
+        )
+        exclusion_metadata["small_matches_removed"] = str(small_matches_removed)
+
+    if request.exclude_small_sources:
+        before_filter = len(filtered_results)
+        filtered_results = _filter_small_sources(filtered_results, min_source_count=3)
+        sources_removed = before_filter - len(filtered_results)
+        exclusion_metadata["small_sources_removed"] = str(sources_removed)
+
+    recalculate_for_response = len(filtered_results) > 0
+
+    if recalculate_for_response:
+        turnitin_stats_filtered = calculate_turnitin_score(
+            request.text,
+            filtered_results,
+            exclude_quotes=True,
+            exclude_bibliography=True,
+            small_match_threshold=10,
+        )
+        overall_score = turnitin_stats_filtered["overall_score"]
+        plagiarism_percentage = turnitin_stats_filtered["overall_score"]
+        plagiarized_count = sum(1 for r in filtered_results if r.is_plagiarized)
+    else:
+        overall_score = 0
+        plagiarism_percentage = 0
+        plagiarized_count = 0
+
+    quota_info = get_quota_info(user_key=resolved_user_key)
+    source_counts = (
+        _build_source_counts(filtered_results) if recalculate_for_response else {}
+    )
+
+    if small_matches_removed > 0:
+        exclusion_caveats.append(
+            ReportV2Caveat(
+                code="SMALL_MATCHES_FILTERED",
+                message=f"{small_matches_removed} matches smaller than {request.exclude_small_matches} words were excluded from analysis.",
+            )
+        )
+
+    ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+
+    yield {
+        "progress": 95,
+        "current": total_sentences,
+        "total": total_sentences,
+        "status": "complete",
+        "message": "Building final report...",
+    }
+
+    final_response = PlagiarismCheckResponse(
+        overall_score=overall_score,
+        plagiarism_percentage=plagiarism_percentage,
+        total_sentences=len(filtered_results),
+        plagiarized_sentences=plagiarized_count,
+        results=filtered_results,
+        used_ai_similarity=used_ai_similarity,
+        fallback_used=fallback_used,
+        analysis_method=analysis_method,
+        ai_quota_remaining=quota_info["remaining"],
+        ai_quota_percent=quota_info["usage_percent"],
+        source_counts=source_counts,
+        source_failures=None,
+        quota_mode=quota_info.get("quota_mode"),
+        ai_detection_score=ai_detection_score,
+        ai_detection_confidence=ai_detection_confidence,
+        report_v2=_build_report_v2(
+            filtered_results,
+            metadata_overrides=exclusion_metadata,
+            extra_caveats=exclusion_caveats,
+        ),
+    )
+
+    yield {
+        "progress": 100,
+        "current": total_sentences,
+        "total": total_sentences,
+        "status": "complete",
+        "message": "Analysis complete",
+    }
+
+    yield final_response.model_dump()

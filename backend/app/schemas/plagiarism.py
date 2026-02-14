@@ -48,6 +48,18 @@ class PlagiarismCheckRequest(BaseModel):
     )
 
 
+class PlagiarismProgressEvent(BaseModel):
+    """Server-Sent Event for plagiarism check progress."""
+
+    progress: int = Field(ge=0, le=100, description="Progress percentage (0-100)")
+    current: int = Field(ge=0, description="Current sentence being processed")
+    total: int = Field(ge=0, description="Total sentences to process")
+    status: str = Field(
+        description="Current status: preparing, processing, scoring, complete"
+    )
+    message: Optional[str] = Field(default=None, description="Human-readable message")
+
+
 class SourceMatch(BaseModel):
     """A source URL that matches part of the text."""
 

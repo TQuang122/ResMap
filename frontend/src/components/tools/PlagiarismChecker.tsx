@@ -437,6 +437,8 @@ const PlagiarismChecker: React.FC = () => {
   const [excludeBibliography, setExcludeBibliography] = useState(false);
   const [excludeQuotes, setExcludeQuotes] = useState(false);
   const [viewMode, setViewMode] = useState<'viewer' | 'sources' | 'details'>('viewer');
+  const [eta, setEta] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
   const canSubmit = useMemo(() => (text.trim().length >= 50 || fileText.trim().length >= 50 || selectedFile !== null), [text, fileText, selectedFile]);
 
@@ -630,6 +632,12 @@ const PlagiarismChecker: React.FC = () => {
     setProgress(0);
     setResult(null);
     setError(null);
+    setEta(null);
+    setStatusMessage('Preparing...');
+
+    const startTime = Date.now();
+    let lastUpdateTime = startTime;
+    let lastProgress = 0;
 
     const requestPayload: Record<string, unknown> = {
       text: text || '',
@@ -645,20 +653,86 @@ const PlagiarismChecker: React.FC = () => {
     }
 
     try {
-      const raw = await postData('/tools/plagiarism-check', requestPayload);
-      const response = normalizeResponse(raw);
-      setResult(response);
-      await logHistory({
-        tool: 'plagiarism',
-        request: { text, max_sentences: 20, use_ai_similarity: useAiSimilarity, exclude_small_matches: excludeSmallMatches, exclude_small_sources: excludeSmallSources },
-        response,
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/tools/plagiarism-check/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestPayload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to read response stream');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.progress !== undefined) {
+                setProgress(data.progress);
+                
+                if (data.status !== 'complete' && data.progress > 5) {
+                  const currentTime = Date.now();
+                  const elapsed = (currentTime - startTime) / 1000;
+                  const rate = data.progress / elapsed;
+                  if (rate > 0) {
+                    const remaining = (100 - data.progress) / rate;
+                    if (remaining < 60) {
+                      setEta(`${Math.ceil(remaining)}s`);
+                    } else {
+                      setEta(`${Math.ceil(remaining / 60)}m`);
+                    }
+                  }
+                }
+                
+                if (data.message) {
+                  setStatusMessage(data.message);
+                }
+              }
+
+              if (data.overall_score !== undefined) {
+                const response = normalizeResponse(data);
+                setResult(response);
+                await logHistory({
+                  tool: 'plagiarism',
+                  request: { text, max_sentences: 20, use_ai_similarity: useAiSimilarity, exclude_small_matches: excludeSmallMatches, exclude_small_sources: excludeSmallSources },
+                  response,
+                });
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', e);
+            }
+          }
+        }
+      }
     } catch (err) {
       console.error(err);
       setError(mapErrorMessage(err));
     } finally {
       setLoading(false);
       setProgress(100);
+      setEta(null);
+      setStatusMessage('');
       if (!quotaEndpointUnsupported) {
         await fetchQuota();
       }
@@ -1112,7 +1186,11 @@ const PlagiarismChecker: React.FC = () => {
                   to { transform: rotate(360deg); }
                 }
               `}</style>
-              Đang phân tích... {progress}%
+              <div className="flex flex-col items-start">
+                <span>Đang phân tích... {progress}%</span>
+                {statusMessage && <span className="text-xs opacity-75">{statusMessage}</span>}
+                {eta && <span className="text-xs font-medium text-[#F36F21]">~{eta} remaining</span>}
+              </div>
             </>
           ) : (
             <>
