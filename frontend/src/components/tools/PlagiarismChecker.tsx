@@ -585,12 +585,12 @@ const PlagiarismChecker: React.FC = () => {
               </div>
             )}
 
-            {/* Detailed Analysis */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                <Search size={18} />
-                Chi tiết Phân tích ({result.results.length} câu)
-              </h4>
+            {result.report_v2 && result.report_v2.match_groups && result.report_v2.match_groups.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  Phân loại Trùng lặp theo Trích dẫn
+                </h4>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {result.report_v2.match_groups.map((group) => {
@@ -624,7 +624,7 @@ const PlagiarismChecker: React.FC = () => {
               </div>
             )}
 
-            {result.report_v2 && result.report_v2.source_groups.length > 0 && (
+            {result.report_v2 && result.report_v2.source_groups && result.report_v2.source_groups.length > 0 && (
               <div className="space-y-4">
                 <h4 className="font-bold text-slate-800 flex items-center gap-2">
                   <BookOpen size={18} />
