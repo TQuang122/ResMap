@@ -1036,6 +1036,94 @@ PUBMED_CONNECTOR = PubMedConnector()
 VIETNAMESE_CONNECTOR = VietnameseConnector()
 
 
+class OpenAlexConnector:
+    name = "openalex"
+
+    async def search(
+        self,
+        query: str,
+        client: httpx.AsyncClient,
+        limit: int,
+    ) -> list[NormalizedSourceCandidate]:
+        candidates: list[NormalizedSourceCandidate] = []
+        search_query = quote(query[:150])
+
+        openalex_url = (
+            f"https://api.openalex.org/works?search={search_query}&per_page={limit}"
+        )
+
+        headers = {"User-Agent": get_random_user_agent()}
+        if settings.OPENALEX_EMAIL:
+            headers["mailto"] = settings.OPENALEX_EMAIL
+
+        try:
+            response = await client.get(
+                openalex_url,
+                headers=headers,
+                timeout=settings.PLAGIARISM_SOURCE_TIMEOUT_SECONDS,
+            )
+
+            if response.status_code != 200:
+                return candidates
+
+            data = response.json()
+            items = data.get("results", [])
+
+            for item in items:
+                doi = item.get("doi")
+                url = (
+                    item.get("display_url")
+                    or item.get("doi")
+                    or f"https://openalex.org/{item.get('id', '').split('/')[-1]}"
+                )
+
+                title = item.get("title") or "Untitled"
+
+                year = None
+                if item.get("publication_year"):
+                    year = item.get("publication_year")
+
+                authors = []
+                for author in item.get("authorships", [])[:5]:
+                    author_name = author.get("author", {}).get("display_name")
+                    if author_name:
+                        authors.append(author_name)
+
+                abstract = item.get("abstract_inverted_index")
+                abstract_text = None
+                if abstract:
+                    words = []
+                    for word, positions in sorted(
+                        abstract.items(),
+                        key=lambda x: min(x[1]) if x[1] else float("inf"),
+                    ):
+                        words.append(word)
+                    abstract_text = " ".join(words[:200])
+
+                candidates.append(
+                    NormalizedSourceCandidate(
+                        source=self.name,
+                        canonical_url=url,
+                        title=title,
+                        snippet=abstract_text,
+                        year=year,
+                        authors=authors or None,
+                        identifiers=CandidateIdentifiers(doi=doi),
+                    )
+                )
+
+                if len(candidates) >= limit:
+                    break
+
+        except Exception as e:
+            print(f"OpenAlex search error: {e}")
+
+        return candidates
+
+
+OPENALEX_CONNECTOR = OpenAlexConnector()
+
+
 def normalize_candidate_payload(
     payload: dict | NormalizedSourceCandidate,
 ) -> NormalizedSourceCandidate:
@@ -1058,6 +1146,8 @@ def get_source_connector_registry() -> list[SourceConnector]:
         connectors.append(PUBMED_CONNECTOR)
     if settings.PLAGIARISM_SOURCE_VIETNAMESE_ENABLED:
         connectors.append(VIETNAMESE_CONNECTOR)
+    if settings.PLAGIARISM_SOURCE_OPENALEX_ENABLED:
+        connectors.append(OPENALEX_CONNECTOR)
     return connectors
 
 
@@ -1069,6 +1159,7 @@ def get_source_caps() -> dict[str, int]:
         "core": max(0, int(settings.PLAGIARISM_SOURCE_CORE_MAX_CANDIDATES)),
         "pubmed": max(0, int(settings.PLAGIARISM_SOURCE_PUBMED_MAX_CANDIDATES)),
         "vietnamese": max(0, int(settings.PLAGIARISM_SOURCE_VIETNAMESE_MAX_CANDIDATES)),
+        "openalex": max(0, int(settings.PLAGIARISM_SOURCE_OPENALEX_MAX_CANDIDATES)),
     }
 
 
