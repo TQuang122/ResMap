@@ -5,15 +5,23 @@ Ported from: https://github.com/cu-sanjay/Free-Turnitin-Plagiarism-Checker
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from io import BytesIO
 
 
 class PlagiarismCheckRequest(BaseModel):
     """Request body for plagiarism check."""
 
     text: str = Field(
-        ...,
-        min_length=50,
-        description="Text to check for plagiarism (minimum 50 characters)",
+        default="",
+        description="Text to check for plagiarism (minimum 50 characters if provided)",
+    )
+    file_content: Optional[str] = Field(
+        default=None,
+        description="Base64 encoded file content (PDF, DOCX, or TXT)",
+    )
+    file_name: Optional[str] = Field(
+        default=None,
+        description="Original filename for content type detection",
     )
     exclude_citations: bool = Field(
         default=False, description="Whether to exclude quoted text from analysis"

@@ -15,6 +15,7 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from io import BytesIO
 from typing import List, Protocol, Set
 from urllib.parse import quote
 
@@ -101,10 +102,40 @@ SOURCE_PRIORITY = {
     "pubmed": 0.95,
     "arxiv": 0.9,
     "core": 0.85,
+    "vietnamese": 0.88,
     "duckduckgo": 0.75,
 }
 
 _query_candidate_cache: dict[str, list["NormalizedSourceCandidate"]] = {}
+
+CITATION_STYLES = {
+    "apa": re.compile(
+        r"(?i)\b[A-Z][a-zA-ZÀ-ỹ]+(?:\s+[A-Z][a-zA-ZÀ-ỹ]+)*\s*\((\d{4})\)"
+    ),
+    "mla": re.compile(
+        r"(?i)\b[A-Z][a-zA-ZÀ-ỹ]+(?:\s+[A-Z][a-zA-ZÀ-ỹ]+)*\s*,\s*.*?\((\d{4})\)"
+    ),
+    "ieee": re.compile(r"(?i)\[\s*(\d+)\s*\]"),
+    "vietnamese": re.compile(
+        r"(?i)\b[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+)*\s*\(năm\s*(\d{4})\)"
+    ),
+}
+
+VIETNAMESE_SOURCE_PATTERNS = [
+    re.compile(r"scholar\.google\.com\.vn", re.IGNORECASE),
+    re.compile(r"vjol\.info", re.IGNORECASE),
+    re.compile(r"tailieu\.vn", re.IGNORECASE),
+    re.compile(r"123doc\.org", re.IGNORECASE),
+    re.compile(r"word\.com\.vn", re.IGNORECASE),
+]
+
+BIBLIOGRAPHY_PATTERNS = [
+    re.compile(
+        r"(?im)^\s*(tài\s+liệu\s+tham\s+khảo|bibliography|references|works\s+cited|literature\s+cited)\s*:?\s*$"
+    ),
+    re.compile(r"(?im)^\s*\d+\.\s+[A-Z][a-zA-ZÀ-ỹ].+"),
+    re.compile(r"(?im)^\s*\[\d+\]\s+[A-Z][a-zA-ZÀ-ỹ].+"),
+]
 
 
 class CandidateIdentifiers(BaseModel):
@@ -175,6 +206,72 @@ class DuckDuckGoConnector:
                         title=url,
                     )
                 )
+            except Exception:
+                continue
+
+        return candidates
+
+
+class VietnameseConnector:
+    name = "vietnamese"
+    VIETNAMESE_DOMAINS = [
+        "vjol.info",
+        "scholar.google.com.vn",
+        "tailieu.vn",
+        "123doc.org",
+        "word.com.vn",
+        "vanhoahoc.com",
+        "text.edu.vn",
+        "hocmai.vn",
+    ]
+
+    async def search(
+        self,
+        query: str,
+        client: httpx.AsyncClient,
+        limit: int,
+    ) -> list[NormalizedSourceCandidate]:
+        candidates: list[NormalizedSourceCandidate] = []
+
+        for domain in self.VIETNAMESE_DOMAINS:
+            if len(candidates) >= limit:
+                break
+
+            search_query = quote(f"{query[:100]} site:{domain}")
+            ddg_url = f"https://html.duckduckgo.com/html/?q={search_query}"
+
+            try:
+                response = await client.get(
+                    ddg_url,
+                    headers={"User-Agent": get_random_user_agent()},
+                    timeout=settings.PLAGIARISM_SOURCE_TIMEOUT_SECONDS,
+                )
+
+                if response.status_code != 200:
+                    continue
+
+                matches = re.findall(r'uddg=([^"&]+)', response.text)
+                from urllib.parse import unquote
+
+                for match in matches:
+                    if len(candidates) >= limit:
+                        break
+                    try:
+                        url = unquote(match)
+                        if not url.startswith("http") or "duckduckgo.com" in url:
+                            continue
+                        if domain not in url:
+                            continue
+                        candidates.append(
+                            NormalizedSourceCandidate(
+                                source=self.name,
+                                canonical_url=url,
+                                title=url,
+                                snippet=f"Vietnamese academic source from {domain}",
+                            )
+                        )
+                    except Exception:
+                        continue
             except Exception:
                 continue
 
@@ -890,6 +987,7 @@ CROSSREF_CONNECTOR = CrossRefConnector()
 ARXIV_CONNECTOR = ArxivConnector()
 CORE_CONNECTOR = CoreConnector()
 PUBMED_CONNECTOR = PubMedConnector()
+VIETNAMESE_CONNECTOR = VietnameseConnector()
 
 
 def normalize_candidate_payload(
@@ -912,6 +1010,8 @@ def get_source_connector_registry() -> list[SourceConnector]:
         connectors.append(CORE_CONNECTOR)
     if settings.PLAGIARISM_SOURCE_PUBMED_ENABLED:
         connectors.append(PUBMED_CONNECTOR)
+    if settings.PLAGIARISM_SOURCE_VIETNAMESE_ENABLED:
+        connectors.append(VIETNAMESE_CONNECTOR)
     return connectors
 
 
@@ -922,6 +1022,7 @@ def get_source_caps() -> dict[str, int]:
         "arxiv": max(0, int(settings.PLAGIARISM_SOURCE_ARXIV_MAX_CANDIDATES)),
         "core": max(0, int(settings.PLAGIARISM_SOURCE_CORE_MAX_CANDIDATES)),
         "pubmed": max(0, int(settings.PLAGIARISM_SOURCE_PUBMED_MAX_CANDIDATES)),
+        "vietnamese": max(0, int(settings.PLAGIARISM_SOURCE_VIETNAMESE_MAX_CANDIDATES)),
     }
 
 
@@ -1672,6 +1773,79 @@ def _prepare_analysis_sentences(
     }
 
     return sentences, metadata, caveats
+
+
+def extract_text_from_file(file_content: bytes, file_name: str) -> str:
+    """
+    Extract text from PDF, DOCX, or TXT file.
+
+    Args:
+        file_content: Raw file bytes
+        file_name: Original filename to detect content type
+
+    Returns:
+        Extracted text content
+    """
+    if not file_content:
+        raise ValueError("No file content provided")
+
+    file_name_lower = file_name.lower()
+
+    if file_name_lower.endswith(".pdf"):
+        return _extract_text_from_pdf(file_content)
+    elif file_name_lower.endswith(".docx"):
+        return _extract_text_from_docx(file_content)
+    elif file_name_lower.endswith(".txt"):
+        return file_content.decode("utf-8", errors="ignore")
+    else:
+        raise ValueError(
+            f"Unsupported file type: {file_name}. Supported: PDF, DOCX, TXT"
+        )
+
+
+def _extract_text_from_pdf(file_content: bytes) -> str:
+    """Extract text from PDF using pypdf."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        raise ImportError(
+            "pypdf library is required for PDF extraction. Install with: pip install pypdf"
+        )
+
+    reader = PdfReader(BytesIO(file_content))
+    text_parts = []
+
+    for page in reader.pages:
+        text = page.extract_text()
+        if text:
+            text_parts.append(text)
+
+    return "\n".join(text_parts)
+
+
+def _extract_text_from_docx(file_content: bytes) -> str:
+    """Extract text from DOCX using python-docx."""
+    try:
+        from docx import Document
+    except ImportError:
+        raise ImportError(
+            "python-docx library is required for DOCX extraction. Install with: pip install python-docx"
+        )
+
+    doc = Document(BytesIO(file_content))
+    text_parts = []
+
+    for paragraph in doc.paragraphs:
+        if paragraph.text.strip():
+            text_parts.append(paragraph.text)
+
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.text.strip():
+                    text_parts.append(cell.text)
+
+    return "\n".join(text_parts)
 
 
 def split_into_sentences(text: str, exclude_citations: bool = False) -> List[str]:

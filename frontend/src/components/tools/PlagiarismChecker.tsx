@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge, Info, BookOpen, AlertCircle } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge, Info, BookOpen, AlertCircle, FileText, Layout, Filter, X, ChevronRight, Eye, Copy, Check, Settings, Download } from 'lucide-react';
 import { getData, postData } from '../../utils/api';
 import { logHistory } from '../../utils/logger';
 
@@ -77,6 +77,344 @@ interface QuotaResponse {
   reset_at: string;
 }
 
+// Turnitin-style Score Widget
+const TurnitinScoreWidget: React.FC<{ score: number; totalSentences: number; plagiarizedSentences: number }> = ({ score, totalSentences, plagiarizedSentences }) => {
+  const getScoreColor = (s: number) => {
+    if (s === 0) return { bg: '#22c55e', text: '#16a34a', label: 'No Matching' };
+    if (s <= 24) return { bg: '#22c55e', text: '#16a34a', label: 'Low' };
+    if (s <= 49) return { bg: '#eab308', text: '#ca8a04', label: 'Moderate' };
+    if (s <= 74) return { bg: '#f97316', text: '#ea580c', label: 'High' };
+    return { bg: '#ef4444', text: '#dc2626', label: 'Very High' };
+  };
+
+  const color = getScoreColor(score);
+  const percentage = Math.min(100, Math.max(0, score));
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-white font-bold text-lg">Similarity Index</h3>
+          <p className="text-slate-400 text-sm">Overall similarity percentage</p>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl font-black text-white">{score}%</div>
+          <div className="text-slate-400 text-sm">{color.label}</div>
+        </div>
+      </div>
+
+      <div className="px-6 py-4 bg-slate-50">
+        <div className="h-4 bg-slate-200 rounded-full overflow-hidden">
+          <div 
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%`, backgroundColor: color.bg }}
+          />
+        </div>
+      </div>
+
+      <div className="px-6 py-4 grid grid-cols-3 gap-4 border-t border-slate-100">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-slate-800">{plagiarizedSentences}</div>
+          <div className="text-xs text-slate-500">Sentences Matched</div>
+        </div>
+        <div className="text-center border-l border-slate-200">
+          <div className="text-2xl font-bold text-slate-800">{totalSentences}</div>
+          <div className="text-xs text-slate-500">Total Sentences</div>
+        </div>
+        <div className="text-center border-l border-slate-200">
+          <div className="text-2xl font-bold text-slate-800">{totalSentences - plagiarizedSentences}</div>
+          <div className="text-xs text-slate-500">Unique</div>
+        </div>
+      </div>
+
+      <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3 text-xs">
+        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-500 rounded"></span> 0%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-500 rounded"></span> 1-24%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-yellow-500 rounded"></span> 25-49%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-orange-500 rounded"></span> 50-74%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-500 rounded"></span> 75-100%</span>
+      </div>
+    </div>
+  );
+};
+
+const MatchOverviewBar: React.FC<{ results: SentenceResult[] }> = ({ results }) => {
+  const totalSentences = results.length;
+  
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+        <FileText size={16} />
+        Match Overview
+      </h4>
+      <div className="flex gap-0.5 h-8 rounded overflow-hidden">
+        {results.map((item, idx) => {
+          let bgColor = 'bg-slate-200';
+          if (item.similarity > 74) bgColor = 'bg-red-500';
+          else if (item.similarity > 49) bgColor = 'bg-orange-500';
+          else if (item.similarity > 24) bgColor = 'bg-yellow-500';
+          else if (item.similarity > 0) bgColor = 'bg-green-400';
+          
+          return (
+            <div
+              key={idx}
+              className={`flex-1 ${bgColor} hover:opacity-80 transition-opacity cursor-pointer`}
+              title={`Sentence ${idx + 1}: ${item.similarity}% match`}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-xs text-slate-500 mt-2">
+        <span>Sentence 1</span>
+        <span>Sentence {totalSentences}</span>
+      </div>
+    </div>
+  );
+};
+
+const DocumentViewer: React.FC<{ results: SentenceResult[]; onSentenceClick?: (index: number) => void; selectedIndex?: number }> = ({ results, onSentenceClick, selectedIndex }) => {
+  const getHighlightClass = (sim: number) => {
+    if (sim > 74) return 'bg-red-100 text-red-900 border-l-4 border-red-500';
+    if (sim > 49) return 'bg-orange-100 text-orange-900 border-l-4 border-orange-500';
+    if (sim > 24) return 'bg-yellow-100 text-yellow-900 border-l-4 border-yellow-500';
+    if (sim > 0) return 'bg-green-100 text-green-900 border-l-4 border-green-400';
+    return 'bg-white text-slate-700';
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+          <FileText size={16} />
+          Document Viewer
+        </h4>
+        <span className="text-xs text-slate-500">{results.length} sentences</span>
+      </div>
+      <div className="max-h-[500px] overflow-y-auto">
+        {results.map((item, idx) => (
+          <div
+            key={idx}
+            onClick={() => onSentenceClick?.(idx)}
+            className={`p-3 border-b border-slate-100 cursor-pointer transition-all hover:shadow-md ${getHighlightClass(item.similarity)} ${selectedIndex === idx ? 'ring-2 ring-blue-500' : ''}`}
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-xs text-slate-400 shrink-0 w-6">{idx + 1}.</span>
+              <div className="flex-1 text-sm leading-relaxed">
+                {item.sentence}
+              </div>
+              <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${
+                item.similarity > 74 ? 'bg-red-200 text-red-700' :
+                item.similarity > 49 ? 'bg-orange-200 text-orange-700' :
+                item.similarity > 24 ? 'bg-yellow-200 text-yellow-700' :
+                item.similarity > 0 ? 'bg-green-200 text-green-700' : 'bg-slate-200 text-slate-600'
+              }`}>
+                {item.similarity}%
+              </span>
+            </div>
+            {item.sources.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {item.sources.slice(0, 2).map((src, sIdx) => (
+                  <span key={sIdx} className="text-xs px-2 py-0.5 bg-white/50 rounded flex items-center gap-1">
+                    <ExternalLink size={10} />
+                    {new URL(src.url).hostname}
+                  </span>
+                ))}
+                {item.sources.length > 2 && (
+                  <span className="text-xs text-slate-500">+{item.sources.length - 2} more</span>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SideBySidePanel: React.FC<{ 
+  sentence: SentenceResult; 
+  sourceUrl?: string;
+  onClose: () => void;
+}> = ({ sentence, sourceUrl, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(sentence.sentence);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Layout size={20} className="text-white" />
+            <h3 className="text-white font-bold">Match Detail</h3>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-2 divide-x divide-slate-200 max-h-[70vh] overflow-hidden">
+          <div className="flex flex-col">
+            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+              <span className="font-semibold text-slate-700">Your Document</span>
+              <button 
+                onClick={copyToClipboard}
+                className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50">
+              <div className={`p-4 rounded-lg ${sentence.similarity > 50 ? 'bg-red-50 border border-red-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+                <p className="text-slate-800 leading-relaxed">{sentence.sentence}</p>
+                <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
+                  <span className="text-sm text-slate-600">Similarity: <strong className={sentence.similarity > 50 ? 'text-red-600' : 'text-yellow-600'}>{sentence.similarity}%</strong></span>
+                  <span className="text-xs text-slate-500">Sentence {1}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+              <span className="font-semibold text-slate-700">Source</span>
+              {sourceUrl && (
+                <a 
+                  href={sourceUrl} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <ExternalLink size={12} />
+                  View Source
+                </a>
+              )}
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {sentence.sources.length > 0 ? (
+                <div className="space-y-3">
+                  {sentence.sources.map((src, idx) => (
+                    <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-slate-600 truncate">{new URL(src.url).hostname}</span>
+                        <span className="text-xs px-2 py-0.5 bg-slate-200 rounded">{src.similarity}%</span>
+                      </div>
+                      <a 
+                        href={src.url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 hover:underline line-clamp-2"
+                      >
+                        {src.url}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-slate-400 py-8">
+                  <AlertCircle size={32} className="mx-auto mb-2" />
+                  <p>No source available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FilterControls: React.FC<{
+  sourceFilter: string;
+  setSourceFilter: (v: string) => void;
+  similarityRange: [number, number];
+  setSimilarityRange: (v: [number, number]) => void;
+  excludeBibliography: boolean;
+  setExcludeBibliography: (v: boolean) => void;
+  excludeQuotes: boolean;
+  setExcludeQuotes: (v: boolean) => void;
+}> = ({
+  sourceFilter, setSourceFilter,
+  similarityRange, setSimilarityRange,
+  excludeBibliography, setExcludeBibliography,
+  excludeQuotes, setExcludeQuotes
+}) => {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+        <Filter size={16} />
+        Filters & Settings
+      </h4>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-medium text-slate-600 block mb-1">Source Type</label>
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2"
+          >
+            <option value="all">All Sources</option>
+            <option value="academic">Academic</option>
+            <option value="web">Web</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-slate-600 block mb-1">Similarity Range</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={similarityRange[0]}
+              onChange={(e) => setSimilarityRange([Number(e.target.value), similarityRange[1]])}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2"
+            />
+            <span className="text-slate-400">-</span>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={similarityRange[1]}
+              onChange={(e) => setSimilarityRange([similarityRange[0], Number(e.target.value)])}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2"
+            />
+          </div>
+        </div>
+
+        <div className="md:col-span-2 flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={excludeBibliography}
+              onChange={(e) => setExcludeBibliography(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+            />
+            <span className="text-sm text-slate-600">Exclude Bibliography</span>
+          </label>
+          
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={excludeQuotes}
+              onChange={(e) => setExcludeQuotes(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+            />
+            <span className="text-sm text-slate-600">Exclude Quotes</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PlagiarismChecker: React.FC = () => {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,8 +430,17 @@ const PlagiarismChecker: React.FC = () => {
   const [quotaLoading, setQuotaLoading] = useState(false);
   const [quotaError, setQuotaError] = useState<string | null>(null);
   const [quotaEndpointUnsupported, setQuotaEndpointUnsupported] = useState(false);
+  const [selectedSentenceIndex, setSelectedSentenceIndex] = useState<number | null>(null);
+  const [showSideBySide, setShowSideBySide] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [similarityRange, setSimilarityRange] = useState<[number, number]>([0, 100]);
+  const [excludeBibliography, setExcludeBibliography] = useState(false);
+  const [excludeQuotes, setExcludeQuotes] = useState(false);
+  const [viewMode, setViewMode] = useState<'viewer' | 'sources' | 'details'>('viewer');
 
-  const canSubmit = useMemo(() => (text.trim().length >= 50 || fileText.trim().length >= 50), [text, fileText]);
+  const canSubmit = useMemo(() => (text.trim().length >= 50 || fileText.trim().length >= 50 || selectedFile !== null), [text, fileText, selectedFile]);
+
+  const [fileContentBase64, setFileContentBase64] = useState<string | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,6 +448,7 @@ const PlagiarismChecker: React.FC = () => {
     
     setSelectedFile(file);
     setError(null);
+    setFileContentBase64(null);
     
     try {
       let extractedText = '';
@@ -112,21 +460,33 @@ const PlagiarismChecker: React.FC = () => {
         const uint8Array = new Uint8Array(arrayBuffer);
         extractedText = extractTextFromDocx(uint8Array);
       } else if (file.name.endsWith('.pdf')) {
-        extractedText = 'PDF parsing requires server-side processing. Please convert to text or use direct input.';
-        setError('PDF parsing is not fully supported in browser. Please convert PDF to text or paste content directly.');
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const base64 = uint8ArrayToBase64(uint8Array);
+        setFileContentBase64(base64);
+        extractedText = 'PDF file will be processed on server.';
       } else {
-        setError('Unsupported file format. Please use .txt, .docx, or paste text directly.');
+        setError('Unsupported file format. Please use .txt, .docx, .pdf or paste text directly.');
         return;
       }
       
       setFileText(extractedText);
-      if (extractedText.trim().length > 0) {
+      if (extractedText.trim().length > 0 && extractedText !== 'PDF file will be processed on server.') {
         setText(extractedText);
       }
     } catch (err) {
       console.error('File parsing error:', err);
       setError('Could not parse file. Please paste text directly.');
     }
+  };
+
+  const uint8ArrayToBase64 = (uint8Array: Uint8Array): string => {
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, Array.from(uint8Array.subarray(i, i + chunkSize)));
+    }
+    return btoa(binary);
   };
 
   const extractTextFromDocx = (uint8Array: Uint8Array): string => {
@@ -271,14 +631,21 @@ const PlagiarismChecker: React.FC = () => {
     setResult(null);
     setError(null);
 
+    const requestPayload: Record<string, unknown> = {
+      text: text || '',
+      max_sentences: 20,
+      use_ai_similarity: useAiSimilarity,
+      exclude_small_matches: excludeSmallMatches,
+      exclude_small_sources: excludeSmallSources,
+    };
+
+    if (selectedFile && fileContentBase64) {
+      requestPayload.file_content = fileContentBase64;
+      requestPayload.file_name = selectedFile.name;
+    }
+
     try {
-      const raw = await postData('/tools/plagiarism-check', {
-        text,
-        max_sentences: 20,
-        use_ai_similarity: useAiSimilarity,
-        exclude_small_matches: excludeSmallMatches,
-        exclude_small_sources: excludeSmallSources,
-      });
+      const raw = await postData('/tools/plagiarism-check', requestPayload);
       const response = normalizeResponse(raw);
       setResult(response);
       await logHistory({
@@ -493,7 +860,7 @@ const PlagiarismChecker: React.FC = () => {
               <label className="flex-1 cursor-pointer">
                 <input
                   type="file"
-                  accept=".txt,.docx"
+                  accept=".txt,.docx,.pdf"
                   onChange={handleFileChange}
                   className="hidden"
                   id="file-upload"
@@ -502,13 +869,13 @@ const PlagiarismChecker: React.FC = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  {selectedFile ? selectedFile.name : 'Tải file (.txt, .docx)'}
+                  {selectedFile ? selectedFile.name : 'Tải file (.txt, .docx, .pdf)'}
                 </span>
               </label>
               {selectedFile && (
                 <button
                   type="button"
-                  onClick={() => { setSelectedFile(null); setFileText(''); }}
+                  onClick={() => { setSelectedFile(null); setFileText(''); setFileContentBase64(null); }}
                   className="text-xs text-red-500 hover:text-red-700"
                 >
                   Xóa file
@@ -516,7 +883,7 @@ const PlagiarismChecker: React.FC = () => {
               )}
             </div>
             <p className="text-xs text-slate-500 text-center mt-2">
-              Hỗ trợ file văn bản (.txt, .docx). PDF cần chuyển đổi sang text.
+              Hỗ trợ .txt, .docx, .pdf - File sẽ được xử lý trên server
             </p>
           </div>
         </div>
@@ -668,7 +1035,6 @@ const PlagiarismChecker: React.FC = () => {
           </div>
         )}
 
-        {/* Results Section */}
         {result && (
           <div id="plagiarism-results" className="space-y-6" aria-live="polite">
             <div className="flex justify-between items-center">
@@ -677,9 +1043,7 @@ const PlagiarismChecker: React.FC = () => {
                 onClick={exportToPDF}
                 className="ml-4 px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <Download size={16} />
                 Xuất PDF
               </button>
             </div>
@@ -705,378 +1069,259 @@ const PlagiarismChecker: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-4 p-4 rounded-xl border-2 bg-white">
-              <div className={`text-5xl font-black px-4 py-2 rounded-lg ${getTurnitinColor(result.overall_score).bg} ${getTurnitinColor(result.overall_score).border} border-2`}>
-                {result.overall_score}%
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <TurnitinScoreWidget 
+                  score={result.overall_score}
+                  totalSentences={result.total_sentences}
+                  plagiarizedSentences={result.plagiarized_sentences}
+                />
+                
+                {result.ai_detection_score !== undefined && result.ai_detection_score > 0 && (
+                  <div className="mt-4 p-4 rounded-xl border-2 bg-purple-50 border-purple-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Sparkles size={20} className="text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-purple-800">AI Detection</p>
+                          <p className="text-sm text-purple-600">
+                            <strong>{result.ai_detection_score}%</strong> | 
+                            <span className="text-xs ml-1">{result.ai_detection_confidence === 'high' ? 'High' : result.ai_detection_confidence === 'medium' ? 'Medium' : 'Low'} confidence</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <div className={`text-xl font-bold ${getTurnitinColor(result.overall_score).text}`}>
-                  {getTurnitinColor(result.overall_score).label}
-                </div>
-                <div className="text-sm text-slate-500 mt-1">
-                  Tổng quan: {result.plagiarized_sentences}/{result.total_sentences} câu bị nghi ngờ
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-blue-200 rounded"></span> 0%</span>
-                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-green-200 rounded"></span> 1-24%</span>
-                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-yellow-200 rounded"></span> 25-49%</span>
-                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-orange-200 rounded"></span> 50-74%</span>
-                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-red-200 rounded"></span> 75-100%</span>
-                </div>
+
+              <div className="lg:col-span-2 space-y-4">
+                <MatchOverviewBar results={result.results} />
+                
+                <FilterControls
+                  sourceFilter={sourceFilter}
+                  setSourceFilter={setSourceFilter}
+                  similarityRange={similarityRange}
+                  setSimilarityRange={setSimilarityRange}
+                  excludeBibliography={excludeBibliography}
+                  setExcludeBibliography={setExcludeBibliography}
+                  excludeQuotes={excludeQuotes}
+                  setExcludeQuotes={setExcludeQuotes}
+                />
               </div>
             </div>
 
-            {result.ai_detection_score !== undefined && result.ai_detection_score > 0 && (
-              <div className="p-4 rounded-xl border-2 bg-purple-50 border-purple-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Sparkles size={20} className="text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-purple-800">Phát hiện AI</p>
-                      <p className="text-sm text-purple-600">
-                        Điểm: <strong>{result.ai_detection_score}%</strong> | 
-                        Độ tin cậy: <strong>{result.ai_detection_confidence === 'high' ? 'Cao' : result.ai_detection_confidence === 'medium' ? 'Trung bình' : 'Thấp'}</strong>
-                      </p>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                  <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                    <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                      <Eye size={16} />
+                      View Mode
+                    </h4>
                   </div>
-                  <div className="text-xs text-purple-500 max-w-[200px] text-right">
-                    Chỉ báo về khả năng văn bản được viết bởi AI
+                  <div className="p-2">
+                    <button
+                      onClick={() => setViewMode('viewer')}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${viewMode === 'viewer' ? 'bg-[#F36F21] text-white' : 'hover:bg-slate-50 text-slate-700'}`}
+                    >
+                      <FileText size={16} />
+                      Document Viewer
+                    </button>
+                    <button
+                      onClick={() => setViewMode('sources')}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${viewMode === 'sources' ? 'bg-[#F36F21] text-white' : 'hover:bg-slate-50 text-slate-700'}`}
+                    >
+                      <BookOpen size={16} />
+                      All Sources
+                    </button>
+                    <button
+                      onClick={() => setViewMode('details')}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${viewMode === 'details' ? 'bg-[#F36F21] text-white' : 'hover:bg-slate-50 text-slate-700'}`}
+                    >
+                      <Search size={16} />
+                      Details
+                    </button>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {result.report_v2 && result.report_v2.source_groups && result.report_v2.source_groups.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <BookOpen size={18} />
-                  Tổng quan Matches ({result.report_v2.source_groups.length} nguồn, {result.results.filter(r => r.sources.length > 0).length} câu trùng)
-                </h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {result.report_v2.source_groups.slice(0, 6).map((group) => {
-                    const matchCount = group.spans.length;
-                    const avgSimilarity = matchCount > 0 
-                      ? Math.round(group.spans.reduce((sum, s) => sum + s.similarity, 0) / matchCount)
-                      : 0;
-                    const maxSim = matchCount > 0 
-                      ? Math.max(...group.spans.map(s => s.similarity))
-                      : 0;
-                    
-                    const severityColor = maxSim > 50 ? 'border-red-300 bg-red-50' : 
-                                        maxSim > 20 ? 'border-orange-300 bg-orange-50' : 
-                                        'border-slate-200 bg-white';
-                    
-                    return (
+                {result.report_v2 && result.report_v2.match_groups && result.report_v2.match_groups.length > 0 && (
+                  <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                      <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                        <AlertCircle size={16} />
+                        Citation Status
+                      </h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      {result.report_v2.match_groups.map((group) => {
+                        const config = {
+                          not_cited_or_quoted: { label: 'Not Cited/Quoted', color: 'bg-red-100 border-red-300 text-red-800' },
+                          missing_quotations: { label: 'Missing Quotes', color: 'bg-orange-100 border-orange-300 text-orange-800' },
+                          missing_citation: { label: 'Missing Citation', color: 'bg-yellow-100 border-yellow-300 text-yellow-800' },
+                          cited_and_quoted: { label: 'Cited & Quoted', color: 'bg-green-100 border-green-300 text-green-800' },
+                        };
+                        const c = config[group.group_type as keyof typeof config] || config.not_cited_or_quoted;
+                        return (
+                          <div key={group.group_type} className={`p-3 rounded-lg border ${c.color}`}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{c.label}</span>
+                              <span className="text-lg font-bold">{group.count}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-2">
+                {viewMode === 'viewer' && (
+                  <DocumentViewer 
+                    results={result.results}
+                    selectedIndex={selectedSentenceIndex ?? undefined}
+                    onSentenceClick={(idx) => {
+                      setSelectedSentenceIndex(idx);
+                      setShowSideBySide(true);
+                    }}
+                  />
+                )}
+
+                {viewMode === 'sources' && result.report_v2 && result.report_v2.source_groups && (
+                  <div className="space-y-3">
+                    {result.report_v2.source_groups.map((group) => (
                       <div 
                         key={group.source_id}
-                        className={`p-3 rounded-lg border-2 ${severityColor} hover:shadow-md transition-all cursor-pointer`}
+                        className="p-4 rounded-lg border border-slate-200 bg-white hover:shadow-md transition-all"
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-700 truncate max-w-[70%]">
-                            {new URL(group.canonical_url).hostname}
-                          </span>
-                          <span className="text-xs font-bold text-slate-600">
-                            {matchCount} matches
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full ${
-                                maxSim > 50 ? 'bg-red-500' : 
-                                maxSim > 20 ? 'bg-orange-400' : 
-                                'bg-slate-400'
-                              }`}
-                              style={{ width: `${avgSimilarity}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-semibold text-slate-600 w-10 text-right">
-                            {avgSimilarity}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {result.report_v2.source_groups.length > 6 && (
-                  <p className="text-xs text-slate-500 text-center">
-                    + {result.report_v2.source_groups.length - 6} nguồn khác
-                  </p>
-                )}
-              </div>
-            )}
-
-            {result.results.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <BookOpen size={18} />
-                  Tài liệu với Highlight
-                </h4>
-                
-                <div className="p-4 rounded-lg border border-slate-200 bg-white max-h-[400px] overflow-y-auto">
-                  <div className="space-y-2 text-sm leading-relaxed">
-                    {result.results.map((item, index) => {
-                      const highlightColor = item.is_plagiarized 
-                        ? 'bg-red-200 text-red-900 font-medium' 
-                        : item.sources.length > 0 
-                          ? 'bg-yellow-100 text-yellow-900' 
-                          : '';
-                      const sourceCount = item.sources.length;
-                      
-                      return (
-                        <div key={index} className="flex gap-2">
-                          <span className="text-slate-400 text-xs w-6 shrink-0">{index + 1}.</span>
-                          <span className={highlightColor}>
-                            {item.sentence}
-                            {sourceCount > 0 && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-700">
-                                {sourceCount} nguồn
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                                group.source_type === 'academic' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                                group.source_type === 'web' ? 'bg-green-50 border-green-200 text-green-700' :
+                                'bg-slate-100 border-slate-200 text-slate-600'
+                              }`}>
+                                {group.source_type === 'academic' ? 'Academic' : 
+                                 group.source_type === 'web' ? 'Web' : 
+                                 group.source_type}
                               </span>
-                            )}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3 text-xs">
-                    <span className="flex items-center gap-1">
-                      <span className="w-3 h-3 bg-red-200 rounded"></span> Trùng cao (&gt;50%)
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-3 h-3 bg-yellow-100 rounded"></span> Có trùng lặp
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-3 h-3 bg-slate-100 rounded"></span> Bình thường
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {result.report_v2 && result.report_v2.match_groups && result.report_v2.match_groups.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <AlertCircle size={18} />
-                  Phân loại Trùng lặp theo Trích dẫn
-                </h4>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {result.report_v2.match_groups.map((group) => {
-                    const config = {
-                      not_cited_or_quoted: { label: 'Không trích dẫn', color: 'bg-red-100 border-red-300 text-red-800', bg: 'bg-red-50' },
-                      missing_quotations: { label: 'Thiết ngoặc', color: 'bg-orange-100 border-orange-300 text-orange-800', bg: 'bg-orange-50' },
-                      missing_citation: { label: 'Thiết trích dẫn', color: 'bg-yellow-100 border-yellow-300 text-yellow-800', bg: 'bg-yellow-50' },
-                      cited_and_quoted: { label: 'Đã trích dẫn', color: 'bg-green-100 border-green-300 text-green-800', bg: 'bg-green-50' },
-                    };
-                    const c = config[group.group_type as keyof typeof config] || config.not_cited_or_quoted;
-                    
-                    return (
-                      <div 
-                        key={group.group_type}
-                        className={`p-3 rounded-lg border ${c.color} ${c.bg}`}
-                      >
-                        <div className="text-2xl font-bold">{group.count}</div>
-                        <div className="text-xs font-medium">{c.label}</div>
-                        <div className="text-xs opacity-75">{group.percentage}%</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-200 rounded"></span> Không trích dẫn</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-orange-200 rounded"></span> Thiếu ngoặc</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-yellow-200 rounded"></span> Thiếu trích dẫn</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-200 rounded"></span> Đã trích dẫn đúng</span>
-                </div>
-              </div>
-            )}
-
-            {result.report_v2 && result.report_v2.source_groups && result.report_v2.source_groups.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <BookOpen size={18} />
-                  Nguồn Trùng lặp ({result.report_v2.source_groups.length} nhóm)
-                </h4>
-                
-                <div className="grid gap-3">
-                  {result.report_v2.source_groups.map((group, gIndex) => (
-                    <div 
-                      key={group.source_id}
-                      className="p-4 rounded-lg border border-slate-200 bg-white hover:shadow-sm transition-all"
-                      data-test="match-span"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                              group.source_type === 'academic' ? 'bg-purple-50 border-purple-200 text-purple-700' :
-                              group.source_type === 'web' ? 'bg-green-50 border-green-200 text-green-700' :
-                              'bg-slate-100 border-slate-200 text-slate-600'
-                            }`}>
-                              {group.source_type === 'academic' ? 'Học thuật' : 
-                               group.source_type === 'web' ? 'Web' : 
-                               group.source_type}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {group.spans.length} đoạn trùng
-                            </span>
-                          </div>
-                          <a 
-                            href={group.canonical_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline line-clamp-2 break-all"
-                          >
-                            {group.canonical_url}
-                          </a>
-                        </div>
-                        <ExternalLink size={16} className="text-slate-400 shrink-0" />
-                      </div>
-                      
-                      {group.spans.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-slate-100">
-                          <p className="text-xs font-medium text-slate-500 mb-2">Đoạn trùng:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {group.spans.slice(0, 5).map((span, sIndex) => (
-                              <span 
-                                key={sIndex}
-                                className={`text-xs px-2 py-1 rounded font-medium ${
-                                  span.similarity > 50 ? 'bg-red-100 text-red-700' :
-                                  span.similarity > 20 ? 'bg-orange-100 text-orange-700' :
-                                  'bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                Câu {span.sentence_index + 1}: {span.similarity}%
+                              <span className="text-xs text-slate-500">
+                                {group.spans.length} matches
                               </span>
-                            ))}
-                            {group.spans.length > 5 && (
-                              <span className="text-xs text-slate-500 py-1">
-                                +{group.spans.length - 5} đoạn khác
-                              </span>
-                            )}
+                            </div>
+                            <a 
+                              href={group.canonical_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline line-clamp-2 break-all"
+                            >
+                              {group.canonical_url}
+                            </a>
                           </div>
+                          <ExternalLink size={16} className="text-slate-400 shrink-0" />
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {result.report_v2 && result.report_v2.caveats.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <AlertCircle size={18} />
-                  Cảnh báo & Hạn chế
-                </h4>
-                
-                <div className="space-y-2">
-                  {result.report_v2.caveats.map((caveat, cIndex) => (
-                    <div 
-                      key={cIndex}
-                      className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2"
-                    >
-                      <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-sm text-amber-800">{caveat.message}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {result.report_v2?.metadata && (
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                {result.report_v2.metadata.confidence_band && (
-                  <span className="px-2 py-1 bg-slate-100 rounded">
-                    Độ tin cậy: {result.report_v2.metadata.confidence_band === 'high' ? 'Cao' : 
-                                 result.report_v2.metadata.confidence_band === 'medium' ? 'Trung bình' : 'Thấp'}
-                  </span>
-                )}
-                {result.report_v2.metadata.scoring_policy && (
-                  <span className="px-2 py-1 bg-slate-100 rounded">
-                    Chính sách: {result.report_v2.metadata.scoring_policy}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Detailed Analysis */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                <Search size={18} />
-                Chi tiết Phân tích ({result.results.length} câu)
-              </h4>
-              
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                {result.results.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
-                      item.is_plagiarized 
-                        ? 'bg-red-50/50 border-red-200' 
-                        : 'bg-white border-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-1 shrink-0 ${item.is_plagiarized ? 'text-red-500' : 'text-green-500'}`}>
-                        {item.is_plagiarized ? <AlertTriangle size={18} /> : <CheckCircle size={18} />}
-                      </div>
-                      
-                      <div className="flex-1 space-y-2 min-w-0">
-                        <p className={`text-slate-800 leading-relaxed ${item.is_plagiarized ? 'font-medium' : ''}`}>
-                          {item.sentence}
-                        </p>
-
-                        <div className="flex flex-wrap items-center gap-2 text-xs">
-                          {item.analysis_method && (
-                            <span className={`px-2 py-0.5 rounded-full border ${getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).className}`}>
-                              {getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).label}
-                            </span>
-                          )}
-                          <span className="px-2 py-0.5 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
-                            Semantic: {item.semantic_similarity}%
-                          </span>
-                        </div>
-                         
-                        {item.sources.length > 0 && (
-                          <div className="mt-3 pl-3 border-l-2 border-slate-200 space-y-2">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Nguồn tìm thấy:</p>
-                            {item.sources.slice(0, 3).map((source, sIndex) => (
-                              <a 
-                                key={sIndex}
-                                href={source.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline group"
-                              >
-                                <ExternalLink size={14} className="shrink-0" />
-                                <span className="truncate">{source.url}</span>
-                                <span className="shrink-0 ml-auto px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600">
-                                  {source.similarity}%
-                                </span>
-                              </a>
-                            ))}
+                        {group.spans.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <div className="flex flex-wrap gap-2">
+                              {group.spans.slice(0, 5).map((span, sIndex) => (
+                                <button
+                                  key={sIndex}
+                                  onClick={() => {
+                                    setSelectedSentenceIndex(span.sentence_index);
+                                    setShowSideBySide(true);
+                                  }}
+                                  className={`text-xs px-2 py-1 rounded font-medium hover:opacity-80 transition-opacity ${
+                                    span.similarity > 50 ? 'bg-red-100 text-red-700' :
+                                    span.similarity > 20 ? 'bg-orange-100 text-orange-700' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}
+                                >
+                                  Sentence {span.sentence_index + 1}: {span.similarity}%
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
-
-                      <div className={`shrink-0 text-sm font-bold px-2 py-1 rounded ${
-                        item.similarity > 50 ? 'bg-red-100 text-red-600' : 
-                        item.similarity > 20 ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {item.similarity}%
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {viewMode === 'details' && (
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {result.results.map((item, index) => (
+                      <div 
+                        key={index} 
+                        className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
+                          item.is_plagiarized 
+                            ? 'bg-red-50/50 border-red-200' 
+                            : 'bg-white border-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`mt-1 shrink-0 ${item.is_plagiarized ? 'text-red-500' : 'text-green-500'}`}>
+                            {item.is_plagiarized ? <AlertTriangle size={18} /> : <CheckCircle size={18} />}
+                          </div>
+                          <div className="flex-1 space-y-2 min-w-0">
+                            <p className={`text-slate-800 leading-relaxed ${item.is_plagiarized ? 'font-medium' : ''}`}>
+                              {item.sentence}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {item.analysis_method && (
+                                <span className={`px-2 py-0.5 rounded-full border ${getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).className}`}>
+                                  {getMethodInfo(item.analysis_method, Boolean(item.fallback_used)).label}
+                                </span>
+                              )}
+                              <span className="px-2 py-0.5 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
+                                Semantic: {item.semantic_similarity}%
+                              </span>
+                            </div>
+                            {item.sources.length > 0 && (
+                              <div className="mt-3 pl-3 border-l-2 border-slate-200 space-y-2">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Sources:</p>
+                                {item.sources.slice(0, 3).map((source, sIndex) => (
+                                  <a 
+                                    key={sIndex}
+                                    href={source.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline group"
+                                  >
+                                    <ExternalLink size={14} className="shrink-0" />
+                                    <span className="truncate">{source.url}</span>
+                                    <span className="shrink-0 ml-auto px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600">
+                                      {source.similarity}%
+                                    </span>
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className={`shrink-0 text-sm font-bold px-2 py-1 rounded ${
+                            item.similarity > 50 ? 'bg-red-100 text-red-600' : 
+                            item.similarity > 20 ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {item.similarity}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+
+            {showSideBySide && selectedSentenceIndex !== null && result.results[selectedSentenceIndex] && (
+              <SideBySidePanel 
+                sentence={result.results[selectedSentenceIndex]}
+                sourceUrl={result.results[selectedSentenceIndex].sources[0]?.url}
+                onClose={() => setShowSideBySide(false)}
+              />
+            )}
           </div>
         )}
       </div>
