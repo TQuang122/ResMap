@@ -1253,6 +1253,41 @@ def _build_match_groups(results: list[SentenceResult]) -> list[MatchGroup]:
     return match_groups
 
 
+def _filter_small_matches(
+    results: list[SentenceResult],
+    min_word_count: int,
+) -> tuple[list[SentenceResult], int]:
+    if min_word_count <= 0:
+        return results, 0
+
+    filtered = []
+    removed_count = 0
+
+    for result in results:
+        word_count = len(result.sentence.split())
+        if word_count >= min_word_count:
+            filtered.append(result)
+        else:
+            removed_count += 1
+
+    return filtered, removed_count
+
+
+def _filter_small_sources(
+    results: list[SentenceResult],
+    min_source_count: int,
+) -> list[SentenceResult]:
+    if not min_source_count:
+        return results
+
+    filtered = []
+    for result in results:
+        if len(result.sources) >= min_source_count:
+            filtered.append(result)
+
+    return filtered
+
+
 def _build_report_v2(
     results: list[SentenceResult],
     metadata_overrides: dict[str, str] | None = None,
@@ -1905,15 +1940,57 @@ async def check_plagiarism(
         if used_ai_similarity
         else "keyword"
     )
+
+    filtered_results = results
+    small_matches_removed = 0
+
+    if request.exclude_small_matches > 0:
+        filtered_results, small_matches_removed = _filter_small_matches(
+            filtered_results, request.exclude_small_matches
+        )
+        exclusion_metadata["small_matches_removed"] = str(small_matches_removed)
+        exclusion_metadata["small_match_threshold"] = str(request.exclude_small_matches)
+
+    if request.exclude_small_sources:
+        before_filter = len(filtered_results)
+        filtered_results = _filter_small_sources(filtered_results, min_source_count=3)
+        sources_removed = before_filter - len(filtered_results)
+        exclusion_metadata["small_sources_removed"] = str(sources_removed)
+
+    recalculate_for_response = len(filtered_results) > 0
+
+    if recalculate_for_response:
+        total_similarity = sum(r.similarity for r in filtered_results)
+        overall_score = round(total_similarity / len(filtered_results))
+        plagiarized_count = sum(1 for r in filtered_results if r.is_plagiarized)
+        plagiarism_percentage = round((plagiarized_count / len(filtered_results)) * 100)
+    else:
+        overall_score = 0
+        plagiarism_percentage = 0
+        plagiarized_count = 0
+
     quota_info = get_quota_info(user_key=resolved_user_key)
-    source_counts = _build_source_counts(results)
+    source_counts = (
+        _build_source_counts(filtered_results) if recalculate_for_response else {}
+    )
+
+    if small_matches_removed > 0:
+        exclusion_caveats.append(
+            ReportV2Caveat(
+                code="SMALL_MATCHES_FILTERED",
+                message=(
+                    f"{small_matches_removed} matches smaller than {request.exclude_small_matches} "
+                    "words were excluded from analysis."
+                ),
+            )
+        )
 
     return PlagiarismCheckResponse(
         overall_score=overall_score,
         plagiarism_percentage=plagiarism_percentage,
-        total_sentences=len(results),
+        total_sentences=len(filtered_results),
         plagiarized_sentences=plagiarized_count,
-        results=results,
+        results=filtered_results,
         used_ai_similarity=used_ai_similarity,
         fallback_used=fallback_used,
         analysis_method=analysis_method,
@@ -1923,7 +2000,7 @@ async def check_plagiarism(
         source_failures=None,
         quota_mode=quota_info.get("quota_mode"),
         report_v2=_build_report_v2(
-            results,
+            filtered_results,
             metadata_overrides=exclusion_metadata,
             extra_caveats=exclusion_caveats,
         ),

@@ -28,6 +28,16 @@ class PlagiarismCheckRequest(BaseModel):
         default=True,
         description="Enable AI semantic similarity when available; falls back to keyword matching",
     )
+    exclude_small_matches: int = Field(
+        default=0,
+        ge=0,
+        le=50,
+        description="Exclude matches smaller than this word count",
+    )
+    exclude_small_sources: bool = Field(
+        default=False,
+        description="Exclude sources with fewer than 3 matches",
+    )
 
 
 class SourceMatch(BaseModel):

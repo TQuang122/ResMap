@@ -82,6 +82,8 @@ const PlagiarismChecker: React.FC = () => {
   const [result, setResult] = useState<PlagiarismResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [useAiSimilarity, setUseAiSimilarity] = useState(true);
+  const [excludeSmallMatches, setExcludeSmallMatches] = useState(0);
+  const [excludeSmallSources, setExcludeSmallSources] = useState(false);
   const [quota, setQuota] = useState<QuotaResponse | null>(null);
   const [quotaLoading, setQuotaLoading] = useState(false);
   const [quotaError, setQuotaError] = useState<string | null>(null);
@@ -209,12 +211,14 @@ const PlagiarismChecker: React.FC = () => {
         text,
         max_sentences: 20,
         use_ai_similarity: useAiSimilarity,
+        exclude_small_matches: excludeSmallMatches,
+        exclude_small_sources: excludeSmallSources,
       });
       const response = normalizeResponse(raw);
       setResult(response);
       await logHistory({
         tool: 'plagiarism',
-        request: { text, max_sentences: 20, use_ai_similarity: useAiSimilarity },
+        request: { text, max_sentences: 20, use_ai_similarity: useAiSimilarity, exclude_small_matches: excludeSmallMatches, exclude_small_sources: excludeSmallSources },
         response,
       });
     } catch (err) {
@@ -328,6 +332,47 @@ const PlagiarismChecker: React.FC = () => {
             </div>
           </div>
 
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+            <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+              <Search size={16} className="text-[#F36F21]" />
+              Bộ lọc nâng cao
+            </p>
+            
+            <div className="flex flex-wrap gap-3">
+              <div className="flex-1 min-w-[140px]">
+                <label className="text-xs text-slate-600 block mb-1">
+                  Loại bỏ matches &lt; N từ
+                </label>
+                <select
+                  value={excludeSmallMatches}
+                  onChange={(e) => setExcludeSmallMatches(Number(e.target.value))}
+                  disabled={loading}
+                  className="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white"
+                >
+                  <option value={0}>Không lọc</option>
+                  <option value={3}>3 từ</option>
+                  <option value={5}>5 từ</option>
+                  <option value={10}>10 từ</option>
+                  <option value={15}>15 từ</option>
+                  <option value={20}>20 từ</option>
+                </select>
+              </div>
+              
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={excludeSmallSources}
+                    onChange={(e) => setExcludeSmallSources(e.target.checked)}
+                    disabled={loading}
+                    className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+                  />
+                  <span className="text-xs text-slate-600">Loại bỏ nguồn &lt; 3 matches</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div className="p-4 rounded-xl border border-slate-200 bg-white" aria-live="polite">
             <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
               <Gauge size={16} className="text-[#F36F21]" />
@@ -429,52 +474,123 @@ const PlagiarismChecker: React.FC = () => {
                 </span>
               )}
             </div>
-            
-            {/* Score Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className={`p-4 rounded-xl border ${getScoreBg(result.overall_score)} flex flex-col items-center justify-center text-center`}>
-                <div className={`text-3xl font-black mb-1 ${getScoreColor(result.overall_score)}`}>
-                  {result.overall_score}%
-                </div>
-                <div className="text-sm font-medium text-slate-600">Mức độ Trùng lặp</div>
-              </div>
-              
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-center">
-                <div className="text-3xl font-bold text-slate-800 mb-1">
-                  {result.plagiarized_sentences} / {result.total_sentences}
-                </div>
-                <div className="text-sm font-medium text-slate-600">Câu bị nghi ngờ</div>
-              </div>
 
-              <div className={`p-4 rounded-xl border ${result.plagiarism_percentage > 30 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} flex flex-col items-center justify-center text-center`}>
-                <div className={`text-3xl font-bold mb-1 ${result.plagiarism_percentage > 30 ? 'text-red-600' : 'text-green-600'}`}>
-                  {result.plagiarism_percentage}%
-                </div>
-                <div className="text-sm font-medium text-slate-600">Tỷ lệ Đạo văn</div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-blue-800">
-                    Lưu ý quan trọng
-                  </p>
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    Tỷ lệ trùng lặp chỉ là <strong>chỉ báo tham khảo</strong>, không phải kết luận về hành vi đạo văn. 
-                    Hãy xem xét ngữ cảnh, mục đích sử dụng và cách trích dẫn nguồn để đánh giá chính xác hơn.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {result.report_v2 && result.report_v2.match_groups && result.report_v2.match_groups.length > 0 && (
+            {result.report_v2 && result.report_v2.source_groups.length > 0 && (
               <div className="space-y-4">
                 <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                  <AlertCircle size={18} />
-                  Phân loại Trùng lặp theo Trích dẫn
+                  <BookOpen size={18} />
+                  Tổng quan Matches ({result.report_v2.source_groups.length} nguồn, {result.results.filter(r => r.sources.length > 0).length} câu trùng)
                 </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {result.report_v2.source_groups.slice(0, 6).map((group) => {
+                    const matchCount = group.spans.length;
+                    const avgSimilarity = matchCount > 0 
+                      ? Math.round(group.spans.reduce((sum, s) => sum + s.similarity, 0) / matchCount)
+                      : 0;
+                    const maxSim = matchCount > 0 
+                      ? Math.max(...group.spans.map(s => s.similarity))
+                      : 0;
+                    
+                    const severityColor = maxSim > 50 ? 'border-red-300 bg-red-50' : 
+                                        maxSim > 20 ? 'border-orange-300 bg-orange-50' : 
+                                        'border-slate-200 bg-white';
+                    
+                    return (
+                      <div 
+                        key={group.source_id}
+                        className={`p-3 rounded-lg border-2 ${severityColor} hover:shadow-md transition-all cursor-pointer`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-slate-700 truncate max-w-[70%]">
+                            {new URL(group.canonical_url).hostname}
+                          </span>
+                          <span className="text-xs font-bold text-slate-600">
+                            {matchCount} matches
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                maxSim > 50 ? 'bg-red-500' : 
+                                maxSim > 20 ? 'bg-orange-400' : 
+                                'bg-slate-400'
+                              }`}
+                              style={{ width: `${avgSimilarity}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                            {avgSimilarity}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {result.report_v2.source_groups.length > 6 && (
+                  <p className="text-xs text-slate-500 text-center">
+                    + {result.report_v2.source_groups.length - 6} nguồn khác
+                  </p>
+                )}
+              </div>
+            )}
+
+            {result.results.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <BookOpen size={18} />
+                  Tài liệu với Highlight
+                </h4>
+                
+                <div className="p-4 rounded-lg border border-slate-200 bg-white max-h-[400px] overflow-y-auto">
+                  <div className="space-y-2 text-sm leading-relaxed">
+                    {result.results.map((item, index) => {
+                      const highlightColor = item.is_plagiarized 
+                        ? 'bg-red-200 text-red-900 font-medium' 
+                        : item.sources.length > 0 
+                          ? 'bg-yellow-100 text-yellow-900' 
+                          : '';
+                      const sourceCount = item.sources.length;
+                      
+                      return (
+                        <div key={index} className="flex gap-2">
+                          <span className="text-slate-400 text-xs w-6 shrink-0">{index + 1}.</span>
+                          <span className={highlightColor}>
+                            {item.sentence}
+                            {sourceCount > 0 && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-700">
+                                {sourceCount} nguồn
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3 text-xs">
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-red-200 rounded"></span> Trùng cao (&gt;50%)
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-yellow-100 rounded"></span> Có trùng lặp
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-slate-100 rounded"></span> Bình thường
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed Analysis */}
+            <div className="space-y-4">
+              <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                <Search size={18} />
+                Chi tiết Phân tích ({result.results.length} câu)
+              </h4>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {result.report_v2.match_groups.map((group) => {
