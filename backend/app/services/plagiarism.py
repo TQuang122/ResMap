@@ -137,6 +137,13 @@ BIBLIOGRAPHY_PATTERNS = [
     re.compile(r"(?im)^\s*\[\d+\]\s+[A-Z][a-zA-ZÀ-ỹ].+"),
 ]
 
+QUOTE_PATTERNS = [
+    re.compile(r'"[^"]{10,500}"'),
+    re.compile(r"'[^']{10,500}'"),
+    re.compile(r"«[^»]{10,500}»"),
+    re.compile(r"'''[^''']{10,500}'''"),
+]
+
 
 class CandidateIdentifiers(BaseModel):
     doi: str | None = None
@@ -1927,6 +1934,112 @@ def calculate_ngram_similarity(text1: str, text2: str, n: int = 5) -> float:
     return matches / max(len(ngrams1), len(ngrams2))
 
 
+def extract_quoted_text(text: str) -> list[tuple[int, int]]:
+    """Extract positions of quoted text in the document."""
+    positions = []
+    for pattern in QUOTE_PATTERNS:
+        for match in pattern.finditer(text):
+            positions.append((match.start(), match.end()))
+    return positions
+
+
+def is_in_quoted_region(text: str, start: int, end: int) -> bool:
+    """Check if a text range is inside quoted text."""
+    quoted = extract_quoted_text(text)
+    for q_start, q_end in quoted:
+        if start >= q_start and end <= q_end:
+            return True
+    return False
+
+
+def is_in_bibliography(text: str, start: int) -> bool:
+    """Check if a position is in the bibliography section."""
+    lines = text.split("\n")
+    current_pos = 0
+    in_bib = False
+
+    for line in lines:
+        line_end = current_pos + len(line)
+        if current_pos <= start < line_end:
+            return in_bib
+
+        line_lower = line.lower().strip()
+        for pattern in BIBLIOGRAPHY_PATTERNS:
+            if pattern.search(line_lower):
+                in_bib = True
+                break
+
+        current_pos = line_end + 1
+
+    return in_bib
+
+
+def calculate_turnitin_score(
+    text: str,
+    results: list,
+    exclude_quotes: bool = True,
+    exclude_bibliography: bool = True,
+    small_match_threshold: int = 10,
+) -> dict:
+    """Calculate Turnitin-style word-level similarity score."""
+    all_words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    total_words = len(all_words)
+
+    if total_words == 0:
+        return {
+            "overall_score": 0,
+            "matched_words": 0,
+            "total_words": 0,
+            "excluded_words": 0,
+        }
+
+    matched_word_positions: set[tuple[int, str]] = set()
+    excluded_words = 0
+
+    for idx, result in enumerate(results):
+        sentence = result.sentence
+        sentence_words = re.sub(r"[^\w\s]", "", sentence.lower()).split()
+        sentence_start = text.find(sentence)
+
+        is_quoted = exclude_quotes and is_in_quoted_region(
+            text, sentence_start, sentence_start + len(sentence)
+        )
+        is_bib = exclude_bibliography and is_in_bibliography(text, sentence_start)
+
+        if is_quoted or is_bib:
+            excluded_words += len(sentence_words)
+            continue
+
+        if len(sentence_words) < small_match_threshold:
+            excluded_words += len(sentence_words)
+            continue
+
+        for source in result.sources:
+            if source.similarity > 0:
+                for word in sentence_words:
+                    matched_word_positions.add((idx, word))
+
+    unique_matched_words = len(set(word for _, word in matched_word_positions))
+    analyzable_words = total_words - excluded_words
+
+    if analyzable_words <= 0:
+        return {
+            "overall_score": 0,
+            "matched_words": unique_matched_words,
+            "total_words": total_words,
+            "excluded_words": excluded_words,
+        }
+
+    overall_score = min(100, round((unique_matched_words / analyzable_words) * 100))
+
+    return {
+        "overall_score": overall_score,
+        "matched_words": unique_matched_words,
+        "total_words": analyzable_words,
+        "excluded_words": excluded_words,
+    }
+
+
 async def search_duckduckgo(query: str, client: httpx.AsyncClient) -> List[str]:
     """
     Search DuckDuckGo HTML version for URLs matching the query.
@@ -2187,14 +2300,19 @@ async def check_plagiarism(
         ]
         results = await asyncio.gather(*tasks)
 
-    # Calculate overall statistics
-    total_similarity = sum(r.similarity for r in results)
-    overall_score = round(total_similarity / len(results)) if results else 0
+    # Calculate overall statistics using Turnitin-style word-level scoring
+    turnitin_stats = calculate_turnitin_score(
+        request.text,
+        results,
+        exclude_quotes=True,
+        exclude_bibliography=True,
+        small_match_threshold=10,
+    )
+
+    overall_score = turnitin_stats["overall_score"]
+    plagiarism_percentage = turnitin_stats["overall_score"]
 
     plagiarized_count = sum(1 for r in results if r.is_plagiarized)
-    plagiarism_percentage = (
-        round((plagiarized_count / len(results)) * 100) if results else 0
-    )
 
     used_ai_similarity = any(r.used_ai for r in results)
     fallback_used = any(r.fallback_used for r in results)
@@ -2225,10 +2343,16 @@ async def check_plagiarism(
     recalculate_for_response = len(filtered_results) > 0
 
     if recalculate_for_response:
-        total_similarity = sum(r.similarity for r in filtered_results)
-        overall_score = round(total_similarity / len(filtered_results))
+        turnitin_stats_filtered = calculate_turnitin_score(
+            request.text,
+            filtered_results,
+            exclude_quotes=True,
+            exclude_bibliography=True,
+            small_match_threshold=10,
+        )
+        overall_score = turnitin_stats_filtered["overall_score"]
+        plagiarism_percentage = turnitin_stats_filtered["overall_score"]
         plagiarized_count = sum(1 for r in filtered_results if r.is_plagiarized)
-        plagiarism_percentage = round((plagiarized_count / len(filtered_results)) * 100)
     else:
         overall_score = 0
         plagiarism_percentage = 0
