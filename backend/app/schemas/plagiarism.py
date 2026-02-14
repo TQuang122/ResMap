@@ -55,6 +55,10 @@ class SourceMatch(BaseModel):
     similarity: int = Field(
         ..., ge=0, le=100, description="Similarity percentage (0-100)"
     )
+    matched_ngrams: List[str] = Field(
+        default_factory=list,
+        description="List of matching n-grams (3-5 word phrases) found in this source",
+    )
 
 
 class SentenceResult(BaseModel):
@@ -81,6 +85,10 @@ class SentenceResult(BaseModel):
     )
     sources: List[SourceMatch] = Field(
         default_factory=list, description="List of matching sources"
+    )
+    matched_ngrams: List[str] = Field(
+        default_factory=list,
+        description="All matching n-grams from all sources (for word-level scoring)",
     )
     is_plagiarized: bool = Field(..., description="True if similarity > 50%")
 

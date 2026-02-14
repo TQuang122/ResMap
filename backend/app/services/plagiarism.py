@@ -23,6 +23,31 @@ import httpx
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, ConfigDict, Field
 
+import nltk
+from nltk.stem import PorterStemmer
+
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt", quiet=True)
+
+try:
+    nltk.data.find("tokenizers/punkt_tab")
+except LookupError:
+    nltk.download("punkt_tab", quiet=True)
+
+_stemmer = PorterStemmer()
+
+
+def stem_word(word: str) -> str:
+    return _stemmer.stem(word.lower())
+
+
+def stem_text(text: str) -> Set[str]:
+    words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    return {stem_word(w) for w in words if len(w) > 1}
+
+
 from app.core.config import settings
 from app.schemas.plagiarism import (
     MatchGroup,
@@ -133,8 +158,8 @@ BIBLIOGRAPHY_PATTERNS = [
     re.compile(
         r"(?im)^\s*(tài\s+liệu\s+tham\s+khảo|bibliography|references|works\s+cited|literature\s+cited)\s*:?\s*$"
     ),
-    re.compile(r"(?im)^\s*\d+\.\s+[A-Z][a-zA-ZÀ-ỹ].+"),
     re.compile(r"(?im)^\s*\[\d+\]\s+[A-Z][a-zA-ZÀ-ỹ].+"),
+    re.compile(r"(?im)^\s*\(\d{4}\)\s+[A-Z][a-zA-ZÀ-ỹ].+"),
 ]
 
 QUOTE_PATTERNS = [
@@ -142,6 +167,20 @@ QUOTE_PATTERNS = [
     re.compile(r"'[^']{10,500}'"),
     re.compile(r"«[^»]{10,500}»"),
     re.compile(r"'''[^''']{10,500}'''"),
+]
+
+REFERENCE_PATTERNS = [
+    re.compile(r"\[\d+\]|\(\w+,\s*\d{4}\)|\([a-zA-ZÀ-ỹ]+\s+et\s+al\.,\s*\d{4}\)"),
+    re.compile(r"(?i)see\s+(also\s+)?(table|figure|fig\.)\s*\d+"),
+    re.compile(r"(?i)as\s+cited\s+in"),
+    re.compile(r"(?i)retrieved\s+from\s+https?://"),
+]
+
+EXCLUDE_SECTIONS = [
+    re.compile(
+        r"(?im)^(acknowledgements|acknowledgments|appendix|references|bibliography|tài\s+liệu\s+tham\s+khảo)\s*$"
+    ),
+    re.compile(r"(?im)^(figure|table|fig\.)\s+\d+"),
 ]
 
 
@@ -1934,6 +1973,22 @@ def calculate_ngram_similarity(text1: str, text2: str, n: int = 5) -> float:
     return matches / max(len(ngrams1), len(ngrams2))
 
 
+def get_matching_ngrams(text1: str, text2: str, n: int = 5) -> Set[str]:
+    words = re.sub(r"[^\w\s]", "", text1.lower()).split()
+    ngrams1 = {
+        " ".join(words[i : i + n]) for i in range(len(words) - n + 1) if len(words) >= n
+    }
+
+    words2 = re.sub(r"[^\w\s]", "", text2.lower()).split()
+    ngrams2 = {
+        " ".join(words2[i : i + n])
+        for i in range(len(words2) - n + 1)
+        if len(words2) >= n
+    }
+
+    return ngrams1 & ngrams2
+
+
 def extract_quoted_text(text: str) -> list[tuple[int, int]]:
     """Extract positions of quoted text in the document."""
     positions = []
@@ -1981,7 +2036,6 @@ def calculate_turnitin_score(
     exclude_bibliography: bool = True,
     small_match_threshold: int = 10,
 ) -> dict:
-    """Calculate Turnitin-style word-level similarity score."""
     all_words = re.sub(r"[^\w\s]", "", text.lower()).split()
     total_words = len(all_words)
 
@@ -1993,8 +2047,10 @@ def calculate_turnitin_score(
             "excluded_words": 0,
         }
 
-    matched_word_positions: set[tuple[int, str]] = set()
+    matched_stems_set: set[str] = set()
     excluded_words = 0
+
+    all_stems = stem_text(text)
 
     for idx, result in enumerate(results):
         sentence = result.sentence
@@ -2014,12 +2070,20 @@ def calculate_turnitin_score(
             excluded_words += len(sentence_words)
             continue
 
-        for source in result.sources:
-            if source.similarity > 0:
+        matched_ngrams = getattr(result, "matched_ngrams", [])
+        if matched_ngrams:
+            for ngram in matched_ngrams:
+                ngram_words = ngram.split()
+                for word in ngram_words:
+                    if word and len(word) > 1:
+                        matched_stems_set.add(stem_word(word))
+        else:
+            if result.sources and any(s.similarity > 0 for s in result.sources):
                 for word in sentence_words:
-                    matched_word_positions.add((idx, word))
+                    if len(word) > 1:
+                        matched_stems_set.add(stem_word(word))
 
-    unique_matched_words = len(set(word for _, word in matched_word_positions))
+    unique_matched_words = len(matched_stems_set & all_stems)
     analyzable_words = total_words - excluded_words
 
     if analyzable_words <= 0:
@@ -2196,10 +2260,12 @@ async def check_sentence(
                 best_content = comparison_text
 
             if similarity > 0.15:
+                matching_ngrams = get_matching_ngrams(sentence, comparison_text, 5)
                 matched_sources.append(
                     SourceMatch(
                         url=candidate.canonical_url,
                         similarity=round(similarity * 100),
+                        matched_ngrams=list(matching_ngrams),
                     )
                 )
 
@@ -2219,11 +2285,16 @@ async def check_sentence(
         # Sort sources by similarity (highest first)
         matched_sources.sort(key=lambda x: x.similarity, reverse=True)
 
+        all_ngrams = []
+        for source in matched_sources:
+            all_ngrams.extend(source.matched_ngrams)
+
         return SentenceResult(
             sentence=sentence,
             similarity=round(max_similarity * 100),
             semantic_similarity=semantic_similarity,
-            sources=matched_sources[:5],  # Keep top 5 sources
+            sources=matched_sources[:5],
+            matched_ngrams=list(set(all_ngrams)),
             is_plagiarized=max_similarity > 0.5,
             used_ai=used_ai,
             fallback_used=fallback_used,
