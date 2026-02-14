@@ -674,113 +674,208 @@ const PlagiarismChecker: React.FC = () => {
   };
 
   const exportToPDF = () => {
-    const content = document.getElementById('plagiarism-results');
-    if (!content) return;
+    if (!result) return;
     
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    
-    const scoreColor = result ? getTurnitinColor(result.overall_score) : { bg: 'bg-gray-100', text: 'text-gray-700', label: '' };
-    const date = new Date().toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Báo cáo Kiểm tra Đạo văn - ResMap</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
-          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
-          .header h1 { color: #f36f21; font-size: 24px; margin-bottom: 8px; }
-          .header .date { color: #64748b; font-size: 12px; }
-          .score-section { text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; margin-bottom: 24px; }
-          .score-value { font-size: 48px; font-weight: bold; padding: 16px 32px; border-radius: 8px; display: inline-block; margin-bottom: 12px; }
-          .score-label { font-size: 18px; font-weight: bold; }
-          .stats { display: flex; justify-content: center; gap: 40px; margin: 20px 0; }
-          .stat { text-align: center; }
-          .stat-value { font-size: 24px; font-weight: bold; color: #0f172a; }
-          .stat-label { font-size: 12px; color: #64748b; }
-          .section { margin-bottom: 24px; }
-          .section h2 { font-size: 16px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-          .match-item { padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #f36f21; }
-          .match-sentence { font-size: 13px; margin-bottom: 6px; }
-          .match-meta { font-size: 11px; color: #64748b; }
-          .highlight-red { background: #fecaca; }
-          .highlight-yellow { background: #fef3c7; }
-          .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-          .disclaimer { background: #fffbeb; padding: 12px; border-radius: 8px; font-size: 11px; color: #92400e; margin-top: 20px; }
-          @media print { body { padding: 20px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>📋 Báo cáo Kiểm tra Đạo văn</h1>
-          <div class="date">Ngày tạo: ${date}</div>
-        </div>
+    import('jspdf').then(({ jsPDF }) => {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      let y = margin;
+      
+      const checkPageBreak = (height: number) => {
+        if (y + height > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+          return true;
+        }
+        return false;
+      };
+      
+      const getScoreColor = (score: number): [number, number, number] => {
+        if (score > 74) return [220, 38, 38];
+        if (score > 49) return [249, 115, 22];
+        if (score > 24) return [234, 179, 8];
+        return [34, 197, 94];
+      };
+      
+      const date = new Date().toLocaleDateString('vi-VN', { 
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
+      
+      doc.setFillColor(243, 111, 33);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Similarity Report', margin, 22);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('ResMap - FPTU Research Assistant', margin, 31);
+      
+      y = 50;
+      
+      const scoreColor = getScoreColor(result.overall_score);
+      doc.setFillColor(...scoreColor);
+      doc.circle(pageWidth / 2, y + 20, 35, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(32);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${result.overall_score}%`, pageWidth / 2, y + 26, { align: 'center' });
+      
+      y += 50;
+      
+      const scoreLabel = result.overall_score > 74 ? 'Very High' : 
+                       result.overall_score > 49 ? 'High' : 
+                       result.overall_score > 24 ? 'Moderate' : 'Low';
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${scoreLabel} Similarity`, pageWidth / 2, y, { align: 'center' });
+      
+      y += 15;
+      
+      doc.setFillColor(243, 243, 243);
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, 25, 3, 3, 'F');
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      
+      doc.setTextColor(100, 100, 100);
+      doc.text('Total Sentences', margin + 15, y + 10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${result.total_sentences}`, margin + 15, y + 20);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Matched', margin + 60, y + 10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${result.plagiarized_sentences}`, margin + 60, y + 20);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Sources', margin + 105, y + 10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${result.report_v2?.source_groups?.length || 0}`, margin + 105, y + 20);
+      
+      y += 35;
+      
+      if (result.report_v2?.match_groups && result.report_v2.match_groups.length > 0) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Citation Status', margin, y);
+        y += 8;
         
-        <div class="score-section">
-          <div class="score-value ${scoreColor.bg}">${result?.overall_score || 0}%</div>
-          <div class="score-label ${scoreColor.text}">${scoreColor.label}</div>
-          <div class="stats">
-            <div class="stat">
-              <div class="stat-value">${result?.plagiarized_sentences || 0}/${result?.total_sentences || 0}</div>
-              <div class="stat-label">Câu bị nghi ngờ</div>
-            </div>
-            <div class="stat">
-              <div class="stat-value">${result?.report_v2?.source_groups?.length || 0}</div>
-              <div class="stat-label">Nguồn trùng lặp</div>
-            </div>
-          </div>
-        </div>
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(200, 200, 200);
         
-        ${result?.ai_detection_score ? `
-        <div class="section">
-          <h2>🤖 Phát hiện AI</h2>
-          <div class="match-item">
-            <div class="match-sentence">Điểm AI: <strong>${result.ai_detection_score}%</strong> (Độ tin cậy: ${result.ai_detection_confidence || 'N/A'})</div>
-            <div class="match-meta">Chỉ báo về khả năng văn bản được viết bởi AI</div>
-          </div>
-        </div>
-        ` : ''}
+        const groups = result.report_v2.match_groups;
+        const total = groups.reduce((sum, g) => sum + g.count, 0);
+        const boxWidth = (pageWidth - 2 * margin - 10) / Math.max(groups.length, 1);
         
-        ${result?.results && result.results.length > 0 ? `
-        <div class="section">
-          <h2>📝 Chi tiết phân tích (${result.results.length} câu)</h2>
-          ${result.results.slice(0, 10).map((item, idx) => `
-            <div class="match-item ${item.is_plagiarized ? 'highlight-red' : item.sources.length > 0 ? 'highlight-yellow' : ''}">
-              <div class="match-sentence">${idx + 1}. ${item.sentence.substring(0, 200)}${item.sentence.length > 200 ? '...' : ''}</div>
-              <div class="match-meta">
-                Độ trùng: ${item.similarity}% | 
-                Nguồn: ${item.sources.length > 0 ? item.sources.map(s => s.url.substring(0, 40)).join(', ') : 'Không có'}
-              </div>
-            </div>
-          `).join('')}
-          ${result.results.length > 10 ? `<div style="text-align:center;color:#64748b;padding:12px;">... và ${result.results.length - 10} câu khác</div>` : ''}
-        </div>
-        ` : ''}
+        groups.forEach((group, idx) => {
+          const label = group.group_type === 'cited_and_quoted' ? 'Cited' :
+                       group.group_type === 'missing_quotations' ? 'No Quotes' :
+                       group.group_type === 'missing_citation' ? 'No Citation' : 'Not Cited';
+          
+          const color = group.group_type === 'cited_and_quoted' ? [34, 197, 94] :
+                       group.group_type === 'missing_quotations' ? [249, 115, 22] :
+                       group.group_type === 'missing_citation' ? [234, 179, 8] : [220, 38, 38];
+          
+          doc.setFillColor(...color);
+          doc.roundedRect(margin + idx * boxWidth, y, boxWidth - 2, 20, 2, 2, 'F');
+          
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${group.count}`, margin + idx * boxWidth + boxWidth / 2, y + 8, { align: 'center' });
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.text(label, margin + idx * boxWidth + boxWidth / 2, y + 16, { align: 'center' });
+        });
         
-        <div class="disclaimer">
-          <strong>Lưu ý quan trọng:</strong> Tỷ lệ trùng lặp chỉ là chỉ báo tham khảo, không phải kết luận về hành vi đạo văn. 
-          Hãy xem xét ngữ cảnh, mục đích sử dụng và cách trích dẫn nguồn để đánh giá chính xác hơn.
-        </div>
+        y += 28;
+      }
+      
+      if (result.report_v2?.source_groups && result.report_v2.source_groups.length > 0) {
+        checkPageBreak(30);
         
-        <div class="footer">
-          Generated by ResMap - FPTU Research Assistant | Powered by AI
-        </div>
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Sources', margin, y);
+        y += 8;
         
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() { window.close(); };
-          };
-        </script>
-      </body>
-      </html>
-    `;
-    
-    printWindow.document.write(html);
-    printWindow.document.close();
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        result.report_v2.source_groups.slice(0, 8).forEach((source) => {
+          checkPageBreak(18);
+          
+          const matchCount = source.spans.length;
+          const avgSim = matchCount > 0 
+            ? Math.round(source.spans.reduce((sum, s) => sum + s.similarity, 0) / matchCount)
+            : 0;
+          
+          doc.setFillColor(249, 249, 249);
+          doc.roundedRect(margin, y, pageWidth - 2 * margin, 16, 2, 2, 'F');
+          
+          doc.setDrawColor(220, 220, 220);
+          doc.line(margin + 2, y, margin + 2, y + 16);
+          
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(243, 111, 33);
+          doc.text(`${avgSim}%`, margin + 6, y + 10);
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100, 100, 100);
+          doc.setFontSize(8);
+          
+          const hostname = (() => {
+            try {
+              return new URL(source.canonical_url).hostname;
+            } catch {
+              return source.canonical_url.substring(0, 30);
+            }
+          })();
+          
+          doc.text(`${hostname} (${matchCount} matches)`, margin + 25, y + 6);
+          doc.setTextColor(150, 150, 150);
+          doc.text(source.canonical_url.substring(0, 60), margin + 25, y + 13);
+          
+          y += 18;
+        });
+      }
+      
+      checkPageBreak(40);
+      
+      y = pageHeight - 35;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, y, pageWidth - margin, y);
+      
+      y += 8;
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated: ${date}`, margin, y);
+      doc.text('Page 1', pageWidth - margin, y, { align: 'right' });
+      
+      y += 5;
+      doc.setFontSize(7);
+      doc.text('This report is generated by ResMap for educational purposes only.', margin, y);
+      y += 4;
+      doc.text('Similarity percentage is a tool to help identify potential issues, not a definitive判定 of plagiarism.', margin, y);
+      
+      doc.save('ResMap_Similarity_Report.pdf');
+    });
   };
 
   const getScoreColor = (score: number) => {
