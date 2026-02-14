@@ -84,12 +84,75 @@ const PlagiarismChecker: React.FC = () => {
   const [useAiSimilarity, setUseAiSimilarity] = useState(true);
   const [excludeSmallMatches, setExcludeSmallMatches] = useState(0);
   const [excludeSmallSources, setExcludeSmallSources] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileText, setFileText] = useState<string>('');
   const [quota, setQuota] = useState<QuotaResponse | null>(null);
   const [quotaLoading, setQuotaLoading] = useState(false);
   const [quotaError, setQuotaError] = useState<string | null>(null);
   const [quotaEndpointUnsupported, setQuotaEndpointUnsupported] = useState(false);
 
-  const canSubmit = useMemo(() => text.trim().length >= 50, [text]);
+  const canSubmit = useMemo(() => (text.trim().length >= 50 || fileText.trim().length >= 50), [text, fileText]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setSelectedFile(file);
+    setError(null);
+    
+    try {
+      let extractedText = '';
+      
+      if (file.name.endsWith('.txt')) {
+        extractedText = await file.text();
+      } else if (file.name.endsWith('.docx')) {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        extractedText = extractTextFromDocx(uint8Array);
+      } else if (file.name.endsWith('.pdf')) {
+        extractedText = 'PDF parsing requires server-side processing. Please convert to text or use direct input.';
+        setError('PDF parsing is not fully supported in browser. Please convert PDF to text or paste content directly.');
+      } else {
+        setError('Unsupported file format. Please use .txt, .docx, or paste text directly.');
+        return;
+      }
+      
+      setFileText(extractedText);
+      if (extractedText.trim().length > 0) {
+        setText(extractedText);
+      }
+    } catch (err) {
+      console.error('File parsing error:', err);
+      setError('Could not parse file. Please paste text directly.');
+    }
+  };
+
+  const extractTextFromDocx = (uint8Array: Uint8Array): string => {
+    const arr = Array.from(uint8Array);
+    let text = '';
+    let inText = false;
+    let currentText = '';
+    
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i] === 0x3C && arr[i + 1] === 0x77) {
+        if (inText && currentText.trim()) {
+          text += currentText.trim() + ' ';
+        }
+        inText = false;
+        currentText = '';
+      }
+      
+      if (inText) {
+        currentText += String.fromCharCode(arr[i]);
+      }
+      
+      if (arr[i] === 0x3E) {
+        inText = true;
+      }
+    }
+    
+    return text.replace(/\s+/g, ' ').trim();
+  };
 
   const toNumber = (value: unknown, fallback = 0) =>
     typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -233,16 +296,28 @@ const PlagiarismChecker: React.FC = () => {
     }
   };
 
+  const getTurnitinColor = (score: number) => {
+    if (score === 0) return { name: 'Blue', bg: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700', label: 'Không trùng lặp' };
+    if (score <= 24) return { name: 'Green', bg: 'bg-green-100', border: 'border-green-300', text: 'text-green-700', label: 'Trùng lặp thấp' };
+    if (score <= 49) return { name: 'Yellow', bg: 'bg-yellow-100', border: 'border-yellow-300', text: 'text-yellow-700', label: 'Trùng lặp vừa' };
+    if (score <= 74) return { name: 'Orange', bg: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700', label: 'Trùng lặp cao' };
+    return { name: 'Red', bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-700', label: 'Trùng lặp rất cao' };
+  };
+
   const getScoreColor = (score: number) => {
-    if (score > 50) return 'text-red-600';
-    if (score > 20) return 'text-orange-500';
-    return 'text-green-600';
+    if (score > 74) return 'text-red-600';
+    if (score > 49) return 'text-orange-500';
+    if (score > 24) return 'text-yellow-600';
+    if (score > 0) return 'text-green-600';
+    return 'text-blue-600';
   };
 
   const getScoreBg = (score: number) => {
-    if (score > 50) return 'bg-red-50 border-red-200';
-    if (score > 20) return 'bg-orange-50 border-orange-200';
-    return 'bg-green-50 border-green-200';
+    if (score > 74) return 'bg-red-50 border-red-200';
+    if (score > 49) return 'bg-orange-50 border-orange-200';
+    if (score > 24) return 'bg-yellow-50 border-yellow-200';
+    if (score > 0) return 'bg-green-50 border-green-200';
+    return 'bg-blue-50 border-blue-200';
   };
 
   const getMethodInfo = (method: string | null | undefined, fallbackUsed = false) => {
@@ -299,6 +374,38 @@ const PlagiarismChecker: React.FC = () => {
               {text.length} / 50 ký tự tối thiểu
             </span>
             <span>Khuyên dùng: Kiểm tra từng đoạn ngắn để có kết quả tốt nhất.</span>
+          </div>
+          
+          <div className="mt-3 p-4 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#F36F21] transition-colors">
+            <div className="flex items-center justify-center gap-4">
+              <label className="flex-1 cursor-pointer">
+                <input
+                  type="file"
+                  accept=".txt,.docx"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  {selectedFile ? selectedFile.name : 'Tải file (.txt, .docx)'}
+                </span>
+              </label>
+              {selectedFile && (
+                <button
+                  type="button"
+                  onClick={() => { setSelectedFile(null); setFileText(''); }}
+                  className="text-xs text-red-500 hover:text-red-700"
+                >
+                  Xóa file
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 text-center mt-2">
+              Hỗ trợ file văn bản (.txt, .docx). PDF cần chuyển đổi sang text.
+            </p>
           </div>
         </div>
 
@@ -475,7 +582,28 @@ const PlagiarismChecker: React.FC = () => {
               )}
             </div>
 
-            {result.report_v2 && result.report_v2.source_groups.length > 0 && (
+            <div className="flex items-center gap-4 p-4 rounded-xl border-2 bg-white">
+              <div className={`text-5xl font-black px-4 py-2 rounded-lg ${getTurnitinColor(result.overall_score).bg} ${getTurnitinColor(result.overall_score).border} border-2`}>
+                {result.overall_score}%
+              </div>
+              <div className="flex-1">
+                <div className={`text-xl font-bold ${getTurnitinColor(result.overall_score).text}`}>
+                  {getTurnitinColor(result.overall_score).label}
+                </div>
+                <div className="text-sm text-slate-500 mt-1">
+                  Tổng quan: {result.plagiarized_sentences}/{result.total_sentences} câu bị nghi ngờ
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-blue-200 rounded"></span> 0%</span>
+                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-green-200 rounded"></span> 1-24%</span>
+                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-yellow-200 rounded"></span> 25-49%</span>
+                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-orange-200 rounded"></span> 50-74%</span>
+                  <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 bg-red-200 rounded"></span> 75-100%</span>
+                </div>
+              </div>
+            </div>
+
+            {result.report_v2 && result.report_v2.source_groups && result.report_v2.source_groups.length > 0 && (
               <div className="space-y-4">
                 <h4 className="font-bold text-slate-800 flex items-center gap-2">
                   <BookOpen size={18} />
