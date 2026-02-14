@@ -64,6 +64,8 @@ interface PlagiarismResponse {
   analysis_method: string | null;
   ai_quota_remaining: number | null;
   ai_quota_percent: number | null;
+  ai_detection_score?: number;
+  ai_detection_confidence?: string;
   report_v2?: ReportV2;
 }
 
@@ -302,6 +304,116 @@ const PlagiarismChecker: React.FC = () => {
     if (score <= 49) return { name: 'Yellow', bg: 'bg-yellow-100', border: 'border-yellow-300', text: 'text-yellow-700', label: 'Trùng lặp vừa' };
     if (score <= 74) return { name: 'Orange', bg: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700', label: 'Trùng lặp cao' };
     return { name: 'Red', bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-700', label: 'Trùng lặp rất cao' };
+  };
+
+  const exportToPDF = () => {
+    const content = document.getElementById('plagiarism-results');
+    if (!content) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const scoreColor = result ? getTurnitinColor(result.overall_score) : { bg: 'bg-gray-100', text: 'text-gray-700', label: '' };
+    const date = new Date().toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Báo cáo Kiểm tra Đạo văn - ResMap</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+          .header h1 { color: #f36f21; font-size: 24px; margin-bottom: 8px; }
+          .header .date { color: #64748b; font-size: 12px; }
+          .score-section { text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; margin-bottom: 24px; }
+          .score-value { font-size: 48px; font-weight: bold; padding: 16px 32px; border-radius: 8px; display: inline-block; margin-bottom: 12px; }
+          .score-label { font-size: 18px; font-weight: bold; }
+          .stats { display: flex; justify-content: center; gap: 40px; margin: 20px 0; }
+          .stat { text-align: center; }
+          .stat-value { font-size: 24px; font-weight: bold; color: #0f172a; }
+          .stat-label { font-size: 12px; color: #64748b; }
+          .section { margin-bottom: 24px; }
+          .section h2 { font-size: 16px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+          .match-item { padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #f36f21; }
+          .match-sentence { font-size: 13px; margin-bottom: 6px; }
+          .match-meta { font-size: 11px; color: #64748b; }
+          .highlight-red { background: #fecaca; }
+          .highlight-yellow { background: #fef3c7; }
+          .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+          .disclaimer { background: #fffbeb; padding: 12px; border-radius: 8px; font-size: 11px; color: #92400e; margin-top: 20px; }
+          @media print { body { padding: 20px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📋 Báo cáo Kiểm tra Đạo văn</h1>
+          <div class="date">Ngày tạo: ${date}</div>
+        </div>
+        
+        <div class="score-section">
+          <div class="score-value ${scoreColor.bg}">${result?.overall_score || 0}%</div>
+          <div class="score-label ${scoreColor.text}">${scoreColor.label}</div>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-value">${result?.plagiarized_sentences || 0}/${result?.total_sentences || 0}</div>
+              <div class="stat-label">Câu bị nghi ngờ</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${result?.report_v2?.source_groups?.length || 0}</div>
+              <div class="stat-label">Nguồn trùng lặp</div>
+            </div>
+          </div>
+        </div>
+        
+        ${result?.ai_detection_score ? `
+        <div class="section">
+          <h2>🤖 Phát hiện AI</h2>
+          <div class="match-item">
+            <div class="match-sentence">Điểm AI: <strong>${result.ai_detection_score}%</strong> (Độ tin cậy: ${result.ai_detection_confidence || 'N/A'})</div>
+            <div class="match-meta">Chỉ báo về khả năng văn bản được viết bởi AI</div>
+          </div>
+        </div>
+        ` : ''}
+        
+        ${result?.results && result.results.length > 0 ? `
+        <div class="section">
+          <h2>📝 Chi tiết phân tích (${result.results.length} câu)</h2>
+          ${result.results.slice(0, 10).map((item, idx) => `
+            <div class="match-item ${item.is_plagiarized ? 'highlight-red' : item.sources.length > 0 ? 'highlight-yellow' : ''}">
+              <div class="match-sentence">${idx + 1}. ${item.sentence.substring(0, 200)}${item.sentence.length > 200 ? '...' : ''}</div>
+              <div class="match-meta">
+                Độ trùng: ${item.similarity}% | 
+                Nguồn: ${item.sources.length > 0 ? item.sources.map(s => s.url.substring(0, 40)).join(', ') : 'Không có'}
+              </div>
+            </div>
+          `).join('')}
+          ${result.results.length > 10 ? `<div style="text-align:center;color:#64748b;padding:12px;">... và ${result.results.length - 10} câu khác</div>` : ''}
+        </div>
+        ` : ''}
+        
+        <div class="disclaimer">
+          <strong>Lưu ý quan trọng:</strong> Tỷ lệ trùng lặp chỉ là chỉ báo tham khảo, không phải kết luận về hành vi đạo văn. 
+          Hãy xem xét ngữ cảnh, mục đích sử dụng và cách trích dẫn nguồn để đánh giá chính xác hơn.
+        </div>
+        
+        <div class="footer">
+          Generated by ResMap - FPTU Research Assistant | Powered by AI
+        </div>
+        
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() { window.close(); };
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
   };
 
   const getScoreColor = (score: number) => {
@@ -558,8 +670,19 @@ const PlagiarismChecker: React.FC = () => {
 
         {/* Results Section */}
         {result && (
-          <div className="space-y-6" aria-live="polite">
-            <div className="h-px bg-slate-200 w-full" />
+          <div id="plagiarism-results" className="space-y-6" aria-live="polite">
+            <div className="flex justify-between items-center">
+              <div className="h-px bg-slate-200 flex-1" />
+              <button
+                onClick={exportToPDF}
+                className="ml-4 px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Xuất PDF
+              </button>
+            </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -602,6 +725,28 @@ const PlagiarismChecker: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {result.ai_detection_score !== undefined && result.ai_detection_score > 0 && (
+              <div className="p-4 rounded-xl border-2 bg-purple-50 border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Sparkles size={20} className="text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-purple-800">Phát hiện AI</p>
+                      <p className="text-sm text-purple-600">
+                        Điểm: <strong>{result.ai_detection_score}%</strong> | 
+                        Độ tin cậy: <strong>{result.ai_detection_confidence === 'high' ? 'Cao' : result.ai_detection_confidence === 'medium' ? 'Trung bình' : 'Thấp'}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-purple-500 max-w-[200px] text-right">
+                    Chỉ báo về khả năng văn bản được viết bởi AI
+                  </div>
+                </div>
+              </div>
+            )}
 
             {result.report_v2 && result.report_v2.source_groups && result.report_v2.source_groups.length > 0 && (
               <div className="space-y-4">

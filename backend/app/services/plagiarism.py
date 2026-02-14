@@ -1502,6 +1502,94 @@ def _apply_exclusion_pipeline(text: str) -> tuple[str, dict[str, int]]:
     return stripped_text, stats
 
 
+def _detect_ai_text(text: str) -> tuple[float, str]:
+    if not text or len(text.strip()) < 50:
+        return 0.0, "low"
+
+    words = text.split()
+    sentences = re.split(r"[.!?]+", text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+
+    if not sentences:
+        return 0.0, "low"
+
+    score = 0.0
+
+    avg_word_length = sum(len(w) for w in words) / len(words) if words else 0
+    if avg_word_length > 6.5:
+        score += 15
+
+    sentence_lengths = [len(s.split()) for s in sentences if s.split()]
+    if sentence_lengths:
+        avg_sentence_len = sum(sentence_lengths) / len(sentence_lengths)
+        if avg_sentence_len > 20:
+            score += 20
+        variance = sum((x - avg_sentence_len) ** 2 for x in sentence_lengths) / len(
+            sentence_lengths
+        )
+        std_dev = variance**0.5
+        if std_dev < 5:
+            score += 15
+
+    unique_words = len(set(words))
+    total_words = len(words)
+    if total_words > 0:
+        lexical_diversity = unique_words / total_words
+        if lexical_diversity > 0.7:
+            score += 10
+        elif lexical_diversity < 0.4:
+            score += 20
+
+    sentence_starters = [
+        s.split()[0].lower() if s.split() else "" for s in sentences if s.split()
+    ]
+    unique_starters = len(set(sentence_starters))
+    starter_diversity = (
+        unique_starters / len(sentence_starters) if sentence_starters else 0
+    )
+    if starter_diversity < 0.3:
+        score += 15
+
+    transition_words = [
+        "moreover",
+        "furthermore",
+        "additionally",
+        "consequently",
+        "therefore",
+        "however",
+        "nevertheless",
+        "subsequently",
+    ]
+    transitions = sum(1 for w in words if w.lower() in transition_words)
+    transition_ratio = transitions / total_words if total_words > 0 else 0
+    if transition_ratio > 0.05:
+        score += 10
+
+    ai_indicators = [
+        "it is important to note",
+        "in conclusion",
+        "research has shown",
+        "studies have demonstrated",
+        "it can be concluded",
+        "based on the findings",
+    ]
+    for indicator in ai_indicators:
+        if indicator.lower() in text.lower():
+            score += 10
+            break
+
+    ai_score = min(100, max(0, score))
+
+    if ai_score >= 70:
+        confidence = "high"
+    elif ai_score >= 40:
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    return ai_score, confidence
+
+
 def _split_clean_sentences(text: str) -> list[str]:
     sentences = re.split(r"[.!?]+", text)
     return [
@@ -1879,6 +1967,7 @@ async def check_plagiarism(
 
     if not sentences:
         quota_info = get_quota_info(user_key=resolved_user_key)
+        ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
         return PlagiarismCheckResponse(
             overall_score=0,
             plagiarism_percentage=0,
@@ -1893,6 +1982,8 @@ async def check_plagiarism(
             source_counts=None,
             source_failures=None,
             quota_mode=quota_info.get("quota_mode"),
+            ai_detection_score=ai_detection_score,
+            ai_detection_confidence=ai_detection_confidence,
             report_v2=_build_report_v2(
                 [],
                 metadata_overrides=exclusion_metadata,
@@ -1985,6 +2076,8 @@ async def check_plagiarism(
             )
         )
 
+    ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+
     return PlagiarismCheckResponse(
         overall_score=overall_score,
         plagiarism_percentage=plagiarism_percentage,
@@ -1999,6 +2092,8 @@ async def check_plagiarism(
         source_counts=source_counts,
         source_failures=None,
         quota_mode=quota_info.get("quota_mode"),
+        ai_detection_score=ai_detection_score,
+        ai_detection_confidence=ai_detection_confidence,
         report_v2=_build_report_v2(
             filtered_results,
             metadata_overrides=exclusion_metadata,

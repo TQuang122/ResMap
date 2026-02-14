@@ -192,6 +192,16 @@ class PlagiarismCheckResponse(BaseModel):
         default=None,
         description="Optional telemetry: active quota mode (memory or persistent mode)",
     )
+    ai_detection_score: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="AI detection score - probability that text is AI-generated (0-100)",
+    )
+    ai_detection_confidence: Optional[str] = Field(
+        default=None,
+        description="AI detection confidence: high, medium, or low",
+    )
     report_v2: Optional[ReportV2] = Field(
         default=None,
         description="Optional extended plagiarism report contract",
