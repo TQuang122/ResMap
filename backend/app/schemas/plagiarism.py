@@ -67,6 +67,47 @@ class SentenceResult(BaseModel):
     is_plagiarized: bool = Field(..., description="True if similarity > 50%")
 
 
+class ReportV2SourceSpan(BaseModel):
+    sentence_index: int = Field(
+        ..., ge=0, description="Index of sentence in submission"
+    )
+    start_char: int = Field(..., ge=0, description="Start offset in submission text")
+    end_char: int = Field(..., ge=0, description="End offset in submission text")
+    similarity: int = Field(
+        ..., ge=0, le=100, description="Span-level similarity score"
+    )
+
+
+class ReportV2SourceGroup(BaseModel):
+    source_id: str = Field(..., description="Stable source identifier")
+    source_type: str = Field(..., description="Source type, for example web or journal")
+    canonical_url: str = Field(..., description="Canonical source URL")
+    spans: List[ReportV2SourceSpan] = Field(
+        default_factory=list,
+        description="Matched spans attributed to this source",
+    )
+
+
+class ReportV2Caveat(BaseModel):
+    code: str = Field(..., description="Machine-readable caveat code")
+    message: str = Field(..., description="Human-readable caveat summary")
+
+
+class ReportV2(BaseModel):
+    source_groups: List[ReportV2SourceGroup] = Field(
+        default_factory=list,
+        description="Source-centric grouping of matched spans",
+    )
+    caveats: List[ReportV2Caveat] = Field(
+        default_factory=list,
+        description="Generation caveats and limitations",
+    )
+    metadata: Optional[dict[str, str]] = Field(
+        default=None,
+        description="Optional metadata placeholders for report generation context",
+    )
+
+
 class PlagiarismCheckResponse(BaseModel):
     """Response from plagiarism check."""
 
@@ -119,4 +160,8 @@ class PlagiarismCheckResponse(BaseModel):
     quota_mode: Optional[str] = Field(
         default=None,
         description="Optional telemetry: active quota mode (memory or persistent mode)",
+    )
+    report_v2: Optional[ReportV2] = Field(
+        default=None,
+        description="Optional extended plagiarism report contract",
     )

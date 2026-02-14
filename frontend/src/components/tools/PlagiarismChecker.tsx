@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge, Info, BookOpen, AlertCircle } from 'lucide-react';
 import { getData, postData } from '../../utils/api';
 import { logHistory } from '../../utils/logger';
 
@@ -19,6 +19,32 @@ interface SentenceResult {
   is_plagiarized: boolean;
 }
 
+// report_v2 Types
+interface ReportV2SourceSpan {
+  sentence_index: number;
+  start_char: number;
+  end_char: number;
+  similarity: number;
+}
+
+interface ReportV2SourceGroup {
+  source_id: string;
+  source_type: string;
+  canonical_url: string;
+  spans: ReportV2SourceSpan[];
+}
+
+interface ReportV2Caveat {
+  code: string;
+  message: string;
+}
+
+interface ReportV2 {
+  source_groups: ReportV2SourceGroup[];
+  caveats: ReportV2Caveat[];
+  metadata?: Record<string, string>;
+}
+
 interface PlagiarismResponse {
   overall_score: number;
   plagiarism_percentage: number;
@@ -30,6 +56,7 @@ interface PlagiarismResponse {
   analysis_method: string | null;
   ai_quota_remaining: number | null;
   ai_quota_percent: number | null;
+  report_v2?: ReportV2;
 }
 
 interface QuotaResponse {
@@ -87,6 +114,11 @@ const PlagiarismChecker: React.FC = () => {
     ai_quota_remaining:
       typeof raw?.ai_quota_remaining === 'number' ? raw.ai_quota_remaining : null,
     ai_quota_percent: typeof raw?.ai_quota_percent === 'number' ? raw.ai_quota_percent : null,
+    report_v2: raw?.report_v2 ? {
+      source_groups: Array.isArray(raw.report_v2.source_groups) ? raw.report_v2.source_groups : [],
+      caveats: Array.isArray(raw.report_v2.caveats) ? raw.report_v2.caveats : [],
+      metadata: typeof raw.report_v2.metadata === 'object' ? raw.report_v2.metadata : undefined,
+    } : undefined,
   });
 
   const normalizeQuota = (raw: any): QuotaResponse => ({
@@ -412,6 +444,130 @@ const PlagiarismChecker: React.FC = () => {
                 <div className="text-sm font-medium text-slate-600">Tỷ lệ Đạo văn</div>
               </div>
             </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-blue-800">
+                    Lưu ý quan trọng
+                  </p>
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    Tỷ lệ trùng lặp chỉ là <strong>chỉ báo tham khảo</strong>, không phải kết luận về hành vi đạo văn. 
+                    Hãy xem xét ngữ cảnh, mục đích sử dụng và cách trích dẫn nguồn để đánh giá chính xác hơn.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {result.report_v2 && result.report_v2.source_groups.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <BookOpen size={18} />
+                  Nguồn Trùng lặp ({result.report_v2.source_groups.length} nhóm)
+                </h4>
+                
+                <div className="grid gap-3">
+                  {result.report_v2.source_groups.map((group, gIndex) => (
+                    <div 
+                      key={group.source_id}
+                      className="p-4 rounded-lg border border-slate-200 bg-white hover:shadow-sm transition-all"
+                      data-test="match-span"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                              group.source_type === 'academic' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                              group.source_type === 'web' ? 'bg-green-50 border-green-200 text-green-700' :
+                              'bg-slate-100 border-slate-200 text-slate-600'
+                            }`}>
+                              {group.source_type === 'academic' ? 'Học thuật' : 
+                               group.source_type === 'web' ? 'Web' : 
+                               group.source_type}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {group.spans.length} đoạn trùng
+                            </span>
+                          </div>
+                          <a 
+                            href={group.canonical_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline line-clamp-2 break-all"
+                          >
+                            {group.canonical_url}
+                          </a>
+                        </div>
+                        <ExternalLink size={16} className="text-slate-400 shrink-0" />
+                      </div>
+                      
+                      {group.spans.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                          <p className="text-xs font-medium text-slate-500 mb-2">Đoạn trùng:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {group.spans.slice(0, 5).map((span, sIndex) => (
+                              <span 
+                                key={sIndex}
+                                className={`text-xs px-2 py-1 rounded font-medium ${
+                                  span.similarity > 50 ? 'bg-red-100 text-red-700' :
+                                  span.similarity > 20 ? 'bg-orange-100 text-orange-700' :
+                                  'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                Câu {span.sentence_index + 1}: {span.similarity}%
+                              </span>
+                            ))}
+                            {group.spans.length > 5 && (
+                              <span className="text-xs text-slate-500 py-1">
+                                +{group.spans.length - 5} đoạn khác
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {result.report_v2 && result.report_v2.caveats.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  Cảnh báo & Hạn chế
+                </h4>
+                
+                <div className="space-y-2">
+                  {result.report_v2.caveats.map((caveat, cIndex) => (
+                    <div 
+                      key={cIndex}
+                      className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2"
+                    >
+                      <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800">{caveat.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {result.report_v2?.metadata && (
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                {result.report_v2.metadata.confidence_band && (
+                  <span className="px-2 py-1 bg-slate-100 rounded">
+                    Độ tin cậy: {result.report_v2.metadata.confidence_band === 'high' ? 'Cao' : 
+                                 result.report_v2.metadata.confidence_band === 'medium' ? 'Trung bình' : 'Thấp'}
+                  </span>
+                )}
+                {result.report_v2.metadata.scoring_policy && (
+                  <span className="px-2 py-1 bg-slate-100 rounded">
+                    Chính sách: {result.report_v2.metadata.scoring_policy}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Detailed Analysis */}
             <div className="space-y-4">

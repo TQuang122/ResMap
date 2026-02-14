@@ -8,6 +8,7 @@ from app.api.deps import get_current_user
 from app.main import app
 from app.schemas.plagiarism import PlagiarismCheckRequest, PlagiarismCheckResponse
 from app.services import plagiarism
+from app.services.semantic_similarity import SemanticSimilarityResult
 
 
 @pytest.mark.asyncio
@@ -368,3 +369,307 @@ def test_legacy_payload_contract_still_valid(monkeypatch: pytest.MonkeyPatch):
         "results",
     }
     assert expected_keys.issubset(payload.keys())
+
+
+def test_report_v2_optional_contract_accepts_legacy_and_extended_payloads():
+    legacy_payload = {
+        "overall_score": 10,
+        "plagiarism_percentage": 0,
+        "total_sentences": 2,
+        "plagiarized_sentences": 0,
+        "results": [],
+    }
+    legacy_reparsed = PlagiarismCheckResponse.model_validate(legacy_payload)
+
+    assert legacy_reparsed.report_v2 is None
+    assert legacy_reparsed.total_sentences == 2
+
+    extended_payload = {
+        "overall_score": 30,
+        "plagiarism_percentage": 50,
+        "total_sentences": 2,
+        "plagiarized_sentences": 1,
+        "results": [],
+        "report_v2": {
+            "source_groups": [
+                {
+                    "source_id": "src-1",
+                    "source_type": "web",
+                    "canonical_url": "https://example.com/paper",
+                    "spans": [
+                        {
+                            "sentence_index": 0,
+                            "start_char": 5,
+                            "end_char": 42,
+                            "similarity": 88,
+                        }
+                    ],
+                }
+            ],
+            "caveats": [
+                {
+                    "code": "DEMO_ONLY",
+                    "message": "Placeholder grouping before scoring rollout",
+                }
+            ],
+            "metadata": {"schema_version": "2"},
+        },
+    }
+    extended_reparsed = PlagiarismCheckResponse.model_validate(extended_payload)
+
+    assert extended_reparsed.report_v2 is not None
+    assert len(extended_reparsed.report_v2.source_groups) == 1
+    assert len(extended_reparsed.report_v2.source_groups[0].spans) == 1
+    assert extended_reparsed.report_v2.caveats[0].code == "DEMO_ONLY"
+
+
+@pytest.mark.asyncio
+async def test_scoring_policy_v2_adds_fallback_caveat_and_confidence_band(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fake_search_web(query, client):
+        del query
+        del client
+        return ["https://example.com/reference"]
+
+    async def fake_fetch_page_content(url, client):
+        del url
+        del client
+        return (
+            "Machine learning methods are used in sentiment analysis and classification "
+            "for social media text in practical applications."
+        )
+
+    async def fake_semantic(*args, **kwargs):
+        del args
+        del kwargs
+        return SemanticSimilarityResult(
+            similarity=0.32,
+            used_ai=False,
+            fallback_used=True,
+            method="keyword",
+            error="quota_exhausted",
+        )
+
+    monkeypatch.setattr(plagiarism, "search_web", fake_search_web)
+    monkeypatch.setattr(plagiarism, "fetch_page_content", fake_fetch_page_content)
+    monkeypatch.setattr(plagiarism, "calculate_semantic_similarity", fake_semantic)
+    monkeypatch.setattr(plagiarism.random, "uniform", lambda a, b: 0.0)
+
+    request = PlagiarismCheckRequest(
+        text=(
+            "Machine learning methods are broadly used for sentiment analysis in modern systems. "
+            "These techniques help improve accuracy for noisy social media text."
+        ),
+        use_ai_similarity=True,
+    )
+
+    response = await plagiarism.check_plagiarism(request)
+
+    assert response.fallback_used is True
+    assert response.report_v2 is not None
+    assert response.report_v2.metadata is not None
+    assert response.report_v2.metadata["scoring_policy"] == "v2_explainable"
+    assert response.report_v2.metadata["confidence_band"] == "low"
+    assert response.report_v2.metadata["fallback_sentences"] == str(
+        response.total_sentences
+    )
+    assert any(
+        caveat.code == "SEMANTIC_UNAVAILABLE_FALLBACK"
+        for caveat in response.report_v2.caveats
+    )
+
+
+@pytest.mark.asyncio
+async def test_scoring_policy_v2_reports_high_confidence_when_semantic_evidence_present(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fake_search_web(query, client):
+        del query
+        del client
+        return ["https://example.com/reference"]
+
+    async def fake_fetch_page_content(url, client):
+        del url
+        del client
+        return (
+            "Machine learning methods are used in sentiment analysis and classification "
+            "for social media text in practical applications."
+        )
+
+    async def fake_semantic(*args, **kwargs):
+        del args
+        del kwargs
+        return SemanticSimilarityResult(
+            similarity=0.91,
+            used_ai=True,
+            fallback_used=False,
+            method="semantic",
+        )
+
+    monkeypatch.setattr(plagiarism, "search_web", fake_search_web)
+    monkeypatch.setattr(plagiarism, "fetch_page_content", fake_fetch_page_content)
+    monkeypatch.setattr(plagiarism, "calculate_semantic_similarity", fake_semantic)
+    monkeypatch.setattr(plagiarism.random, "uniform", lambda a, b: 0.0)
+
+    request = PlagiarismCheckRequest(
+        text=(
+            "Machine learning methods are broadly used for sentiment analysis in modern systems. "
+            "These techniques help improve accuracy for noisy social media text."
+        ),
+        use_ai_similarity=True,
+    )
+
+    response = await plagiarism.check_plagiarism(request)
+
+    assert response.report_v2 is not None
+    assert response.report_v2.metadata is not None
+    assert response.report_v2.metadata["confidence_band"] == "high"
+    assert response.report_v2.metadata["semantic_sentences"] == str(
+        response.total_sentences
+    )
+    assert not any(
+        caveat.code == "SEMANTIC_UNAVAILABLE_FALLBACK"
+        for caveat in response.report_v2.caveats
+    )
+
+
+@pytest.mark.asyncio
+async def test_exclude_citations_reports_transparent_v2_metadata_and_caveats(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fake_search_web(query, client):
+        del query
+        del client
+        return ["https://example.com/reference"]
+
+    async def fake_fetch_page_content(url, client):
+        del url
+        del client
+        return (
+            "This standalone original finding sentence remains analyzable after exclusions "
+            "and should still produce a stable plagiarism analysis response."
+        )
+
+    monkeypatch.setattr(plagiarism, "search_web", fake_search_web)
+    monkeypatch.setattr(plagiarism, "fetch_page_content", fake_fetch_page_content)
+    monkeypatch.setattr(plagiarism.random, "uniform", lambda a, b: 0.0)
+
+    request = PlagiarismCheckRequest(
+        text=(
+            '"Quoted source text that should be excluded from analysis for fairness and focus." '
+            "This standalone original finding sentence remains analyzable after exclusions and should still be checked. "
+            "(Nguyen, 2024) [1] [2]. "
+            "References\n"
+            "[1] A very long reference entry that should be excluded from analysis entirely.\n"
+            "[2] Another long reference entry that inflates excluded content size."
+        ),
+        exclude_citations=True,
+        use_ai_similarity=False,
+    )
+
+    response = await plagiarism.check_plagiarism(request)
+
+    assert response.total_sentences == 1
+    assert response.report_v2 is not None
+    assert response.report_v2.metadata is not None
+    assert response.report_v2.metadata["exclusion_requested"] == "true"
+    assert response.report_v2.metadata["exclusion_applied"] == "true"
+    assert int(response.report_v2.metadata["excluded_quoted_segments"]) >= 1
+    assert int(response.report_v2.metadata["excluded_parenthetical_citations"]) >= 1
+    assert int(response.report_v2.metadata["excluded_numeric_citations"]) >= 1
+    assert int(response.report_v2.metadata["excluded_reference_sections"]) >= 1
+    assert any(
+        caveat.code == "EXCLUSION_CITATIONS_APPLIED"
+        for caveat in response.report_v2.caveats
+    )
+
+
+@pytest.mark.asyncio
+async def test_exclude_citations_gracefully_handles_minimal_remaining_text():
+    request = PlagiarismCheckRequest(
+        text=(
+            '"Direct quote one that should be removed." '
+            '"Direct quote two that should also be removed." '
+            "(Tran, 2022) [1] [2]. "
+            "References\n"
+            "[1] Long reference entry one.\n"
+            "[2] Long reference entry two."
+        ),
+        exclude_citations=True,
+        use_ai_similarity=False,
+    )
+
+    response = await plagiarism.check_plagiarism(request)
+
+    assert response.total_sentences == 0
+    assert response.results == []
+    assert response.report_v2 is not None
+    assert response.report_v2.metadata is not None
+    assert response.report_v2.metadata["analyzable_text_minimal"] == "true"
+    assert response.report_v2.metadata["analyzable_sentences_before_cap"] == "0"
+    assert any(
+        caveat.code == "INSUFFICIENT_ANALYZABLE_TEXT"
+        for caveat in response.report_v2.caveats
+    )
+
+
+@pytest.mark.asyncio
+async def test_report_v2_source_groups_built_from_sentence_evidence(monkeypatch):
+    sentence_to_urls = {
+        "Sentence one has enough characters for splitting and analysis": [
+            "https://doi.org/10.1000/test-a",
+            "https://example.com/source-1",
+        ],
+        "Sentence two also has enough characters and reuses one source": [
+            "https://example.com/source-1/",
+            "https://pubmed.ncbi.nlm.nih.gov/12345/",
+        ],
+    }
+
+    async def fake_search_web(query, client):
+        del client
+        return sentence_to_urls[query]
+
+    async def fake_fetch_page_content(url, client):
+        del url
+        del client
+        return (
+            "Sentence one has enough characters for splitting and analysis. "
+            "Sentence two also has enough characters and reuses one source for analysis."
+        )
+
+    monkeypatch.setattr(plagiarism, "search_web", fake_search_web)
+    monkeypatch.setattr(plagiarism, "fetch_page_content", fake_fetch_page_content)
+    monkeypatch.setattr(plagiarism.random, "uniform", lambda a, b: 0.0)
+
+    request = PlagiarismCheckRequest(
+        text=(
+            "Sentence one has enough characters for splitting and analysis. "
+            "Sentence two also has enough characters and reuses one source."
+        ),
+        use_ai_similarity=False,
+    )
+
+    response = await plagiarism.check_plagiarism(request)
+
+    assert response.report_v2 is not None
+    source_groups = response.report_v2.source_groups
+    assert [group.canonical_url for group in source_groups] == [
+        "https://doi.org/10.1000/test-a",
+        "https://example.com/source-1",
+        "https://pubmed.ncbi.nlm.nih.gov/12345",
+    ]
+
+    grouped_spans = {
+        group.canonical_url: [span.sentence_index for span in group.spans]
+        for group in source_groups
+    }
+    assert grouped_spans["https://example.com/source-1"] == [0, 1]
+    assert grouped_spans["https://doi.org/10.1000/test-a"] == [0]
+    assert grouped_spans["https://pubmed.ncbi.nlm.nih.gov/12345"] == [1]
+
+    assert response.report_v2.metadata is not None
+    assert response.report_v2.metadata["total_source_matches"] == "4"
+    assert response.report_v2.metadata["source_group_count"] == "3"
+    assert response.report_v2.metadata["source_group_spans"] == "4"

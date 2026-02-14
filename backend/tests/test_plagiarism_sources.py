@@ -98,6 +98,77 @@ def test_pubmed_policy_constants_locked():
     assert plagiarism.PUBMED_RETMAX_UPPER_BOUND == 25
 
 
+def test_report_v2_source_groups_dedupes_and_orders_deterministically():
+    results = [
+        plagiarism.SentenceResult(
+            sentence="Sentence one has web and DOI matches",
+            similarity=72,
+            semantic_similarity=0,
+            sources=[
+                plagiarism.SourceMatch(
+                    url="HTTP://DOI.ORG/10.1000/xyz/",
+                    similarity=68,
+                ),
+                plagiarism.SourceMatch(
+                    url="https://Example.com/Paper-A/",
+                    similarity=61,
+                ),
+                plagiarism.SourceMatch(
+                    url="https://example.com/paper-a",
+                    similarity=65,
+                ),
+            ],
+            is_plagiarized=True,
+            used_ai=False,
+            fallback_used=False,
+            analysis_method="keyword",
+        ),
+        plagiarism.SentenceResult(
+            sentence="Sentence two repeats DOI and adds PubMed",
+            similarity=80,
+            semantic_similarity=0,
+            sources=[
+                plagiarism.SourceMatch(
+                    url="https://doi.org/10.1000/XYZ",
+                    similarity=75,
+                ),
+                plagiarism.SourceMatch(
+                    url="https://pubmed.ncbi.nlm.nih.gov/12345/",
+                    similarity=58,
+                ),
+            ],
+            is_plagiarized=True,
+            used_ai=False,
+            fallback_used=False,
+            analysis_method="keyword",
+        ),
+    ]
+
+    groups = plagiarism._build_report_v2_source_groups(results)
+
+    assert [group.source_id for group in groups] == ["src-001", "src-002", "src-003"]
+    assert [group.canonical_url for group in groups] == [
+        "https://doi.org/10.1000/xyz",
+        "https://example.com/paper-a",
+        "https://pubmed.ncbi.nlm.nih.gov/12345",
+    ]
+    assert [group.source_type for group in groups] == ["doi", "web", "pubmed"]
+
+    doi_group = groups[0]
+    assert len(doi_group.spans) == 2
+    assert doi_group.spans[0].sentence_index == 0
+    assert doi_group.spans[0].start_char == 0
+    assert doi_group.spans[0].end_char == len(results[0].sentence)
+    assert doi_group.spans[0].similarity == 68
+    assert doi_group.spans[1].sentence_index == 1
+    assert doi_group.spans[1].similarity == 75
+
+    web_group = groups[1]
+    assert len(web_group.spans) == 1
+    assert web_group.spans[0].sentence_index == 0
+    assert web_group.spans[0].similarity == 65
+
+
 @pytest.mark.asyncio
 async def test_arxiv_connector_success_normalization():
     feed_xml = """<?xml version=\"1.0\" encoding=\"UTF-8\"?>

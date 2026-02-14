@@ -26,6 +26,10 @@ from app.core.config import settings
 from app.schemas.plagiarism import (
     PlagiarismCheckRequest,
     PlagiarismCheckResponse,
+    ReportV2,
+    ReportV2Caveat,
+    ReportV2SourceGroup,
+    ReportV2SourceSpan,
     SentenceResult,
     SourceMatch,
 )
@@ -81,6 +85,15 @@ PUBMED_MAX_START_WINDOW = 100
 SOURCE_CONNECTOR_PARALLELISM = 3
 SIMILARITY_TOP_K_CANDIDATES = 5
 SEARCH_RESULT_CACHE_MAX_ENTRIES = 64
+MIN_SENTENCE_LENGTH_CHARS = 20
+HEAVY_EXCLUSION_RATIO_THRESHOLD = 0.6
+
+REFERENCE_SECTION_PATTERN = re.compile(
+    r"(?im)^\s*(references|bibliography|works\s+cited|tai\s+lieu\s+tham\s+khao)\s*:?\s*$"
+)
+REFERENCE_INLINE_PATTERN = re.compile(
+    r"(?i)\b(references|bibliography|works\s+cited|tai\s+lieu\s+tham\s+khao)\s*:?\s*[\r\n]"
+)
 
 SOURCE_PRIORITY = {
     "crossref": 1.0,
@@ -1039,6 +1052,196 @@ def _build_source_counts(results: list[SentenceResult]) -> dict[str, int] | None
     return counts or None
 
 
+def _source_group_key(url: str) -> str:
+    normalized_url = _normalize_canonical_url(url)
+    doi = _extract_doi_from_url(normalized_url)
+    if doi:
+        return f"doi:{doi}"
+    return f"url:{normalized_url}"
+
+
+def _build_sentence_offsets(results: list[SentenceResult]) -> list[tuple[int, int]]:
+    offsets: list[tuple[int, int]] = []
+    cursor = 0
+    for sentence_result in results:
+        start_char = cursor
+        end_char = start_char + len(sentence_result.sentence)
+        offsets.append((start_char, end_char))
+        cursor = end_char + 1
+    return offsets
+
+
+def _build_report_v2_source_groups(
+    results: list[SentenceResult],
+) -> list[ReportV2SourceGroup]:
+    sentence_offsets = _build_sentence_offsets(results)
+
+    grouped: dict[
+        str,
+        dict[
+            str,
+            str | dict[int, ReportV2SourceSpan],
+        ],
+    ] = {}
+
+    for sentence_index, sentence_result in enumerate(results):
+        start_char, end_char = sentence_offsets[sentence_index]
+        for source in sentence_result.sources:
+            source_key = _source_group_key(source.url)
+            source_entry = grouped.setdefault(
+                source_key,
+                {
+                    "canonical_url": _normalize_canonical_url(source.url),
+                    "source_type": _source_from_url(source.url),
+                    "spans": {},
+                },
+            )
+
+            sentence_spans = source_entry["spans"]
+            assert isinstance(sentence_spans, dict)
+
+            current_span = sentence_spans.get(sentence_index)
+            candidate_span = ReportV2SourceSpan(
+                sentence_index=sentence_index,
+                start_char=start_char,
+                end_char=end_char,
+                similarity=source.similarity,
+            )
+            if (
+                current_span is None
+                or candidate_span.similarity > current_span.similarity
+            ):
+                sentence_spans[sentence_index] = candidate_span
+
+    source_groups: list[ReportV2SourceGroup] = []
+    for index, source_key in enumerate(sorted(grouped.keys()), start=1):
+        entry = grouped[source_key]
+        sentence_spans = entry["spans"]
+        assert isinstance(sentence_spans, dict)
+        spans = [sentence_spans[idx] for idx in sorted(sentence_spans.keys())]
+
+        source_groups.append(
+            ReportV2SourceGroup(
+                source_id=f"src-{index:03d}",
+                source_type=str(entry["source_type"]),
+                canonical_url=str(entry["canonical_url"]),
+                spans=spans,
+            )
+        )
+
+    return source_groups
+
+
+def _derive_confidence_band(
+    *,
+    total_sentences: int,
+    sentences_with_sources: int,
+    semantic_sentences: int,
+    fallback_sentences: int,
+    total_source_matches: int,
+) -> str:
+    if total_sentences <= 0:
+        return "low"
+
+    source_evidence_ratio = sentences_with_sources / total_sentences
+    semantic_coverage_ratio = semantic_sentences / total_sentences
+    fallback_ratio = fallback_sentences / total_sentences
+    average_sources = total_source_matches / total_sentences
+
+    score = 0
+    if source_evidence_ratio >= 0.7:
+        score += 2
+    elif source_evidence_ratio >= 0.4:
+        score += 1
+
+    if semantic_coverage_ratio >= 0.5:
+        score += 2
+    elif semantic_coverage_ratio > 0.0:
+        score += 1
+
+    if fallback_ratio > 0.5:
+        score -= 2
+    elif fallback_ratio > 0.0:
+        score -= 1
+
+    if average_sources >= 1.5:
+        score += 1
+
+    if score >= 3:
+        return "high"
+    if score >= 1:
+        return "medium"
+    return "low"
+
+
+def _build_report_v2(
+    results: list[SentenceResult],
+    metadata_overrides: dict[str, str] | None = None,
+    extra_caveats: list[ReportV2Caveat] | None = None,
+) -> ReportV2:
+    total_sentences = len(results)
+    sentences_with_sources = sum(1 for r in results if r.sources)
+    semantic_sentences = sum(1 for r in results if r.used_ai)
+    fallback_sentences = sum(1 for r in results if r.fallback_used)
+    total_source_matches = sum(len(r.sources) for r in results)
+    source_groups = _build_report_v2_source_groups(results)
+    total_group_spans = sum(len(group.spans) for group in source_groups)
+
+    confidence_band = _derive_confidence_band(
+        total_sentences=total_sentences,
+        sentences_with_sources=sentences_with_sources,
+        semantic_sentences=semantic_sentences,
+        fallback_sentences=fallback_sentences,
+        total_source_matches=total_source_matches,
+    )
+
+    caveats: list[ReportV2Caveat] = []
+    if fallback_sentences > 0:
+        caveats.append(
+            ReportV2Caveat(
+                code="SEMANTIC_UNAVAILABLE_FALLBACK",
+                message=(
+                    "Semantic similarity was unavailable or exhausted for part of this "
+                    "request; keyword fallback scoring was applied."
+                ),
+            )
+        )
+
+    if total_sentences > 0 and sentences_with_sources == 0:
+        caveats.append(
+            ReportV2Caveat(
+                code="LIMITED_SOURCE_EVIDENCE",
+                message=(
+                    "No corroborating source matches were retained; confidence is based "
+                    "on limited lexical evidence."
+                ),
+            )
+        )
+
+    if extra_caveats:
+        caveats.extend(extra_caveats)
+
+    metadata = {
+        "scoring_policy": "v2_explainable",
+        "confidence_band": confidence_band,
+        "evidence_sentences": str(sentences_with_sources),
+        "semantic_sentences": str(semantic_sentences),
+        "fallback_sentences": str(fallback_sentences),
+        "total_source_matches": str(total_source_matches),
+        "source_group_count": str(len(source_groups)),
+        "source_group_spans": str(total_group_spans),
+    }
+
+    if metadata_overrides:
+        metadata.update(metadata_overrides)
+
+    return ReportV2(
+        source_groups=source_groups,
+        caveats=caveats,
+        metadata=metadata,
+    )
+
+
 async def collect_source_candidates(
     query: str,
     client: httpx.AsyncClient,
@@ -1141,6 +1344,132 @@ def get_random_user_agent() -> str:
     return random.choice(USER_AGENTS)
 
 
+def _apply_exclusion_pipeline(text: str) -> tuple[str, dict[str, int]]:
+    stripped_text = text
+    removed_quoted_segments = 0
+    removed_parenthetical_citations = 0
+    removed_numeric_citations = 0
+    removed_reference_sections = 0
+
+    stripped_text, quote_count = re.subn(r'"[^"]*"', "", stripped_text)
+    removed_quoted_segments += quote_count
+    stripped_text, quote_count = re.subn(r"'[^']*'", "", stripped_text)
+    removed_quoted_segments += quote_count
+
+    stripped_text, parenthetical_count = re.subn(
+        r"\([^)]*\d{4}[^)]*\)",
+        "",
+        stripped_text,
+    )
+    removed_parenthetical_citations += parenthetical_count
+
+    stripped_text, numeric_count = re.subn(
+        r"\[(?:\d+\s*[,;-]\s*)*\d+\]",
+        "",
+        stripped_text,
+    )
+    removed_numeric_citations += numeric_count
+
+    reference_heading_match = REFERENCE_SECTION_PATTERN.search(stripped_text)
+    if reference_heading_match is None:
+        reference_heading_match = REFERENCE_INLINE_PATTERN.search(stripped_text)
+    if reference_heading_match:
+        stripped_text = stripped_text[: reference_heading_match.start()]
+        removed_reference_sections = 1
+
+    stats = {
+        "removed_quoted_segments": removed_quoted_segments,
+        "removed_parenthetical_citations": removed_parenthetical_citations,
+        "removed_numeric_citations": removed_numeric_citations,
+        "removed_reference_sections": removed_reference_sections,
+    }
+    return stripped_text, stats
+
+
+def _split_clean_sentences(text: str) -> list[str]:
+    sentences = re.split(r"[.!?]+", text)
+    return [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip() and len(sentence.strip()) > MIN_SENTENCE_LENGTH_CHARS
+    ]
+
+
+def _prepare_analysis_sentences(
+    text: str,
+    exclude_citations: bool,
+) -> tuple[list[str], dict[str, str], list[ReportV2Caveat]]:
+    input_chars = len(text)
+    processed_text = text
+    exclusion_stats = {
+        "removed_quoted_segments": 0,
+        "removed_parenthetical_citations": 0,
+        "removed_numeric_citations": 0,
+        "removed_reference_sections": 0,
+    }
+
+    if exclude_citations:
+        processed_text, exclusion_stats = _apply_exclusion_pipeline(text)
+
+    sentences = _split_clean_sentences(processed_text)
+    remaining_chars = len(processed_text)
+    removed_chars = max(0, input_chars - remaining_chars)
+    removed_ratio = (removed_chars / input_chars) if input_chars > 0 else 0.0
+
+    caveats: list[ReportV2Caveat] = []
+    if exclude_citations and removed_chars > 0:
+        caveats.append(
+            ReportV2Caveat(
+                code="EXCLUSION_CITATIONS_APPLIED",
+                message=(
+                    "Citation/reference exclusion removed quoted or reference-heavy text "
+                    "before plagiarism analysis."
+                ),
+            )
+        )
+
+    if exclude_citations and removed_ratio >= HEAVY_EXCLUSION_RATIO_THRESHOLD:
+        caveats.append(
+            ReportV2Caveat(
+                code="EXCLUSION_MAY_REDUCE_CONFIDENCE",
+                message=(
+                    "A large portion of text was excluded as citations/references; "
+                    "plagiarism confidence may be reduced."
+                ),
+            )
+        )
+
+    if not sentences:
+        caveats.append(
+            ReportV2Caveat(
+                code="INSUFFICIENT_ANALYZABLE_TEXT",
+                message=(
+                    "No analyzable sentences remained after preprocessing; returning "
+                    "a minimal, non-failing plagiarism result."
+                ),
+            )
+        )
+
+    metadata = {
+        "exclusion_requested": str(exclude_citations).lower(),
+        "exclusion_applied": str(exclude_citations and removed_chars > 0).lower(),
+        "excluded_characters": str(removed_chars),
+        "excluded_characters_ratio": f"{removed_ratio:.4f}",
+        "excluded_quoted_segments": str(exclusion_stats["removed_quoted_segments"]),
+        "excluded_parenthetical_citations": str(
+            exclusion_stats["removed_parenthetical_citations"]
+        ),
+        "excluded_numeric_citations": str(exclusion_stats["removed_numeric_citations"]),
+        "excluded_reference_sections": str(
+            exclusion_stats["removed_reference_sections"]
+        ),
+        "analyzable_sentences_before_cap": str(len(sentences)),
+        "analyzable_text_minimal": str(not sentences).lower(),
+    }
+
+    return sentences, metadata, caveats
+
+
 def split_into_sentences(text: str, exclude_citations: bool = False) -> List[str]:
     """
     Split text into sentences for analysis.
@@ -1152,18 +1481,8 @@ def split_into_sentences(text: str, exclude_citations: bool = False) -> List[str
     Returns:
         List of sentences with length > 20 characters
     """
-    if exclude_citations:
-        # Remove quoted text (both single and double quotes)
-        text = re.sub(r'"[^"]*"', "", text)
-        text = re.sub(r"'[^']*'", "", text)
-        # Remove common citation patterns like (Author, Year)
-        text = re.sub(r"\([^)]*\d{4}[^)]*\)", "", text)
-
-    # Split by sentence-ending punctuation
-    sentences = re.split(r"[.!?]+", text)
-
-    # Clean and filter sentences
-    return [s.strip() for s in sentences if s.strip() and len(s.strip()) > 20]
+    sentences, _, _ = _prepare_analysis_sentences(text, exclude_citations)
+    return sentences
 
 
 def calculate_cosine_similarity(text1: str, text2: str) -> float:
@@ -1437,8 +1756,10 @@ async def check_plagiarism(
     """
     resolved_user_key = user_key or "anon:global"
 
-    # Split text into sentences
-    sentences = split_into_sentences(request.text, request.exclude_citations)
+    sentences, exclusion_metadata, exclusion_caveats = _prepare_analysis_sentences(
+        request.text,
+        request.exclude_citations,
+    )
 
     if not sentences:
         quota_info = get_quota_info(user_key=resolved_user_key)
@@ -1456,10 +1777,16 @@ async def check_plagiarism(
             source_counts=None,
             source_failures=None,
             quota_mode=quota_info.get("quota_mode"),
+            report_v2=_build_report_v2(
+                [],
+                metadata_overrides=exclusion_metadata,
+                extra_caveats=exclusion_caveats,
+            ),
         )
 
     # Limit number of sentences
     sentences = sentences[: request.max_sentences]
+    exclusion_metadata["analyzable_sentences_after_cap"] = str(len(sentences))
 
     # Create semaphore for rate limiting
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
@@ -1514,4 +1841,9 @@ async def check_plagiarism(
         source_counts=source_counts,
         source_failures=None,
         quota_mode=quota_info.get("quota_mode"),
+        report_v2=_build_report_v2(
+            results,
+            metadata_overrides=exclusion_metadata,
+            extra_caveats=exclusion_caveats,
+        ),
     )
