@@ -1179,9 +1179,74 @@ def _extract_doi_from_url(url: str) -> str | None:
 
 
 def _normalize_canonical_url(url: str) -> str:
-    normalized = url.strip().lower()
-    normalized = normalized.replace("http://", "https://", 1)
-    return normalized.rstrip("/")
+    """Normalize URL: remove tracking params, trailing slash, force https."""
+    try:
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    except ImportError:
+        url = url.strip().lower()
+        url = url.replace("http://", "https://", 1)
+        return url.rstrip("/")
+
+    # Tracking parameters to remove
+    TRACKING_PARAMS = [
+        # Google
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_term",
+        "utm_content",
+        "gclid",
+        "gclsrc",
+        "dclid",
+        # Facebook
+        "fbclid",
+        "fb_action_ids",
+        "fb_action_types",
+        "fb_source",
+        # Twitter
+        "twclid",
+        # Generic
+        "mc_cid",
+        "mc_eid",  # Mailchimp
+        "ref",
+        "ref_src",
+        "ref_url",
+        "source",
+        "affiliate",
+        "_ga",
+        "_gl",
+        "si",
+        "igshid",  # Various
+    ]
+
+    try:
+        parsed = urlparse(url.strip().lower())
+
+        # Remove tracking params
+        query_params = parse_qs(parsed.query, keep_blank_values=True)
+        clean_params = {
+            k: v for k, v in query_params.items() if k.lower() not in TRACKING_PARAMS
+        }
+
+        # Rebuild URL
+        clean_query = urlencode(clean_params, doseq=True)
+        normalized = urlunparse(
+            (
+                parsed.scheme or "https",
+                parsed.netloc,
+                parsed.path,
+                parsed.params,
+                clean_query,
+                "",
+            )
+        )
+
+        return normalized.rstrip("/")
+    except Exception:
+        # Fallback
+        url = url.strip().lower()
+        url = url.replace("http://", "https://", 1)
+        return url.rstrip("/")
 
 
 def _normalize_title(title: str) -> str:
@@ -2261,6 +2326,169 @@ async def search_web(query: str, client: httpx.AsyncClient) -> List[str]:
     return [candidate.canonical_url for candidate in candidates]
 
 
+# Boilerplate patterns for removal
+BOILERPLATE_TAGS = [
+    "script",
+    "style",
+    "nav",
+    "header",
+    "footer",
+    "aside",
+    "noscript",
+    "iframe",
+    "form",
+    "button",
+    "input",
+    "select",
+    "textarea",
+]
+
+BOILERPLATE_CLASSES = [
+    "menu",
+    "nav",
+    "navigation",
+    "navbar",
+    "sidebar",
+    "widget",
+    "footer",
+    "header",
+    "banner",
+    "cookie",
+    "popup",
+    "modal",
+    "advertisement",
+    "ad-",
+    "social",
+    "share",
+    "comment",
+    "related",
+    "sidebar",
+    "breadcrumb",
+    "pagination",
+    "copyright",
+    "sitemap",
+    "login",
+    "register",
+    "signup",
+    "newsletter",
+    "subscribe",
+]
+
+BOILERPLATE_IDS = [
+    "menu",
+    "nav",
+    "navigation",
+    "sidebar",
+    "footer",
+    "header",
+    "cookie",
+    "popup",
+    "modal",
+    "advertisement",
+    "sidebar",
+]
+
+
+def _remove_boilerplate(soup: BeautifulSoup) -> BeautifulSoup:
+    """Remove boilerplate content from HTML (menu, footer, cookies, etc.)"""
+    # Remove script and style tags
+    for tag in soup(BOILERPLATE_TAGS):
+        tag.decompose()
+
+    # Remove elements with boilerplate classes/ids
+    for element in soup.find_all(class_=True):
+        class_name = " ".join(element.get("class", []))
+        if any(bc in class_name.lower() for bc in BOILERPLATE_CLASSES):
+            element.decompose()
+
+    for element in soup.find_all(id=True):
+        element_id = element.get("id", "")
+        if any(bc in element_id.lower() for bc in BOILERPLATE_IDS):
+            element.decompose()
+
+    # Remove hidden elements
+    for element in soup.find_all(
+        style=lambda x: x and "display:none" in x.replace(" ", "")
+    ):
+        element.decompose()
+
+    # Remove elements with common boilerplate text
+    boilerplate_texts = [
+        "cookie",
+        "privacy policy",
+        "terms of service",
+        "copyright",
+        "all rights reserved",
+        "powered by",
+        "subscribe to",
+        "newsletter",
+        "follow us",
+        "share this",
+        "last updated",
+    ]
+    for element in soup.find_all(string=True):
+        if any(bt in element.lower().strip() for bt in boilerplate_texts):
+            parent = element.find_parent()
+            if parent:
+                parent.decompose()
+
+    return soup
+
+
+def _normalize_text(text: str) -> str:
+    """Normalize unicode, quotes, hyphenation, and line breaks."""
+    # Normalize unicode quotes to ASCII
+    text = text.replace("\u201c", '"').replace("\u201d", '"')
+    text = text.replace("\u2018", "'").replace("\u2019", "'")
+    text = text.replace("\u2013", "-").replace("\u2014", "--")
+    text = text.replace("\u2026", "...")
+    text = text.replace("\u00a0", " ")
+
+    # Fix hyphenation (line break in middle of word)
+    text = re.sub(r"(\w+)-\s+(\w+)", r"\1\2", text)
+
+    # Normalize line breaks
+    text = re.sub(r"\n+", "\n", text)
+    text = re.sub(r" {2,}", " ", text)
+
+    # Clean quotes
+    text = re.sub(r'"(\w)"', r'"\1"', text)
+    text = re.sub(r"'(\w)'", r"'\1'", text)
+
+    # Remove multiple spaces
+    text = re.sub(r" +", " ", text)
+
+    return text.strip()
+
+
+def _extract_main_content(soup: BeautifulSoup) -> str:
+    """Extract main content using heuristics (article, main, content)"""
+    # Try to find main content areas
+    main_tags = soup.find_all(["article", "main", "div"])
+    content_texts = []
+
+    for tag in main_tags:
+        # Skip if it's likely navigation/sidebar
+        tag_id = tag.get("id", "").lower()
+        tag_class = " ".join(tag.get("class", [])).lower()
+
+        if any(x in tag_id for x in ["nav", "menu", "sidebar", "footer", "header"]):
+            continue
+        if any(x in tag_class for x in ["nav", "menu", "sidebar", "footer", "header"]):
+            continue
+
+        text = tag.get_text(separator=" ", strip=True)
+        if len(text) > 100:  # Only consider substantial content
+            content_texts.append((len(text), text))
+
+    if content_texts:
+        # Return the longest content (likely main content)
+        content_texts.sort(reverse=True)
+        return content_texts[0][1]
+
+    return ""
+
+
 async def fetch_page_content(url: str, client: httpx.AsyncClient) -> str:
     """
     Fetch and clean text content from a URL.
@@ -2286,17 +2514,17 @@ async def fetch_page_content(url: str, client: httpx.AsyncClient) -> str:
         # Parse HTML with BeautifulSoup
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Remove unwanted elements
-        for element in soup(
-            ["script", "style", "nav", "header", "footer", "aside", "noscript"]
-        ):
-            element.decompose()
+        # Remove boilerplate (menu, footer, cookies, etc.)
+        soup = _remove_boilerplate(soup)
 
-        # Extract text
-        text = soup.get_text(separator=" ", strip=True)
+        # Try to extract main content
+        text = _extract_main_content(soup)
+        if not text:
+            # Fallback to getting all text
+            text = soup.get_text(separator=" ", strip=True)
 
-        # Clean whitespace
-        text = re.sub(r"\s+", " ", text).strip()
+        # Normalize text (unicode, quotes, hyphenation)
+        text = _normalize_text(text)
 
         return text[:5000]
     except Exception as e:
