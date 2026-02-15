@@ -2314,16 +2314,275 @@ async def search_crossref(query: str, client: httpx.AsyncClient) -> List[str]:
     return urls
 
 
+# Stopwords for query rewriting
+STOPWORDS = {
+    "a",
+    "an",
+    "the",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "must",
+    "shall",
+    "can",
+    "need",
+    "dare",
+    "to",
+    "of",
+    "in",
+    "for",
+    "on",
+    "with",
+    "at",
+    "by",
+    "from",
+    "as",
+    "into",
+    "through",
+    "during",
+    "before",
+    "after",
+    "above",
+    "below",
+    "between",
+    "under",
+    "again",
+    "further",
+    "then",
+    "once",
+    "here",
+    "there",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "each",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "no",
+    "nor",
+    "not",
+    "only",
+    "own",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+    "just",
+    "also",
+    "now",
+    "and",
+    "but",
+    "or",
+    "yet",
+    "if",
+    "because",
+    "although",
+    "while",
+    "that",
+    "which",
+    "who",
+    "whom",
+    "this",
+    "these",
+    "those",
+    "it",
+    "its",
+    "they",
+    "them",
+    "their",
+    "we",
+    "you",
+    "your",
+    "he",
+    "she",
+    "him",
+    "her",
+    "his",
+    "i",
+    "me",
+    "my",
+    "us",
+    "our",
+    # Vietnamese stopwords
+    "và",
+    "của",
+    "trong",
+    "được",
+    "với",
+    "là",
+    "các",
+    "có",
+    "không",
+    "để",
+    "từ",
+    "về",
+    "cho",
+    "này",
+    "đó",
+    "những",
+    "một",
+    "vì",
+    "nên",
+    "khi",
+    "nếu",
+    "hoặc",
+    "vẫn",
+    "đã",
+    "đang",
+    "sẽ",
+    "phải",
+}
+
+
+def _remove_stopwords(text: str) -> str:
+    """Remove stopwords from text."""
+    words = text.lower().split()
+    return " ".join(w for w in words if w not in STOPWORDS)
+
+
+def _extract_noun_phrases(text: str) -> str:
+    """Extract noun phrases (simple heuristic: 2-4 word sequences of non-stopwords."""
+    words = text.lower().split()
+    phrases = []
+    for n in range(2, min(5, len(words) + 1)):
+        for i in range(len(words) - n + 1):
+            phrase_words = words[i : i + n]
+            # Keep if majority are not stopwords
+            non_stop = sum(1 for w in phrase_words if w not in STOPWORDS)
+            if non_stop >= n - 1:
+                phrases.append(" ".join(phrase_words))
+    # Return top phrases by frequency
+    from collections import Counter
+
+    phrase_counts = Counter(phrases)
+    top_phrases = [p for p, _ in phrase_counts.most_common(5)]
+    return " ".join(top_phrases)
+
+
+def _extract_key_ngrams(text: str, n: int = 4) -> str:
+    """Extract key n-grams (4-word phrases) as unique identifiers."""
+    words = text.lower().split()
+    if len(words) < n:
+        return text.lower()
+    ngrams = [" ".join(words[i : i + n]) for i in range(len(words) - n + 1)]
+    return " ".join(ngrams[:3])  # Top 3 n-grams
+
+
+def _generate_query_variants(text: str) -> list[str]:
+    """Generate 2-4 query variants for better search results."""
+    variants = [
+        text,  # Original
+        _remove_stopwords(text),  # Without stopwords
+    ]
+
+    # Add noun phrases if text is long enough
+    if len(text.split()) > 5:
+        noun_phrases = _extract_noun_phrases(text)
+        if noun_phrases:
+            variants.append(noun_phrases)
+
+    # Add key n-grams
+    key_ngrams = _extract_key_ngrams(text, 4)
+    if key_ngrams and key_ngrams != text.lower():
+        variants.append(key_ngrams)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_variants = []
+    for v in variants:
+        v_clean = v.strip()
+        if v_clean and v_clean not in seen:
+            seen.add(v_clean)
+            unique_variants.append(v_clean)
+
+    return unique_variants[:4]  # Max 4 variants
+
+
+def _create_chunks(
+    sentences: list[str], chunk_size: int = 5, overlap: int = 2
+) -> list[tuple[int, int, str]]:
+    """
+    Create chunks of sentences with overlap.
+
+    Returns:
+        List of (start_idx, end_idx, chunk_text) tuples
+    """
+    chunks = []
+    n = len(sentences)
+
+    for i in range(0, n, chunk_size - overlap):
+        end = min(i + chunk_size, n)
+        chunk_sentences = sentences[i:end]
+        chunk_text = " ".join(chunk_sentences)
+        chunks.append((i, end, chunk_text))
+
+        if end >= n:
+            break
+
+    return chunks
+
+
 async def search_web(query: str, client: httpx.AsyncClient) -> List[str]:
     """
-    Search both DuckDuckGo and CrossRef for URLs.
+    Search with query variants for better source retrieval.
 
     Returns:
         Combined list of unique URLs (max 10)
     """
-    candidates = await collect_source_candidates(query=query, client=client)
-    _cache_query_candidates(query=query, candidates=candidates)
-    return [candidate.canonical_url for candidate in candidates]
+    # Generate query variants
+    query_variants = _generate_query_variants(query)
+
+    all_candidates = []
+    seen_urls = set()
+
+    # Search with each variant
+    for variant in query_variants[:3]:  # Max 3 variants
+        if len(variant) < 10:  # Skip very short queries
+            continue
+
+        try:
+            candidates = await collect_source_candidates(query=variant, client=client)
+
+            # Add unique candidates
+            for candidate in candidates:
+                url = candidate.canonical_url
+                if url not in seen_urls:
+                    seen_urls.add(url)
+                    all_candidates.append(candidate)
+
+            if len(all_candidates) >= 10:
+                break
+        except Exception as e:
+            print(f"Search error for variant '{variant}': {e}")
+            continue
+
+    # Cache the combined results (use original query as key)
+    _cache_query_candidates(query=query, candidates=all_candidates)
+
+    return [candidate.canonical_url for candidate in all_candidates[:10]]
 
 
 # Boilerplate patterns for removal
