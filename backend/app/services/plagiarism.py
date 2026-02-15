@@ -2982,7 +2982,11 @@ async def search_duckduckgo(query: str, client: httpx.AsyncClient) -> List[str]:
         )
         urls = [candidate.canonical_url for candidate in candidates]
     except Exception as e:
-        print(f"DuckDuckGo search error: {e}")
+        import traceback
+
+        print(
+            f"DuckDuckGo search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+        )
 
     return urls
 
