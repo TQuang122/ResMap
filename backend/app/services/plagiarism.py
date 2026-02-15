@@ -122,6 +122,11 @@ DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD = 5
 DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS = 90.0
 DUCKDUCKGO_BREAKER_OPEN_LOG_INTERVAL_SECONDS = 30.0
 DUCKDUCKGO_ERROR_LOG_INTERVAL_SECONDS = 15.0
+DUCKDUCKGO_CONNECT_TIMEOUT_SECONDS = 5.0
+DUCKDUCKGO_CONNECT_MAX_RETRIES = 3
+DUCKDUCKGO_BACKOFF_BASE_SECONDS = 1.0
+DUCKDUCKGO_BACKOFF_JITTER_MAX_SECONDS = 0.4
+DUCKDUCKGO_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 _duckduckgo_failure_count = 0
 _duckduckgo_open_until = 0.0
@@ -173,6 +178,10 @@ def _duckduckgo_should_log_error() -> bool:
         return False
     _duckduckgo_last_error_log_at = now
     return True
+
+
+def _single_line_traceback(limit: int = 1) -> str:
+    return traceback.format_exc(limit=limit).strip().replace("\n", " | ")
 
 
 REFERENCE_INLINE_PATTERN = re.compile(
@@ -283,11 +292,47 @@ class DuckDuckGoConnector:
         search_query = quote(query[:200])
         ddg_url = f"https://html.duckduckgo.com/html/?q={search_query}"
 
-        response = await client.get(
-            ddg_url,
-            headers={"User-Agent": get_random_user_agent()},
+        timeout = httpx.Timeout(
             timeout=settings.PLAGIARISM_SOURCE_TIMEOUT_SECONDS,
+            connect=DUCKDUCKGO_CONNECT_TIMEOUT_SECONDS,
         )
+
+        response: httpx.Response | None = None
+        last_error: Exception | None = None
+        for attempt in range(DUCKDUCKGO_CONNECT_MAX_RETRIES):
+            try:
+                response = await client.get(
+                    ddg_url,
+                    headers={"User-Agent": get_random_user_agent()},
+                    timeout=timeout,
+                )
+                if (
+                    response.status_code in DUCKDUCKGO_RETRYABLE_STATUS_CODES
+                    and attempt < DUCKDUCKGO_CONNECT_MAX_RETRIES - 1
+                ):
+                    backoff = DUCKDUCKGO_BACKOFF_BASE_SECONDS * (2**attempt)
+                    backoff += random.uniform(
+                        0.0, DUCKDUCKGO_BACKOFF_JITTER_MAX_SECONDS
+                    )
+                    await asyncio.sleep(backoff)
+                    continue
+                break
+            except (
+                httpx.ConnectTimeout,
+                httpx.ConnectError,
+                httpx.TimeoutException,
+            ) as e:
+                last_error = e
+                if attempt >= DUCKDUCKGO_CONNECT_MAX_RETRIES - 1:
+                    raise
+                backoff = DUCKDUCKGO_BACKOFF_BASE_SECONDS * (2**attempt)
+                backoff += random.uniform(0.0, DUCKDUCKGO_BACKOFF_JITTER_MAX_SECONDS)
+                await asyncio.sleep(backoff)
+
+        if response is None:
+            if last_error is not None:
+                raise last_error
+            return candidates
 
         if response.status_code != 200:
             return candidates
@@ -1843,11 +1888,11 @@ async def collect_source_candidates(
                     _duckduckgo_breaker_on_failure()
                     if _duckduckgo_should_log_error():
                         print(
-                            f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+                            f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
                         )
                 else:
                     print(
-                        f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+                        f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
                     )
                 return []
 
@@ -3055,7 +3100,7 @@ async def search_duckduckgo(query: str, client: httpx.AsyncClient) -> List[str]:
         urls = [candidate.canonical_url for candidate in candidates]
     except Exception as e:
         print(
-            f"DuckDuckGo search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+            f"DuckDuckGo search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
         )
 
     return urls
