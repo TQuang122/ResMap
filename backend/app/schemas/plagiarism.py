@@ -83,9 +83,17 @@ class PlagiarismProgressEvent(BaseModel):
     current: int = Field(ge=0, description="Current sentence being processed")
     total: int = Field(ge=0, description="Total sentences to process")
     status: str = Field(
-        description="Current status: preparing, processing, scoring, complete"
+        description="Current status: preparing, retrieval, download, align, rerank, scoring, complete"
     )
     message: Optional[str] = Field(default=None, description="Human-readable message")
+    stage: Optional[str] = Field(
+        default=None,
+        description="Granular stage: preparing, retrieval, download, extract, align, rerank, complete",
+    )
+    debug: Optional[dict] = Field(
+        default=None,
+        description="Debug metadata: candidates_fetched, sources_parsed, spans_found, sentences_processed",
+    )
 
 
 class SourceMatch(BaseModel):
@@ -102,6 +110,14 @@ class SourceMatch(BaseModel):
     passage_matches: List[dict] = Field(
         default_factory=list,
         description="Passage-level matches with start/end positions and matched text",
+    )
+    confidence_score: Optional[str] = Field(
+        default=None,
+        description="Confidence level: high, medium, low",
+    )
+    match_type: Optional[str] = Field(
+        default=None,
+        description="Match type: exact, passage, semantic_only, possible_paraphrase",
     )
 
 

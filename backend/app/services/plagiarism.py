@@ -2720,6 +2720,65 @@ def merge_overlapping_spans(spans: List[tuple]) -> List[tuple]:
     return merged
 
 
+def calculate_confidence_and_type(
+    passage_matches: list,
+    semantic_similarity: int,
+    keyword_similarity: int,
+    source_credibility: int = 50,
+) -> tuple[str, str]:
+    """
+    Calculate confidence score and match type.
+
+    Returns:
+        (confidence_level, match_type)
+        confidence_level: high, medium, low
+        match_type: exact, passage, semantic_only, possible_paraphrase
+    """
+    if not passage_matches:
+        if semantic_similarity > keyword_similarity:
+            return "low", "semantic_only"
+        return "low", "possible_paraphrase"
+
+    max_span_length = 0
+    total_span_length = 0
+    for pm in passage_matches:
+        span_len = pm.get("end1", 0) - pm.get("start1", 0)
+        max_span_length = max(max_span_length, span_len)
+        total_span_length += span_len
+
+    avg_span_length = total_span_length / len(passage_matches) if passage_matches else 0
+
+    match_type = "passage"
+    if max_span_length >= 20:
+        match_type = "exact"
+    elif max_span_length < 5:
+        match_type = "possible_paraphrase"
+
+    if semantic_similarity > keyword_similarity and max_span_length < 10:
+        match_type = "possible_paraphrase"
+
+    confidence = "medium"
+    confidence_score = 0
+
+    confidence_score += min(40, max_span_length)
+    confidence_score += min(30, avg_span_length)
+    confidence_score += source_credibility * 0.3
+
+    if match_type == "exact":
+        confidence_score += 20
+    elif match_type == "passage":
+        confidence_score += 10
+
+    if confidence_score >= 60:
+        confidence = "high"
+    elif confidence_score >= 30:
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    return confidence, match_type
+
+
 def calculate_coverage_score(
     text: str,
     results: list,
@@ -3540,6 +3599,16 @@ async def check_sentence(
             max_keyword_similarity * 100
         )
 
+        for source in matched_sources:
+            confidence, match_type = calculate_confidence_and_type(
+                source.passage_matches,
+                semantic_similarity=semantic_similarity,
+                keyword_similarity=source.similarity,
+                source_credibility=50,
+            )
+            source.confidence_score = confidence
+            source.match_type = match_type
+
         matched_sources.sort(key=lambda x: x.similarity, reverse=True)
 
         all_ngrams = []
@@ -3761,12 +3830,21 @@ async def check_plagiarism_streaming(
 ):
     resolved_user_key = user_key or "anon:global"
 
+    debug_metadata = {
+        "candidates_fetched": 0,
+        "sources_parsed": 0,
+        "spans_found": 0,
+        "sentences_processed": 0,
+    }
+
     yield {
         "progress": 0,
         "current": 0,
         "total": 0,
         "status": "preparing",
         "message": "Preparing text for analysis...",
+        "stage": "preparing",
+        "debug": debug_metadata,
     }
 
     sentences, exclusion_metadata, exclusion_caveats = _prepare_analysis_sentences(
@@ -3815,8 +3893,10 @@ async def check_plagiarism_streaming(
         "progress": 5,
         "current": 0,
         "total": total_sentences,
-        "status": "processing",
-        "message": f"Processing {total_sentences} sentences...",
+        "status": "retrieval",
+        "message": f"Retrieving candidates for {total_sentences} sentences...",
+        "stage": "retrieval",
+        "debug": debug_metadata,
     }
 
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
@@ -3837,13 +3917,30 @@ async def check_plagiarism_streaming(
             results.append(result)
             processed_count += 1
 
+            debug_metadata["sentences_processed"] = processed_count
+            if result.sources:
+                debug_metadata["sources_parsed"] += len(result.sources)
+                for src in result.sources:
+                    if src.passage_matches:
+                        debug_metadata["spans_found"] += len(src.passage_matches)
+
+            current_stage = (
+                "retrieval"
+                if idx < total_sentences * 0.3
+                else "download"
+                if idx < total_sentences * 0.6
+                else "align"
+            )
+
             progress = int((processed_count / total_sentences) * 80) + 5
             yield {
                 "progress": progress,
                 "current": processed_count,
                 "total": total_sentences,
-                "status": "processing",
-                "message": f"Analyzed sentence {processed_count}/{total_sentences}",
+                "status": current_stage,
+                "message": f"Processing sentence {processed_count}/{total_sentences}",
+                "stage": current_stage,
+                "debug": debug_metadata,
             }
 
     yield {
@@ -3852,6 +3949,8 @@ async def check_plagiarism_streaming(
         "total": total_sentences,
         "status": "scoring",
         "message": "Calculating similarity scores...",
+        "stage": "rerank",
+        "debug": debug_metadata,
     }
 
     turnitin_stats = calculate_turnitin_score(

@@ -1,0 +1,4 @@
+- 2026-02-14: Shell quoting with backticks in an append command triggered zsh command substitution; fixed by using a single-quoted python script for append-only notepad writes.
+- 2026-02-14: No blocking issue in exclusion transparency task; caveat/metadata additions validated via backend tests without schema break.
+- 2026-02-14: Frontend e2e tests have pre-existing Playwright version mismatch issue: @playwright/test ^1.58.2 vs playwright ^1.58.1 causing test.describe() loading errors. Fixed by aligning versions in package.json.
+- 2026-02-14: bun test was failing but npm run test:e2e works correctly - runner issue, not code issue.

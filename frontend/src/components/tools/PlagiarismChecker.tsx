@@ -8,6 +8,8 @@ interface Source {
   similarity: number;
   matched_ngrams?: string[];
   passage_matches?: PassageMatch[];
+  confidence_score?: string;
+  match_type?: string;
 }
 
 interface PassageMatch {
@@ -317,7 +319,18 @@ const SideBySidePanel: React.FC<{
                     <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-slate-600 truncate">{new URL(src.url).hostname}</span>
-                        <span className="text-xs px-2 py-0.5 bg-slate-200 rounded">{src.similarity}%</span>
+                        <div className="flex items-center gap-1">
+                          {src.confidence_score && (
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              src.confidence_score === 'high' ? 'bg-green-100 text-green-700' :
+                              src.confidence_score === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {src.confidence_score.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-xs px-2 py-0.5 bg-slate-200 rounded">{src.similarity}%</span>
+                        </div>
                       </div>
                       <a 
                         href={src.url} 

@@ -1,0 +1,127 @@
+{
+  "benchmark_name": "Plagiarism Detection Test Set",
+  "version": "1.0",
+  "generated_by": "Gemini AI",
+  "categories": {
+    "exact_copy": {
+      "description": "Text copied verbatim from web sources",
+      "expected_score_range": [80, 100],
+      "samples": [
+        {
+          "id": "exact_001",
+          "text": "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed. It focuses on developing algorithms that can access data and use it to learn patterns and make decisions.",
+          "language": "en",
+          "notes": "Common ML definition from Wikipedia"
+        },
+        {
+          "id": "exact_002",
+          "text": "The water cycle describes how water moves through the Earth's system. It includes processes such as evaporation, condensation, precipitation, and collection. Solar energy drives evaporation, which turns water into vapor that rises into the atmosphere.",
+          "language": "en",
+          "notes": "Science textbook content"
+        },
+        {
+          "id": "exact_003",
+          "text": "Trí tuệ nhân tạo (AI) là một lĩnh vực của khoa học máy tính tập trung vào việc tạo ra các hệ thống có thể thực hiện các nhiệm vụ đòi hỏi trí tuệ con người. Bao gồm nhận dạng giọng nói, ra quyết định và dịch ngôn ngữ.",
+          "language": "vi",
+          "notes": "Vietnamese AI definition"
+        }
+      ]
+    },
+    "slight_modification": {
+      "description": "Original text with minor word changes (5-15% modification)",
+      "expected_score_range": [50, 80],
+      "samples": [
+        {
+          "id": "slight_001",
+          "text": "Deep learning represents a more advanced subset of machine learning that utilizes neural networks with multiple layers. These deep neural networks can automatically learn representations from raw data, eliminating the need for manual feature engineering.",
+          "language": "en",
+          "notes": "Modified from ML definition"
+        },
+        {
+          "id": "slight_002",
+          "text": "Climate change refers to long-term shifts in global temperatures and weather patterns. While natural factors can cause variations, human activities have been the primary driver since the Industrial Revolution through greenhouse gas emissions.",
+          "language": "en",
+          "notes": "Modified climate definition"
+        },
+        {
+          "id": "slight_003",
+          "text": "Convolutional Neural Networks (CNN) là một loại mạng nơ-ron sâu được sử dụng rộng rãi trong xử lý hình ảnh. Chúng sử dụng các lớp tích chập để tự động trích xuất đặc trưng từ ảnh đầu vào.",
+          "language": "vi",
+          "notes": "Modified Vietnamese CNN content"
+        }
+      ]
+    },
+    "paraphrase": {
+      "description": "Same ideas but completely reworded (semantic similarity high, lexical similarity low)",
+      "expected_score_range": [20, 50],
+      "samples": [
+        {
+          "id": "para_001",
+          "text": "Instead of traditional programming where developers explicitly code instructions, ML allows computers to find patterns in data independently. The system improves its performance through experience, similar to how humans learn from practice.",
+          "language": "en",
+          "notes": "Paraphrased ML definition"
+        },
+        {
+          "id": "para_002",
+          "text": "When water is heated by the sun, it transforms into water vapor and rises into the sky. This vapor then cools down and forms clouds. Eventually, the water returns to Earth as rain or snow, collecting in rivers and oceans.",
+          "language": "en",
+          "notes": "Paraphrased water cycle"
+        },
+        {
+          "id": "para_003",
+          "text": "Công nghệ blockchain là một hệ thống ghi nhận thông tin được phân cấp và phi tập trung. Dữ liệu được lưu trữ trong các khối liên kết với nhau bằng mã hóa, đảm bảo tính bảo mật và minh bạch.",
+          "language": "vi",
+          "notes": "Paraphrased blockchain content"
+        }
+      ]
+    },
+    "same_topic": {
+      "description": "Original content on same topic but not copied (common knowledge)",
+      "expected_score_range": [0, 25],
+      "samples": [
+        {
+          "id": "topic_001",
+          "text": "Quantum computing harnesses quantum mechanical phenomena to perform computation. Unlike classical computers that use bits, quantum computers use quantum bits or qubits that can exist in superposition states.",
+          "language": "en",
+          "notes": "Same topic as ML but different content"
+        },
+        {
+          "id": "topic_002",
+          "text": "Renewable energy sources like solar and wind power are becoming increasingly important as the world seeks to reduce carbon emissions. These clean energy alternatives can help address climate change while meeting growing energy demands.",
+          "language": "en",
+          "notes": "Related to climate but different"
+        },
+        {
+          "id": "topic_003",
+          "text": "Khoa học dữ liệu là lĩnh vực kết hợp toán học, thống kê và lập trình để phân tích dữ liệu. Các nhà khoa học dữ liệu sử dụng các công cụ và kỹ thuật để khám phá insights từ dữ liệu lớn.",
+          "language": "vi",
+          "notes": "Related tech topic"
+        }
+      ]
+    },
+    "boilerplate": {
+      "description": "Common academic boilerplate that should be excluded",
+      "expected_score_range": [0, 10],
+      "samples": [
+        {
+          "id": "boiler_001",
+          "text": "In this paper, we discuss the importance of research methodology. For example, quantitative and qualitative approaches are commonly used in academic studies.",
+          "language": "en",
+          "notes": "Common academic phrases"
+        },
+        {
+          "id": "boiler_002",
+          "text": "Learning outcomes: 1. Understand basic concepts 2. Apply knowledge to real situations 3. Analyze information critically. Course description: This course covers fundamental principles.",
+          "language": "en",
+          "notes": "Syllabus-style content"
+        },
+        {
+          "id": "boiler_003",
+          "text": "The purpose of this study is to investigate the relationship between variables. According to Smith (2020), previous research has shown similar results. As illustrated in Figure 1, the data indicates trends.",
+          "language": "en",
+          "notes": "Template academic writing"
+        }
+      ]
+    }
+  }
+}
