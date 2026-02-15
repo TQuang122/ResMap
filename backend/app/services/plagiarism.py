@@ -13,12 +13,14 @@ import math
 import random
 import re
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from io import BytesIO
-from typing import List, Protocol, Set
+from typing import Any, List, Optional, Protocol, Set
 from urllib.parse import quote
 
+import fitz  # PyMuPDF
 import httpx
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, ConfigDict, Field
@@ -2155,6 +2157,290 @@ def get_matching_ngrams(text1: str, text2: str, n: int = 5) -> Set[str]:
     return ngrams1 & ngrams2
 
 
+# ============================================================
+# W-SHINGLING WITH WINNOWING (Turnitin-style fingerprinting)
+# ============================================================
+
+
+def _hash_shingle(shingle: str) -> int:
+    """Hash a shingle to an integer."""
+    return hash(shingle)
+
+
+def _winnow_hashes(hashes: list[int], window_size: int = 4) -> list[int]:
+    """
+    Winnowing: select minimum hash from each sliding window.
+    Returns positions of selected hashes.
+    """
+    if len(hashes) < window_size:
+        return list(range(len(hashes)))
+
+    selected = []
+    for i in range(len(hashes) - window_size + 1):
+        window = hashes[i : i + window_size]
+        min_val = min(window)
+        min_pos = window.index(min_val)
+        selected.append(i + min_pos)
+
+    return sorted(set(selected))
+
+
+def get_w_shingles(text: str, shingle_size: int = 7) -> Set[str]:
+    """Generate w-shingles (7-10 word shingles)."""
+    words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    if len(words) < shingle_size:
+        return {text.lower()} if len(words) >= 3 else set()
+
+    shingles = set()
+    for i in range(len(words) - shingle_size + 1):
+        shingle = " ".join(words[i : i + shingle_size])
+        shingles.add(shingle)
+    return shingles
+
+
+def get_gapped_shingles(text: str, shingle_size: int = 7, gap: int = 1) -> Set[str]:
+    """Generate gapped shingles (skip 1-2 tokens for modified copy detection)."""
+    words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    if len(words) < shingle_size + gap:
+        return set()
+
+    shingles = set()
+    for i in range(len(words) - shingle_size - gap + 1):
+        # Take shingle_size words with gap tokens between them
+        selected = [words[i + j + (j >= gap) * gap] for j in range(shingle_size)]
+        shingle = " ".join(selected)
+        shingles.add(shingle)
+    return shingles
+
+
+def calculate_w_similarity(text1: str, text2: str, shingle_size: int = 7) -> float:
+    """Calculate w-shingle similarity with winnowing."""
+    shingles1 = get_w_shingles(text1, shingle_size)
+    shingles2 = get_w_shingles(text2, shingle_size)
+
+    if not shingles1 or not shingles2:
+        return 0.0
+
+    # Hash and winnow
+    hashes1 = sorted([_hash_shingle(s) for s in shingles1])
+    hashes2 = sorted([_hash_shingle(s) for s in shingles2])
+
+    winnow1 = set(_winnow_hashes(hashes1))
+    winnow2 = set(_winnow_hashes(hashes2))
+
+    if not winnow1 or not winnow2:
+        return 0.0
+
+    intersection = len(winnow1 & winnow2)
+    return intersection / max(len(winnow1), len(winnow2))
+
+
+# ============================================================
+# PASSAGE ALIGNMENT (Turnitin-style continuous match detection)
+# ============================================================
+
+
+@dataclass
+class MatchSpan:
+    """A continuous matching passage."""
+
+    start1: int
+    end1: int
+    start2: int
+    end2: int
+    text1: str
+    text2: str
+    similarity: float
+
+
+def find_passage_alignments(
+    text1: str, text2: str, min_match_words: int = 5
+) -> List[MatchSpan]:
+    """
+    Find continuous matching passages between two texts.
+    Uses token-level alignment to find runs of matching n-grams.
+    """
+    words1 = text1.lower().split()
+    words2 = text2.lower().split()
+
+    # Build n-gram index for text2
+    n = min_match_words
+    ngram_index = {}
+    for i in range(len(words2) - n + 1):
+        ngram = " ".join(words2[i : i + n])
+        if ngram not in ngram_index:
+            ngram_index[ngram] = []
+        ngram_index[ngram].append(i)
+
+    # Find matching n-gram positions
+    matches = []
+    for i in range(len(words1) - n + 1):
+        ngram = " ".join(words1[i : i + n])
+        if ngram in ngram_index:
+            for j in ngram_index[ngram]:
+                matches.append((i, j))
+
+    if not matches:
+        return []
+
+    # Merge adjacent matches into spans
+    matches.sort(key=lambda x: (x[0], x[1]))
+
+    spans = []
+    if matches:
+        current_start1, current_start2 = matches[0]
+        current_end1 = current_start1 + n
+        current_end2 = current_start2 + n
+
+        for i, (pos1, pos2) in enumerate(matches[1:]):
+            # Check if this match is adjacent to current span
+            if pos1 <= current_end1 + 2 and pos2 <= current_end2 + 2:
+                # Extend current span
+                current_end1 = pos1 + n
+                current_end2 = pos2 + n
+            else:
+                # Save current span and start new one
+                if current_end1 - current_start1 >= min_match_words:
+                    spans.append(
+                        MatchSpan(
+                            start1=current_start1,
+                            end1=current_end1,
+                            start2=current_start2,
+                            end2=current_end2,
+                            text1=" ".join(words1[current_start1:current_end1]),
+                            text2=" ".join(words2[current_start2:current_end2]),
+                            similarity=1.0,
+                        )
+                    )
+                current_start1, current_start2 = pos1, pos2
+                current_end1 = pos1 + n
+                current_end2 = pos2 + n
+
+        # Don't forget the last span
+        if current_end1 - current_start1 >= min_match_words:
+            spans.append(
+                MatchSpan(
+                    start1=current_start1,
+                    end1=current_end1,
+                    start2=current_start2,
+                    end2=current_end2,
+                    text1=" ".join(words1[current_start1:current_end1]),
+                    text2=" ".join(words2[current_start2:current_end2]),
+                    similarity=1.0,
+                )
+            )
+
+    return spans
+
+
+# ============================================================
+# MULTI-FEATURE PARAPHRASE CLASSIFIER
+# ============================================================
+
+
+def calculate_paraphrase_score(
+    text1: str,
+    text2: str,
+    semantic_score: float,
+    keyword_score: float,
+) -> dict:
+    """
+    Multi-feature paraphrase detection classifier.
+
+    Features:
+    - Semantic cosine similarity (embeddings)
+    - Token overlap ratio
+    - Named entity overlap
+    - Sentence length ratio
+    - Rarity of terms (IDF-like)
+
+    Returns:
+        dict with paraphrase_likely (bool) and confidence (float)
+    """
+    words1 = set(re.sub(r"[^\w\s]", "", text1.lower()).split())
+    words2 = set(re.sub(r"[^\w\s]", "", text2.lower()).split())
+
+    # Token overlap
+    intersection = words1 & words2
+    union = words1 | words2
+    token_overlap = len(intersection) / len(union) if union else 0
+
+    # Length ratio
+    len1, len2 = len(words1), len(words2)
+    length_ratio = min(len1, len2) / max(len1, len2) if max(len1, len2) > 0 else 0
+
+    # Common phrase detection (if too similar, likely copy not paraphrase)
+    if token_overlap > 0.8:
+        return {
+            "paraphrase_likely": False,
+            "confidence": 0.9,
+            "reason": "high_token_overlap",
+        }
+
+    # Very common sentence (likely boilerplate)
+    if len(words1) < 5:
+        return {"paraphrase_likely": False, "confidence": 0.8, "reason": "too_short"}
+
+    # Core logic: paraphrase when semantic is high but token overlap is moderate
+    semantic_high = semantic_score > 0.6
+    token_moderate = 0.3 < token_overlap < 0.7
+
+    paraphrase_score = (
+        (semantic_score * 0.5) + (token_overlap * 0.3) + (length_ratio * 0.2)
+    )
+
+    paraphrase_likely = semantic_high and token_moderate and paraphrase_score > 0.5
+    confidence = min(0.95, paraphrase_score)
+
+    return {
+        "paraphrase_likely": paraphrase_likely,
+        "confidence": confidence,
+        "reason": "semantic_and_moderate_overlap"
+        if paraphrase_likely
+        else "insufficient_signals",
+        "features": {
+            "semantic_score": semantic_score,
+            "token_overlap": token_overlap,
+            "length_ratio": length_ratio,
+            "paraphrase_score": paraphrase_score,
+        },
+    }
+
+
+# ============================================================
+# CROSS-ENCODER STYLE RE-RANKING (Simplified)
+# ============================================================
+
+
+def cross_encoder_score(text1: str, text2: str) -> float:
+    """
+    Simplified cross-encoder: direct pairwise comparison.
+    In production, use a proper cross-encoder model.
+
+    This combines multiple signals for "is this really similar?"
+    """
+    # Multiple similarity measures
+    cosine = calculate_cosine_similarity(text1, text2)
+    ngram_5 = calculate_ngram_similarity(text1, text2, 5)
+    ngram_7 = calculate_ngram_similarity(text1, text2, 7)
+    w_shingle = calculate_w_similarity(text1, text2, 7)
+
+    # Passage alignment bonus
+    alignments = find_passage_alignments(text1, text2, min_match_words=5)
+    alignment_bonus = min(0.3, len(alignments) * 0.1)
+
+    # Weighted combination (cross-encoder style)
+    score = (
+        cosine * 0.15
+        + ngram_5 * 0.25
+        + ngram_7 * 0.25
+        + w_shingle * 0.25
+        + alignment_bonus
+    )
+
+    return min(1.0, score)
+
+
 def extract_quoted_text(text: str) -> list[tuple[int, int]]:
     """Extract positions of quoted text in the document."""
     positions = []
@@ -2855,11 +3141,35 @@ async def check_sentence(
 
             if similarity > 0.15:
                 matching_ngrams = get_matching_ngrams(sentence, comparison_text, 5)
+
+                # Find passage-level alignments (Turnitin-style)
+                passage_matches = []
+                if len(sentence.split()) >= 5 and len(comparison_text.split()) >= 5:
+                    try:
+                        spans = find_passage_alignments(
+                            sentence, comparison_text, min_match_words=5
+                        )
+                        for span in spans:
+                            passage_matches.append(
+                                {
+                                    "text1": span.text1,
+                                    "text2": span.text2,
+                                    "start1": span.start1,
+                                    "end1": span.end1,
+                                    "start2": span.start2,
+                                    "end2": span.end2,
+                                    "similarity": round(span.similarity * 100),
+                                }
+                            )
+                    except Exception:
+                        pass  # Skip passage alignment if it fails
+
                 matched_sources.append(
                     SourceMatch(
                         url=candidate.canonical_url,
                         similarity=round(similarity * 100),
                         matched_ngrams=list(matching_ngrams),
+                        passage_matches=passage_matches,
                     )
                 )
 

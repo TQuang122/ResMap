@@ -71,6 +71,10 @@ class SourceMatch(BaseModel):
         default_factory=list,
         description="List of matching n-grams (3-5 word phrases) found in this source",
     )
+    passage_matches: List[dict] = Field(
+        default_factory=list,
+        description="Passage-level matches with start/end positions and matched text",
+    )
 
 
 class SentenceResult(BaseModel):

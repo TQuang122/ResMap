@@ -6,6 +6,18 @@ import { logHistory } from '../../utils/logger';
 interface Source {
   url: string;
   similarity: number;
+  matched_ngrams?: string[];
+  passage_matches?: PassageMatch[];
+}
+
+interface PassageMatch {
+  text1: string;
+  text2: string;
+  start1: number;
+  end1: number;
+  start2: number;
+  end2: number;
+  similarity: number;
 }
 
 interface SentenceResult {
@@ -315,6 +327,24 @@ const SideBySidePanel: React.FC<{
                       >
                         {src.url}
                       </a>
+                      {src.passage_matches && src.passage_matches.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-slate-200">
+                          <span className="text-xs font-medium text-orange-600 flex items-center gap-1">
+                            <BookOpen size={12} /> Passage matches ({src.passage_matches.length})
+                          </span>
+                          <div className="mt-1 space-y-1 max-h-24 overflow-y-auto">
+                            {src.passage_matches.slice(0, 3).map((pm, pmIdx) => (
+                              <div key={pmIdx} className="text-xs bg-orange-50 p-1.5 rounded border border-orange-100">
+                                <span className="text-orange-700 font-medium">"{pm.text1.substring(0, 60)}{pm.text1.length > 60 ? '...' : ''}"</span>
+                                <span className="text-slate-400 ml-1">({pm.similarity}% match)</span>
+                              </div>
+                            ))}
+                            {src.passage_matches.length > 3 && (
+                              <span className="text-xs text-slate-500">+{src.passage_matches.length - 3} more</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
