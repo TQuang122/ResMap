@@ -94,6 +94,15 @@ interface QuotaResponse {
   reset_at: string;
 }
 
+const safeHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    const normalized = url.trim().replace(/^https?:\/\//i, '');
+    return normalized.split('/')[0] || 'unknown-source';
+  }
+};
+
 // Turnitin-style Score Widget
 const TurnitinScoreWidget: React.FC<{ score: number; totalSentences: number; plagiarizedSentences: number }> = ({ score, totalSentences, plagiarizedSentences }) => {
   const getScoreColor = (s: number) => {
@@ -233,7 +242,7 @@ const DocumentViewer: React.FC<{ results: SentenceResult[]; onSentenceClick?: (i
                 {item.sources.slice(0, 2).map((src, sIdx) => (
                   <span key={sIdx} className="text-xs px-2 py-0.5 bg-white/50 rounded flex items-center gap-1">
                     <ExternalLink size={10} />
-                    {new URL(src.url).hostname}
+                    {safeHostname(src.url)}
                   </span>
                 ))}
                 {item.sources.length > 2 && (
@@ -318,7 +327,7 @@ const SideBySidePanel: React.FC<{
                   {sentence.sources.map((src, idx) => (
                     <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-slate-600 truncate">{new URL(src.url).hostname}</span>
+                        <span className="text-xs font-medium text-slate-600 truncate">{safeHostname(src.url)}</span>
                         <div className="flex items-center gap-1">
                           {src.confidence_score && (
                             <span className={`text-xs px-1.5 py-0.5 rounded ${
