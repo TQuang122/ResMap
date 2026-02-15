@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Search, AlertTriangle, CheckCircle, Loader2, ExternalLink, Sparkles, Gauge, Info, BookOpen, AlertCircle, FileText, Layout, Filter, X, ChevronRight, Eye, Copy, Check, Settings, Download } from 'lucide-react';
-import { getData, postData, API_BASE_URL } from '../../utils/api';
+import { getData, postData, API_BASE_URL, buildHeaders } from '../../utils/api';
 import { logHistory } from '../../utils/logger';
 
 interface Source {
@@ -656,11 +656,10 @@ const PlagiarismChecker: React.FC = () => {
     }
 
     try {
+      const headers = await buildHeaders();
       const response = await fetch(`${API_BASE_URL}/tools/plagiarism-check/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(requestPayload),
       });
 
