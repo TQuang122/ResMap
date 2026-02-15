@@ -3345,46 +3345,67 @@ BOILERPLATE_IDS = [
 
 def _remove_boilerplate(soup: BeautifulSoup) -> BeautifulSoup:
     """Remove boilerplate content from HTML (menu, footer, cookies, etc.)"""
-    # Remove script and style tags
-    for tag in soup(BOILERPLATE_TAGS):
-        tag.decompose()
+    try:
+        for tag in soup(BOILERPLATE_TAGS):
+            tag.decompose()
+    except Exception:
+        pass
 
-    # Remove elements with boilerplate classes/ids
-    for element in soup.find_all(class_=True):
-        class_name = " ".join(element.get("class", []))
-        if any(bc in class_name.lower() for bc in BOILERPLATE_CLASSES):
-            element.decompose()
+    try:
+        for element in soup.find_all(class_=True):
+            if element is None:
+                continue
+            class_list = element.get("class") or []
+            class_name = " ".join(class_list) if class_list else ""
+            if class_name and any(
+                bc in class_name.lower() for bc in BOILERPLATE_CLASSES
+            ):
+                element.decompose()
+    except Exception:
+        pass
 
-    for element in soup.find_all(id=True):
-        element_id = element.get("id", "")
-        if any(bc in element_id.lower() for bc in BOILERPLATE_IDS):
-            element.decompose()
+    try:
+        for element in soup.find_all(id=True):
+            if element is None:
+                continue
+            element_id = element.get("id") or ""
+            if element_id and any(bc in element_id.lower() for bc in BOILERPLATE_IDS):
+                element.decompose()
+    except Exception:
+        pass
 
-    # Remove hidden elements
-    for element in soup.find_all(
-        style=lambda x: x and "display:none" in x.replace(" ", "")
-    ):
-        element.decompose()
+    try:
+        for element in soup.find_all(
+            style=lambda x: x and "display:none" in x.replace(" ", "")
+        ):
+            if element:
+                element.decompose()
+    except Exception:
+        pass
 
-    # Remove elements with common boilerplate text
-    boilerplate_texts = [
-        "cookie",
-        "privacy policy",
-        "terms of service",
-        "copyright",
-        "all rights reserved",
-        "powered by",
-        "subscribe to",
-        "newsletter",
-        "follow us",
-        "share this",
-        "last updated",
-    ]
-    for element in soup.find_all(string=True):
-        if any(bt in element.lower().strip() for bt in boilerplate_texts):
-            parent = element.find_parent()
-            if parent:
-                parent.decompose()
+    try:
+        boilerplate_texts = [
+            "cookie",
+            "privacy policy",
+            "terms of service",
+            "copyright",
+            "all rights reserved",
+            "powered by",
+            "subscribe to",
+            "newsletter",
+            "follow us",
+            "share this",
+            "last updated",
+        ]
+        for element in soup.find_all(string=True):
+            if element and element.string:
+                text = element.string.lower().strip()
+                if any(bt in text for bt in boilerplate_texts):
+                    parent = element.find_parent()
+                    if parent:
+                        parent.decompose()
+    except Exception:
+        pass
 
     return soup
 
@@ -3417,26 +3438,35 @@ def _normalize_text(text: str) -> str:
 
 def _extract_main_content(soup: BeautifulSoup) -> str:
     """Extract main content using heuristics (article, main, content)"""
-    # Try to find main content areas
-    main_tags = soup.find_all(["article", "main", "div"])
+    try:
+        main_tags = soup.find_all(["article", "main", "div"])
+    except Exception:
+        return ""
+
     content_texts = []
 
     for tag in main_tags:
-        # Skip if it's likely navigation/sidebar
-        tag_id = tag.get("id", "").lower()
-        tag_class = " ".join(tag.get("class", [])).lower()
+        if tag is None:
+            continue
+        try:
+            tag_id = (tag.get("id") or "").lower()
+            tag_class = " ".join(tag.get("class") or []).lower()
+        except Exception:
+            continue
 
         if any(x in tag_id for x in ["nav", "menu", "sidebar", "footer", "header"]):
             continue
         if any(x in tag_class for x in ["nav", "menu", "sidebar", "footer", "header"]):
             continue
 
-        text = tag.get_text(separator=" ", strip=True)
-        if len(text) > 100:  # Only consider substantial content
-            content_texts.append((len(text), text))
+        try:
+            text = tag.get_text(separator=" ", strip=True)
+            if len(text) > 100:
+                content_texts.append((len(text), text))
+        except Exception:
+            continue
 
     if content_texts:
-        # Return the longest content (likely main content)
         content_texts.sort(reverse=True)
         return content_texts[0][1]
 
