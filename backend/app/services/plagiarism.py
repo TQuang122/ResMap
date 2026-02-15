@@ -189,10 +189,13 @@ def _format_exception_summary(exc: BaseException) -> str:
     cause = exc.__cause__ or exc.__context__
     if cause is not None:
         cause_message = str(cause).strip()
-        cause_summary = type(cause).__name__
-        if cause_message:
-            cause_summary = f"{cause_summary}: {cause_message}"
-        summary = f"{summary} (cause={cause_summary})"
+        same_type = type(cause) is type(exc)
+        same_message = cause_message == message
+        if not (same_type and same_message):
+            cause_summary = type(cause).__name__
+            if cause_message:
+                cause_summary = f"{cause_summary}: {cause_message}"
+            summary = f"{summary} (cause={cause_summary})"
 
     return summary
 
