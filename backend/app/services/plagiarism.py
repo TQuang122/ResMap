@@ -12,6 +12,8 @@ import asyncio
 import math
 import random
 import re
+import time
+import traceback
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -116,10 +118,34 @@ SIMILARITY_TOP_K_CANDIDATES = 5
 SEARCH_RESULT_CACHE_MAX_ENTRIES = 64
 MIN_SENTENCE_LENGTH_CHARS = 20
 HEAVY_EXCLUSION_RATIO_THRESHOLD = 0.6
+DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD = 5
+DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS = 90.0
+
+_duckduckgo_failure_count = 0
+_duckduckgo_open_until = 0.0
 
 REFERENCE_SECTION_PATTERN = re.compile(
     r"(?im)^\s*(references|bibliography|works\s+cited|tai\s+lieu\s+tham\s+khao)\s*:?\s*$"
 )
+
+
+def _duckduckgo_breaker_is_open() -> bool:
+    return time.monotonic() < _duckduckgo_open_until
+
+
+def _duckduckgo_breaker_on_success() -> None:
+    global _duckduckgo_failure_count, _duckduckgo_open_until
+    _duckduckgo_failure_count = 0
+    _duckduckgo_open_until = 0.0
+
+
+def _duckduckgo_breaker_on_failure() -> None:
+    global _duckduckgo_failure_count, _duckduckgo_open_until
+    _duckduckgo_failure_count += 1
+    if _duckduckgo_failure_count >= DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD:
+        _duckduckgo_open_until = time.monotonic() + DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS
+
+
 REFERENCE_INLINE_PATTERN = re.compile(
     r"(?i)\b(references|bibliography|works\s+cited|tai\s+lieu\s+tham\s+khao)\s*:?\s*[\r\n]"
 )
@@ -1755,6 +1781,8 @@ async def collect_source_candidates(
 
     connector_calls: list[tuple[SourceConnector, int]] = []
     for connector in active_connectors:
+        if connector.name == "duckduckgo" and _duckduckgo_breaker_is_open():
+            continue
         source_limit = max(0, int(source_caps.get(connector.name, max_total)))
         effective_limit = min(source_limit, max_total)
         if effective_limit <= 0:
@@ -1775,8 +1803,14 @@ async def collect_source_candidates(
         async with connector_semaphore:
             try:
                 raw_results = await connector.search(query, client, limit)
+                if connector.name == "duckduckgo":
+                    _duckduckgo_breaker_on_success()
             except Exception as e:
-                print(f"{connector.name} search error: {e}")
+                if connector.name == "duckduckgo":
+                    _duckduckgo_breaker_on_failure()
+                print(
+                    f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+                )
                 return []
 
             normalized: list[NormalizedSourceCandidate] = []
@@ -2982,8 +3016,6 @@ async def search_duckduckgo(query: str, client: httpx.AsyncClient) -> List[str]:
         )
         urls = [candidate.canonical_url for candidate in candidates]
     except Exception as e:
-        import traceback
-
         print(
             f"DuckDuckGo search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
         )
