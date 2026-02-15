@@ -2330,6 +2330,7 @@ async def check_sentence(
         analysis_method = "keyword"
         best_content = ""
         matched_sources: List[SourceMatch] = []
+        max_keyword_similarity = 0.0
 
         top_candidates = ranked_candidates[:SIMILARITY_TOP_K_CANDIDATES]
         for candidate in top_candidates:
@@ -2344,7 +2345,12 @@ async def check_sentence(
 
             cosine_sim = calculate_cosine_similarity(sentence, comparison_text)
             ngram_sim = calculate_ngram_similarity(sentence, comparison_text, 5)
-            similarity = max(cosine_sim, ngram_sim)
+            keyword_sim = max(cosine_sim, ngram_sim)
+
+            if keyword_sim > max_keyword_similarity:
+                max_keyword_similarity = keyword_sim
+
+            similarity = max(keyword_sim, max_keyword_similarity)
 
             if similarity > max_similarity:
                 max_similarity = similarity
@@ -2373,7 +2379,10 @@ async def check_sentence(
             analysis_method = semantic_result.method
             max_similarity = max(max_similarity, semantic_result.similarity)
 
-        # Sort sources by similarity (highest first)
+        paraphrase_detected = semantic_similarity > 0 and semantic_similarity > (
+            max_keyword_similarity * 100
+        )
+
         matched_sources.sort(key=lambda x: x.similarity, reverse=True)
 
         all_ngrams = []
@@ -2390,6 +2399,7 @@ async def check_sentence(
             used_ai=used_ai,
             fallback_used=fallback_used,
             analysis_method=analysis_method,
+            paraphrase_detected=paraphrase_detected,
         )
 
 

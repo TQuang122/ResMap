@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     NCBI_EMAIL: str = "resmap.researchteam@gmail.com"
     NCBI_API_KEY: str = ""
 
-    SEMANTIC_SCORING_ENABLED: bool = False
+    SEMANTIC_SCORING_ENABLED: bool = True
     SEMANTIC_PROVIDER: str = "gemini"
     SEMANTIC_QUOTA_LIMIT: int = 30000
     SEMANTIC_TIMEOUT_SECONDS: float = 8.0

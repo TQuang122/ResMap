@@ -17,6 +17,7 @@ interface SentenceResult {
   analysis_method?: string | null;
   sources: Source[];
   is_plagiarized: boolean;
+  paraphrase_detected?: boolean;
 }
 
 // report_v2 Types
@@ -32,6 +33,8 @@ interface ReportV2SourceGroup {
   source_type: string;
   canonical_url: string;
   spans: ReportV2SourceSpan[];
+  source_category?: string;
+  credibility_score?: number;
 }
 
 interface ReportV2Caveat {
@@ -1372,15 +1375,15 @@ const PlagiarismChecker: React.FC = () => {
                       >
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                                group.source_type === 'academic' ? 'bg-purple-50 border-purple-200 text-purple-700' :
-                                group.source_type === 'web' ? 'bg-green-50 border-green-200 text-green-700' :
-                                'bg-slate-100 border-slate-200 text-slate-600'
+                                group.source_category === 'academic_database' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                                'bg-green-50 border-green-200 text-green-700'
                               }`}>
-                                {group.source_type === 'academic' ? 'Academic' : 
-                                 group.source_type === 'web' ? 'Web' : 
-                                 group.source_type}
+                                {group.source_category === 'academic_database' ? 'Academic DB' : 'Internet'}
+                              </span>
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
+                                {group.credibility_score || 50}/100
                               </span>
                               <span className="text-xs text-slate-500">
                                 {group.spans.length} matches
@@ -1452,6 +1455,11 @@ const PlagiarismChecker: React.FC = () => {
                               <span className="px-2 py-0.5 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
                                 Semantic: {item.semantic_similarity}%
                               </span>
+                              {item.paraphrase_detected && (
+                                <span className="px-2 py-0.5 rounded-full border bg-indigo-100 text-indigo-700 border-indigo-200 font-medium">
+                                  Paraphrase
+                                </span>
+                              )}
                             </div>
                             {item.sources.length > 0 && (
                               <div className="mt-3 pl-3 border-l-2 border-slate-200 space-y-2">

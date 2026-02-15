@@ -103,6 +103,10 @@ class SentenceResult(BaseModel):
         description="All matching n-grams from all sources (for word-level scoring)",
     )
     is_plagiarized: bool = Field(..., description="True if similarity > 50%")
+    paraphrase_detected: bool = Field(
+        default=False,
+        description="True when semantic similarity > keyword similarity (paraphrase detected)",
+    )
 
 
 class ReportV2SourceSpan(BaseModel):
@@ -123,6 +127,16 @@ class ReportV2SourceGroup(BaseModel):
     spans: List[ReportV2SourceSpan] = Field(
         default_factory=list,
         description="Matched spans attributed to this source",
+    )
+    source_category: str = Field(
+        default="internet",
+        description="Category: academic_database, preprint, web",
+    )
+    credibility_score: int = Field(
+        default=50,
+        ge=0,
+        le=100,
+        description="Credibility score based on source type (0-100)",
     )
 
 
