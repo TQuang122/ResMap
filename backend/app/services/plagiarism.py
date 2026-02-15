@@ -180,8 +180,21 @@ def _duckduckgo_should_log_error() -> bool:
     return True
 
 
-def _single_line_traceback(limit: int = 1) -> str:
-    return traceback.format_exc(limit=limit).strip().replace("\n", " | ")
+def _format_exception_summary(exc: BaseException) -> str:
+    message = str(exc).strip()
+    summary = type(exc).__name__
+    if message:
+        summary = f"{summary}: {message}"
+
+    cause = exc.__cause__ or exc.__context__
+    if cause is not None:
+        cause_message = str(cause).strip()
+        cause_summary = type(cause).__name__
+        if cause_message:
+            cause_summary = f"{cause_summary}: {cause_message}"
+        summary = f"{summary} (cause={cause_summary})"
+
+    return summary
 
 
 REFERENCE_INLINE_PATTERN = re.compile(
@@ -1888,11 +1901,11 @@ async def collect_source_candidates(
                     _duckduckgo_breaker_on_failure()
                     if _duckduckgo_should_log_error():
                         print(
-                            f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
+                            f"{connector.name} search error: {_format_exception_summary(e)}"
                         )
                 else:
                     print(
-                        f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
+                        f"{connector.name} search error: {_format_exception_summary(e)}"
                     )
                 return []
 
@@ -3099,9 +3112,7 @@ async def search_duckduckgo(query: str, client: httpx.AsyncClient) -> List[str]:
         )
         urls = [candidate.canonical_url for candidate in candidates]
     except Exception as e:
-        print(
-            f"DuckDuckGo search error: {type(e).__name__}: {e} | Trace: {_single_line_traceback(limit=1)}"
-        )
+        print(f"DuckDuckGo search error: {_format_exception_summary(e)}")
 
     return urls
 
