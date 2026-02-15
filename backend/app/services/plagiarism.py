@@ -1941,22 +1941,32 @@ def extract_text_from_file(file_content: bytes, file_name: str) -> str:
 
 
 def _extract_text_from_pdf(file_content: bytes) -> str:
-    """Extract text from PDF using pypdf."""
+    """Extract text from PDF using PyMuPDF (fitz) - better text extraction with tables."""
     try:
-        from pypdf import PdfReader
+        import fitz
     except ImportError:
         raise ImportError(
-            "pypdf library is required for PDF extraction. Install with: pip install pypdf"
+            "PyMuPDF (fitz) library is required for PDF extraction. Install with: pip install pymupdf"
         )
 
-    reader = PdfReader(BytesIO(file_content))
+    doc = fitz.open(stream=file_content, filetype="pdf")
     text_parts = []
 
-    for page in reader.pages:
-        text = page.extract_text()
+    for page_num, page in enumerate(doc):
+        text = page.get_text("text")
         if text:
             text_parts.append(text)
 
+        tables = page.find_tables()
+        for table in tables:
+            table_text = table.extract()
+            if table_text:
+                for row in table_text:
+                    row_text = " | ".join(str(cell) if cell else "" for cell in row)
+                    if row_text.strip():
+                        text_parts.append(row_text)
+
+    doc.close()
     return "\n".join(text_parts)
 
 
