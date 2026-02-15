@@ -371,11 +371,26 @@ const FilterControls: React.FC<{
   setExcludeBibliography: (v: boolean) => void;
   excludeQuotes: boolean;
   setExcludeQuotes: (v: boolean) => void;
+  excludeCommonPhrases: boolean;
+  setExcludeCommonPhrases: (v: boolean) => void;
+  excludeTemplateText: boolean;
+  setExcludeTemplateText: (v: boolean) => void;
+  citationSeverityReduction: boolean;
+  setCitationSeverityReduction: (v: boolean) => void;
+  minWordThreshold: number;
+  setMinWordThreshold: (v: number) => void;
+  sourceContributionThreshold: number;
+  setSourceContributionThreshold: (v: number) => void;
 }> = ({
   sourceFilter, setSourceFilter,
   similarityRange, setSimilarityRange,
   excludeBibliography, setExcludeBibliography,
-  excludeQuotes, setExcludeQuotes
+  excludeQuotes, setExcludeQuotes,
+  excludeCommonPhrases, setExcludeCommonPhrases,
+  excludeTemplateText, setExcludeTemplateText,
+  citationSeverityReduction, setCitationSeverityReduction,
+  minWordThreshold, setMinWordThreshold,
+  sourceContributionThreshold, setSourceContributionThreshold,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
@@ -443,6 +458,68 @@ const FilterControls: React.FC<{
             <span className="text-sm text-slate-600">Exclude Quotes</span>
           </label>
         </div>
+
+        <div className="md:col-span-2 border-t border-slate-200 pt-3 mt-2">
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Advanced Exclusions</span>
+        </div>
+
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={excludeCommonPhrases}
+              onChange={(e) => setExcludeCommonPhrases(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+            />
+            <span className="text-sm text-slate-600">Exclude Common Phrases</span>
+          </label>
+          
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={excludeTemplateText}
+              onChange={(e) => setExcludeTemplateText(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+            />
+            <span className="text-sm text-slate-600">Exclude Template Text</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={citationSeverityReduction}
+              onChange={(e) => setCitationSeverityReduction(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F36F21] focus:ring-[#F36F21]"
+            />
+            <span className="text-sm text-slate-600">Citation Severity Reduction</span>
+          </label>
+        </div>
+
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-medium text-slate-600 block mb-1">Min Words per Match</label>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={minWordThreshold}
+              onChange={(e) => setMinWordThreshold(Number(e.target.value))}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-slate-600 block mb-1">Min Source Contribution %</label>
+            <input
+              type="number"
+              min={0}
+              max={10}
+              value={sourceContributionThreshold}
+              onChange={(e) => setSourceContributionThreshold(Number(e.target.value))}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -469,6 +546,11 @@ const PlagiarismChecker: React.FC = () => {
   const [similarityRange, setSimilarityRange] = useState<[number, number]>([0, 100]);
   const [excludeBibliography, setExcludeBibliography] = useState(false);
   const [excludeQuotes, setExcludeQuotes] = useState(false);
+  const [excludeCommonPhrases, setExcludeCommonPhrases] = useState(true);
+  const [excludeTemplateText, setExcludeTemplateText] = useState(true);
+  const [citationSeverityReduction, setCitationSeverityReduction] = useState(true);
+  const [minWordThreshold, setMinWordThreshold] = useState(10);
+  const [sourceContributionThreshold, setSourceContributionThreshold] = useState(0);
   const [viewMode, setViewMode] = useState<'viewer' | 'sources' | 'details'>('viewer');
   const [eta, setEta] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
@@ -673,11 +755,18 @@ const PlagiarismChecker: React.FC = () => {
     let lastProgress = 0;
 
     const requestPayload: Record<string, unknown> = {
-      text: text || '',
+      text,
       max_sentences: 20,
       use_ai_similarity: useAiSimilarity,
       exclude_small_matches: excludeSmallMatches,
       exclude_small_sources: excludeSmallSources,
+      exclude_citations: excludeQuotes,
+      exclude_common_phrases: excludeCommonPhrases,
+      exclude_template_text: excludeTemplateText,
+      citation_severity_reduction: citationSeverityReduction,
+      min_word_threshold: minWordThreshold,
+      source_contribution_threshold: sourceContributionThreshold,
+      source_type_filter: sourceFilter !== 'all' ? [sourceFilter] : undefined,
     };
 
     if (selectedFile && fileContentBase64) {
@@ -1313,6 +1402,16 @@ const PlagiarismChecker: React.FC = () => {
                   setExcludeBibliography={setExcludeBibliography}
                   excludeQuotes={excludeQuotes}
                   setExcludeQuotes={setExcludeQuotes}
+                  excludeCommonPhrases={excludeCommonPhrases}
+                  setExcludeCommonPhrases={setExcludeCommonPhrases}
+                  excludeTemplateText={excludeTemplateText}
+                  setExcludeTemplateText={setExcludeTemplateText}
+                  citationSeverityReduction={citationSeverityReduction}
+                  setCitationSeverityReduction={setCitationSeverityReduction}
+                  minWordThreshold={minWordThreshold}
+                  setMinWordThreshold={setMinWordThreshold}
+                  sourceContributionThreshold={sourceContributionThreshold}
+                  setSourceContributionThreshold={setSourceContributionThreshold}
                 />
               </div>
             </div>

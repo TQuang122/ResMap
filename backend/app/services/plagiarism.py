@@ -1593,6 +1593,76 @@ def _filter_small_sources(
     return filtered
 
 
+def _filter_by_source_type(
+    results: list[SentenceResult],
+    allowed_types: list[str],
+) -> list[SentenceResult]:
+    """Filter results by source type (web, academic, preprint)."""
+    if not allowed_types:
+        return results
+
+    allowed_lower = [t.lower() for t in allowed_types]
+
+    filtered = []
+    for result in results:
+        filtered_sources = []
+        for source in result.sources:
+            url = source.url.lower()
+            source_type = "web"
+            if any(x in url for x in ["arxiv", "preprint", "doi.org/10."]):
+                source_type = "preprint"
+            elif any(
+                x in url
+                for x in [
+                    "scholar.google",
+                    "pubmed",
+                    "crossref",
+                    "core.edu",
+                    "semantic",
+                ]
+            ):
+                source_type = "academic"
+
+            if source_type in allowed_lower:
+                filtered_sources.append(source)
+
+        if filtered_sources:
+            result.sources = filtered_sources
+            filtered.append(result)
+
+    return filtered
+
+
+def _filter_by_contribution(
+    results: list[SentenceResult],
+    min_contribution_percent: int,
+) -> list[SentenceResult]:
+    """Filter out sources contributing less than N% to similarity."""
+    if min_contribution_percent <= 0:
+        return results
+
+    filtered = []
+    for result in results:
+        if not result.sources:
+            continue
+
+        total_similarity = sum(s.similarity for s in result.sources)
+        if total_similarity == 0:
+            continue
+
+        filtered_sources = []
+        for source in result.sources:
+            contribution = (source.similarity / total_similarity) * 100
+            if contribution >= min_contribution_percent:
+                filtered_sources.append(source)
+
+        if filtered_sources:
+            result.sources = filtered_sources
+            filtered.append(result)
+
+    return filtered
+
+
 def _build_report_v2(
     results: list[SentenceResult],
     metadata_overrides: dict[str, str] | None = None,
@@ -2481,6 +2551,286 @@ def is_in_bibliography(text: str, start: int) -> bool:
     return in_bib
 
 
+# ============================================================
+# COMMON PHRASES & TEMPLATE TEXT EXCLUSIONS
+# ============================================================
+
+COMMON_ACADEMIC_PHRASES = {
+    # English academic phrases
+    "in this paper",
+    "in this study",
+    "in this research",
+    "this paper discusses",
+    "this paper examines",
+    "this paper presents",
+    "this paper proposes",
+    "as shown in figure",
+    "as illustrated in",
+    "as can be seen from",
+    "it is important to note",
+    "it is worth noting",
+    "it should be noted",
+    "on the other hand",
+    "on the contrary",
+    "in conclusion",
+    "in summary",
+    "for example",
+    "for instance",
+    "in addition",
+    "moreover",
+    "furthermore",
+    "however",
+    "nevertheless",
+    "nonetheless",
+    "although",
+    "whereas",
+    "in terms of",
+    "with regard to",
+    "regarding",
+    "concerning",
+    "as mentioned above",
+    "as stated previously",
+    "as discussed earlier",
+    "it is evident that",
+    "it is clear that",
+    "it can be concluded that",
+    "the results show",
+    "the findings indicate",
+    "the data suggests",
+    # Vietnamese academic phrases
+    "trong nghiên cứu này",
+    "trong bài báo này",
+    "bài viết này trình bày",
+    "như đã trình bày",
+    "như thể hiện trong",
+    "kết quả cho thấy",
+    "cần lưu ý rằng",
+    "điều quan trọng là",
+    "tóm lại",
+    "kết luận",
+}
+
+TEMPLATE_TEXT_PATTERNS = {
+    # Course syllabus / policy templates
+    r"course\s+(description|objectives|syllabus)",
+    r"learning\s+outcomes",
+    r"attendance\s+policy",
+    r"academic\s+integrity",
+    r"plagiarism\s+policy",
+    r"grading\s+(policy|criteria|scale)",
+    r"office\s+hours",
+    r"prerequisite",
+    r"textbook",
+    r"course\s+materials",
+    # Generic introduction templates
+    r"^this\s+(paper|article|study|research)\s+is\s+(about|on)",
+    r"the\s+purpose\s+of\s+(this|that)\s+(paper|study|research)",
+    r"we\s+(will\s+)?discuss",
+    r"this\s+chapter\s+(covers|presents|introduces)",
+    # Footer/metadata templates
+    r"all\s+rights\s+reserved",
+    r"copyright\s+©",
+    r"last\s+updated",
+    r"contact\s+information",
+}
+
+
+def is_common_phrase(text: str) -> bool:
+    """Check if text is a common academic phrase to exclude."""
+    text_lower = text.lower().strip()
+    words = text_lower.split()
+
+    if len(words) <= 3:
+        if text_lower in COMMON_ACADEMIC_PHRASES:
+            return True
+
+    phrase_window = " ".join(words[:5]) if len(words) >= 5 else text_lower
+    for phrase in COMMON_ACADEMIC_PHRASES:
+        if phrase in phrase_window or phrase_window in phrase:
+            return True
+
+    return False
+
+
+def is_template_text(text: str) -> bool:
+    """Detect template/syllabus/policy text."""
+    text_lower = text.lower()
+
+    for pattern in TEMPLATE_TEXT_PATTERNS:
+        if re.search(pattern, text_lower, re.IGNORECASE):
+            return True
+
+    return False
+
+
+def find_citation_markers(text: str, window_start: int, window_end: int) -> List[dict]:
+    """Find citation markers near a text window."""
+    window_text = text[max(0, window_start) : window_end]
+    citations = []
+
+    for pattern in CITATION_PATTERNS:
+        for match in re.finditer(pattern, window_text):
+            citations.append(
+                {
+                    "start": match.start(),
+                    "end": match.end(),
+                    "text": match.group(),
+                }
+            )
+
+    return citations
+
+
+def has_nearby_citation(
+    text: str, match_start: int, match_end: int, window_sentences: int = 2
+) -> bool:
+    """Check if there's a citation within window of the match."""
+    text_len = len(text)
+
+    window_before_start = max(0, match_start - 500)
+    window_after_end = min(text_len, match_end + 500)
+
+    text_before = text[window_before_start:match_start]
+    text_after = text[match_end:window_after_end]
+
+    for pattern in CITATION_PATTERNS:
+        if re.search(pattern, text_before):
+            return True
+        if re.search(pattern, text_after):
+            return True
+
+    return False
+
+
+def merge_overlapping_spans(spans: List[tuple]) -> List[tuple]:
+    """Merge overlapping/adjacent spans to avoid double-counting."""
+    if not spans:
+        return []
+
+    sorted_spans = sorted(spans, key=lambda x: x[0])
+    merged = [sorted_spans[0]]
+
+    for start, end in sorted_spans[1:]:
+        last_start, last_end = merged[-1]
+        if start <= last_end + 1:
+            merged[-1] = (last_start, max(last_end, end))
+        else:
+            merged.append((start, end))
+
+    return merged
+
+
+def calculate_coverage_score(
+    text: str,
+    results: list,
+    exclude_quotes: bool = True,
+    exclude_bibliography: bool = True,
+    exclude_common: bool = True,
+    exclude_template: bool = True,
+    min_word_threshold: int = 10,
+    citation_reduction: bool = True,
+) -> dict:
+    """
+    Calculate coverage-based similarity score (Turnitin-style).
+    Uses matched character/token spans instead of simple stem counting.
+    """
+    all_words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    total_words = len(all_words)
+    total_chars = len(text)
+
+    if total_words == 0:
+        return {
+            "overall_score": 0,
+            "matched_words": 0,
+            "total_words": 0,
+            "excluded_words": 0,
+            "coverage_percent": 0,
+            "unique_matched_chars": 0,
+            "total_chars": total_chars,
+        }
+
+    matched_spans: List[tuple] = []
+    excluded_words = 0
+    citation_reduced_count = 0
+
+    for result in results:
+        sentence = result.sentence
+        sentence_words = re.sub(r"[^\w\s]", "", sentence.lower()).split()
+        sentence_start = text.find(sentence)
+
+        if sentence_start == -1:
+            sentence_start = 0
+
+        is_quoted = exclude_quotes and is_in_quoted_region(
+            text, sentence_start, sentence_start + len(sentence)
+        )
+        is_bib = exclude_bibliography and is_in_bibliography(text, sentence_start)
+
+        if is_quoted or is_bib:
+            excluded_words += len(sentence_words)
+            continue
+
+        if exclude_common and is_common_phrase(sentence):
+            excluded_words += len(sentence_words)
+            continue
+
+        if exclude_template and is_template_text(sentence):
+            excluded_words += len(sentence_words)
+            continue
+
+        if len(sentence_words) < min_word_threshold:
+            excluded_words += len(sentence_words)
+            continue
+
+        sources = getattr(result, "sources", []) or []
+        has_matches = any(s.similarity > 0 for s in sources)
+
+        if not has_matches:
+            continue
+
+        match_start = sentence_start
+        match_end = sentence_start + len(sentence)
+
+        if citation_reduction and has_nearby_citation(text, match_start, match_end):
+            citation_reduced_count += 1
+            continue
+
+        matched_spans.append((match_start, match_end))
+
+    merged_spans = merge_overlapping_spans(matched_spans)
+
+    matched_chars = sum(end - start for start, end in merged_spans)
+    coverage_percent = (matched_chars / total_chars * 100) if total_chars > 0 else 0
+
+    analyzable_words = total_words - excluded_words
+    if analyzable_words <= 0:
+        return {
+            "overall_score": 0,
+            "matched_words": 0,
+            "total_words": analyzable_words,
+            "excluded_words": excluded_words,
+            "coverage_percent": 0,
+            "unique_matched_chars": matched_chars,
+            "total_chars": total_chars,
+            "merged_spans_count": len(merged_spans),
+            "citation_reduced_count": citation_reduced_count,
+        }
+
+    overall_score = min(100, round(coverage_percent))
+
+    return {
+        "overall_score": overall_score,
+        "matched_words": len(matched_spans),
+        "total_words": analyzable_words,
+        "excluded_words": excluded_words,
+        "coverage_percent": round(coverage_percent, 2),
+        "unique_matched_chars": matched_chars,
+        "total_chars": total_chars,
+        "merged_spans_count": len(merged_spans),
+        "citation_reduced_count": citation_reduced_count,
+    }
+
+
 def calculate_turnitin_score(
     text: str,
     results: list,
@@ -3279,14 +3629,27 @@ async def check_plagiarism(
         ]
         results = await asyncio.gather(*tasks)
 
-    # Calculate overall statistics using Turnitin-style word-level scoring
-    turnitin_stats = calculate_turnitin_score(
+    # Calculate overall statistics using coverage-based scoring (Turnitin-style)
+    turnitin_stats = calculate_coverage_score(
         request.text,
         results,
         exclude_quotes=True,
         exclude_bibliography=True,
-        small_match_threshold=10,
+        exclude_common=getattr(request, "exclude_common_phrases", True),
+        exclude_template=getattr(request, "exclude_template_text", True),
+        min_word_threshold=getattr(request, "min_word_threshold", 10),
+        citation_reduction=getattr(request, "citation_severity_reduction", True),
     )
+
+    # Fallback to legacy stem-count if coverage returns 0 but sources exist
+    if turnitin_stats["overall_score"] == 0 and any(r.sources for r in results):
+        turnitin_stats = calculate_turnitin_score(
+            request.text,
+            results,
+            exclude_quotes=True,
+            exclude_bibliography=True,
+            small_match_threshold=getattr(request, "min_word_threshold", 10),
+        )
 
     overall_score = turnitin_stats["overall_score"]
     plagiarism_percentage = turnitin_stats["overall_score"]
@@ -3318,6 +3681,18 @@ async def check_plagiarism(
         filtered_results = _filter_small_sources(filtered_results, min_source_count=3)
         sources_removed = before_filter - len(filtered_results)
         exclusion_metadata["small_sources_removed"] = str(sources_removed)
+
+    source_type_filter = getattr(request, "source_type_filter", None)
+    if source_type_filter and len(source_type_filter) > 0:
+        filtered_results = _filter_by_source_type(filtered_results, source_type_filter)
+        exclusion_metadata["source_type_filter"] = ",".join(source_type_filter)
+
+    contribution_threshold = getattr(request, "source_contribution_threshold", 0)
+    if contribution_threshold > 0:
+        filtered_results = _filter_by_contribution(
+            filtered_results, contribution_threshold
+        )
+        exclusion_metadata["contribution_threshold"] = str(contribution_threshold)
 
     recalculate_for_response = len(filtered_results) > 0
 

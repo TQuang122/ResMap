@@ -46,6 +46,34 @@ class PlagiarismCheckRequest(BaseModel):
         default=False,
         description="Exclude sources with fewer than 3 matches",
     )
+    exclude_common_phrases: bool = Field(
+        default=True,
+        description="Exclude common academic phrases to reduce noise",
+    )
+    exclude_template_text: bool = Field(
+        default=True,
+        description="Exclude template/syllabus/policy text",
+    )
+    citation_severity_reduction: bool = Field(
+        default=True,
+        description="Reduce severity for cited matches instead of removing",
+    )
+    min_word_threshold: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Minimum word count for a match to be counted",
+    )
+    source_contribution_threshold: int = Field(
+        default=0,
+        ge=0,
+        le=10,
+        description="Exclude sources contributing less than N% to overall similarity",
+    )
+    source_type_filter: Optional[List[str]] = Field(
+        default=None,
+        description="Filter by source types: web, academic, preprint, all",
+    )
 
 
 class PlagiarismProgressEvent(BaseModel):
