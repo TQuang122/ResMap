@@ -120,9 +120,13 @@ MIN_SENTENCE_LENGTH_CHARS = 20
 HEAVY_EXCLUSION_RATIO_THRESHOLD = 0.6
 DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD = 5
 DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS = 90.0
+DUCKDUCKGO_BREAKER_OPEN_LOG_INTERVAL_SECONDS = 30.0
+DUCKDUCKGO_ERROR_LOG_INTERVAL_SECONDS = 15.0
 
 _duckduckgo_failure_count = 0
 _duckduckgo_open_until = 0.0
+_duckduckgo_last_open_log_at = 0.0
+_duckduckgo_last_error_log_at = 0.0
 
 REFERENCE_SECTION_PATTERN = re.compile(
     r"(?im)^\s*(references|bibliography|works\s+cited|tai\s+lieu\s+tham\s+khao)\s*:?\s*$"
@@ -131,6 +135,10 @@ REFERENCE_SECTION_PATTERN = re.compile(
 
 def _duckduckgo_breaker_is_open() -> bool:
     return time.monotonic() < _duckduckgo_open_until
+
+
+def _duckduckgo_breaker_remaining_seconds() -> float:
+    return max(0.0, _duckduckgo_open_until - time.monotonic())
 
 
 def _duckduckgo_breaker_on_success() -> None:
@@ -144,6 +152,27 @@ def _duckduckgo_breaker_on_failure() -> None:
     _duckduckgo_failure_count += 1
     if _duckduckgo_failure_count >= DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD:
         _duckduckgo_open_until = time.monotonic() + DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS
+
+
+def _duckduckgo_should_log_breaker_open() -> bool:
+    global _duckduckgo_last_open_log_at
+    now = time.monotonic()
+    if (
+        now - _duckduckgo_last_open_log_at
+        < DUCKDUCKGO_BREAKER_OPEN_LOG_INTERVAL_SECONDS
+    ):
+        return False
+    _duckduckgo_last_open_log_at = now
+    return True
+
+
+def _duckduckgo_should_log_error() -> bool:
+    global _duckduckgo_last_error_log_at
+    now = time.monotonic()
+    if now - _duckduckgo_last_error_log_at < DUCKDUCKGO_ERROR_LOG_INTERVAL_SECONDS:
+        return False
+    _duckduckgo_last_error_log_at = now
+    return True
 
 
 REFERENCE_INLINE_PATTERN = re.compile(
@@ -1782,6 +1811,10 @@ async def collect_source_candidates(
     connector_calls: list[tuple[SourceConnector, int]] = []
     for connector in active_connectors:
         if connector.name == "duckduckgo" and _duckduckgo_breaker_is_open():
+            if _duckduckgo_should_log_breaker_open():
+                print(
+                    f"duckduckgo breaker open: skipping connector for {round(_duckduckgo_breaker_remaining_seconds(), 1)}s"
+                )
             continue
         source_limit = max(0, int(source_caps.get(connector.name, max_total)))
         effective_limit = min(source_limit, max_total)
@@ -1808,9 +1841,14 @@ async def collect_source_candidates(
             except Exception as e:
                 if connector.name == "duckduckgo":
                     _duckduckgo_breaker_on_failure()
-                print(
-                    f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
-                )
+                    if _duckduckgo_should_log_error():
+                        print(
+                            f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+                        )
+                else:
+                    print(
+                        f"{connector.name} search error: {type(e).__name__}: {e} | Trace: {traceback.format_exc(limit=1)}"
+                    )
                 return []
 
             normalized: list[NormalizedSourceCandidate] = []
