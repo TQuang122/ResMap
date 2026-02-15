@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         "https://www.res-map.vercel.app",
         "https://resmap.io.vn",
         "https://www.resmap.io.vn",
+        "https://api.resmap.io.vn",
     ]
 
     # Placeholder for AI Keys
