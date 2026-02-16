@@ -26,6 +26,9 @@ class PlagiarismCheckRequest(BaseModel):
     exclude_citations: bool = Field(
         default=False, description="Whether to exclude quoted text from analysis"
     )
+    exclude_bibliography: bool = Field(
+        default=False, description="Whether to exclude bibliography/references"
+    )
     max_sentences: int = Field(
         default=20,
         ge=1,

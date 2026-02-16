@@ -432,7 +432,7 @@ const FilterControls: React.FC<{
             <option value="all">All Sources</option>
             <option value="academic">Academic</option>
             <option value="web">Web</option>
-            <option value="published">Published</option>
+            <option value="preprint">Preprint</option>
           </select>
         </div>
 
@@ -763,6 +763,69 @@ const PlagiarismChecker: React.FC = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
+  const visibleSentenceEntries = useMemo(() => {
+    if (!result) {
+      return [] as Array<{ sentence: SentenceResult; originalIndex: number }>;
+    }
+
+    const minSimilarity = Math.min(similarityRange[0], similarityRange[1]);
+    const maxSimilarity = Math.max(similarityRange[0], similarityRange[1]);
+
+    return result.results
+      .map((sentence, originalIndex) => ({ sentence, originalIndex }))
+      .filter(
+        ({ sentence }) =>
+          sentence.similarity >= minSimilarity && sentence.similarity <= maxSimilarity
+      );
+  }, [result, similarityRange]);
+
+  const visibleResults = useMemo(
+    () => visibleSentenceEntries.map((entry) => entry.sentence),
+    [visibleSentenceEntries]
+  );
+
+  const visibleSentenceIndexSet = useMemo(
+    () => new Set(visibleSentenceEntries.map((entry) => entry.originalIndex)),
+    [visibleSentenceEntries]
+  );
+
+  const visibleSourceGroups = useMemo(() => {
+    if (!result?.report_v2?.source_groups) {
+      return [] as ReportV2SourceGroup[];
+    }
+
+    const minSimilarity = Math.min(similarityRange[0], similarityRange[1]);
+    const maxSimilarity = Math.max(similarityRange[0], similarityRange[1]);
+
+    return result.report_v2.source_groups
+      .map((group) => ({
+        ...group,
+        spans: group.spans.filter(
+          (span) =>
+            span.similarity >= minSimilarity &&
+            span.similarity <= maxSimilarity &&
+            visibleSentenceIndexSet.has(span.sentence_index)
+        ),
+      }))
+      .filter((group) => group.spans.length > 0);
+  }, [result, similarityRange, visibleSentenceIndexSet]);
+
+  const visiblePlagiarizedSentences = useMemo(
+    () => visibleResults.filter((item) => item.is_plagiarized).length,
+    [visibleResults]
+  );
+
+  const selectedVisibleIndex = useMemo(() => {
+    if (selectedSentenceIndex === null) {
+      return undefined;
+    }
+
+    const mappedIndex = visibleSentenceEntries.findIndex(
+      (entry) => entry.originalIndex === selectedSentenceIndex
+    );
+    return mappedIndex >= 0 ? mappedIndex : undefined;
+  }, [selectedSentenceIndex, visibleSentenceEntries]);
+
   const handleCheck = async () => {
     if (!canSubmit) return;
     setLoading(true);
@@ -783,6 +846,7 @@ const PlagiarismChecker: React.FC = () => {
       exclude_small_matches: excludeSmallMatches,
       exclude_small_sources: excludeSmallSources,
       exclude_citations: excludeQuotes,
+      exclude_bibliography: excludeBibliography,
       exclude_common_phrases: excludeCommonPhrases,
       exclude_template_text: excludeTemplateText,
       citation_severity_reduction: citationSeverityReduction,
@@ -1388,8 +1452,8 @@ const PlagiarismChecker: React.FC = () => {
               <div className="lg:col-span-1">
                 <TurnitinScoreWidget 
                   score={result.overall_score}
-                  totalSentences={result.total_sentences}
-                  plagiarizedSentences={result.plagiarized_sentences}
+                  totalSentences={visibleResults.length}
+                  plagiarizedSentences={visiblePlagiarizedSentences}
                 />
                 
                 {result.ai_detection_score !== undefined && result.ai_detection_score > 0 && (
@@ -1413,7 +1477,7 @@ const PlagiarismChecker: React.FC = () => {
               </div>
 
               <div className="lg:col-span-2 space-y-4">
-                <MatchOverviewBar results={result.results} />
+                <MatchOverviewBar results={visibleResults} />
                 
                 <FilterControls
                   sourceFilter={sourceFilter}
@@ -1506,18 +1570,27 @@ const PlagiarismChecker: React.FC = () => {
               <div className="lg:col-span-2">
                 {viewMode === 'viewer' && (
                   <DocumentViewer 
-                    results={result.results}
-                    selectedIndex={selectedSentenceIndex ?? undefined}
+                    results={visibleResults}
+                    selectedIndex={selectedVisibleIndex}
                     onSentenceClick={(idx) => {
-                      setSelectedSentenceIndex(idx);
+                      const originalIndex = visibleSentenceEntries[idx]?.originalIndex;
+                      if (originalIndex === undefined) {
+                        return;
+                      }
+                      setSelectedSentenceIndex(originalIndex);
                       setShowSideBySide(true);
                     }}
                   />
                 )}
 
-                {viewMode === 'sources' && result.report_v2 && result.report_v2.source_groups && (
+                {viewMode === 'sources' && result.report_v2 && (
                   <div className="space-y-3">
-                    {result.report_v2.source_groups.map((group) => (
+                    {visibleSourceGroups.length === 0 && (
+                      <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-600">
+                        No sources in selected similarity range.
+                      </div>
+                    )}
+                    {visibleSourceGroups.map((group) => (
                       <div 
                         key={group.source_id}
                         className="p-4 rounded-lg border border-slate-200 bg-white hover:shadow-md transition-all"
@@ -1578,9 +1651,14 @@ const PlagiarismChecker: React.FC = () => {
 
                 {viewMode === 'details' && (
                   <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {result.results.map((item, index) => (
+                    {visibleSentenceEntries.length === 0 && (
+                      <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-600">
+                        No sentences in selected similarity range.
+                      </div>
+                    )}
+                    {visibleSentenceEntries.map(({ sentence: item, originalIndex }, index) => (
                       <div 
-                        key={index} 
+                        key={originalIndex} 
                         className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
                           item.is_plagiarized 
                             ? 'bg-red-50/50 border-red-200' 

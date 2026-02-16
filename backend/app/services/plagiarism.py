@@ -3866,7 +3866,7 @@ async def check_plagiarism(
         request.text,
         results,
         exclude_quotes=True,
-        exclude_bibliography=True,
+        exclude_bibliography=request.exclude_bibliography,
         exclude_common=getattr(request, "exclude_common_phrases", True),
         exclude_template=getattr(request, "exclude_template_text", True),
         min_word_threshold=getattr(request, "min_word_threshold", 10),
@@ -3879,7 +3879,7 @@ async def check_plagiarism(
             request.text,
             results,
             exclude_quotes=True,
-            exclude_bibliography=True,
+            exclude_bibliography=request.exclude_bibliography,
             small_match_threshold=getattr(request, "min_word_threshold", 10),
         )
 
@@ -3933,7 +3933,7 @@ async def check_plagiarism(
             request.text,
             filtered_results,
             exclude_quotes=True,
-            exclude_bibliography=True,
+            exclude_bibliography=request.exclude_bibliography,
             small_match_threshold=10,
         )
         overall_score = turnitin_stats_filtered["overall_score"]
@@ -4051,6 +4051,7 @@ async def check_plagiarism_streaming(
 
     sentences = sentences[: request.max_sentences]
     total_sentences = len(sentences)
+    exclusion_metadata["analyzable_sentences_after_cap"] = str(total_sentences)
 
     yield {
         "progress": 5,
@@ -4116,13 +4117,25 @@ async def check_plagiarism_streaming(
         "debug": debug_metadata,
     }
 
-    turnitin_stats = calculate_turnitin_score(
+    turnitin_stats = calculate_coverage_score(
         request.text,
         results,
         exclude_quotes=True,
-        exclude_bibliography=True,
-        small_match_threshold=10,
+        exclude_bibliography=request.exclude_bibliography,
+        exclude_common=getattr(request, "exclude_common_phrases", True),
+        exclude_template=getattr(request, "exclude_template_text", True),
+        min_word_threshold=getattr(request, "min_word_threshold", 10),
+        citation_reduction=getattr(request, "citation_severity_reduction", True),
     )
+
+    if turnitin_stats["overall_score"] == 0 and any(r.sources for r in results):
+        turnitin_stats = calculate_turnitin_score(
+            request.text,
+            results,
+            exclude_quotes=True,
+            exclude_bibliography=request.exclude_bibliography,
+            small_match_threshold=getattr(request, "min_word_threshold", 10),
+        )
 
     overall_score = turnitin_stats["overall_score"]
     plagiarism_percentage = turnitin_stats["overall_score"]
@@ -4146,12 +4159,25 @@ async def check_plagiarism_streaming(
             filtered_results, request.exclude_small_matches
         )
         exclusion_metadata["small_matches_removed"] = str(small_matches_removed)
+        exclusion_metadata["small_match_threshold"] = str(request.exclude_small_matches)
 
     if request.exclude_small_sources:
         before_filter = len(filtered_results)
         filtered_results = _filter_small_sources(filtered_results, min_source_count=3)
         sources_removed = before_filter - len(filtered_results)
         exclusion_metadata["small_sources_removed"] = str(sources_removed)
+
+    source_type_filter = getattr(request, "source_type_filter", None)
+    if source_type_filter and len(source_type_filter) > 0:
+        filtered_results = _filter_by_source_type(filtered_results, source_type_filter)
+        exclusion_metadata["source_type_filter"] = ",".join(source_type_filter)
+
+    contribution_threshold = getattr(request, "source_contribution_threshold", 0)
+    if contribution_threshold > 0:
+        filtered_results = _filter_by_contribution(
+            filtered_results, contribution_threshold
+        )
+        exclusion_metadata["contribution_threshold"] = str(contribution_threshold)
 
     recalculate_for_response = len(filtered_results) > 0
 
@@ -4160,7 +4186,7 @@ async def check_plagiarism_streaming(
             request.text,
             filtered_results,
             exclude_quotes=True,
-            exclude_bibliography=True,
+            exclude_bibliography=request.exclude_bibliography,
             small_match_threshold=10,
         )
         overall_score = turnitin_stats_filtered["overall_score"]
