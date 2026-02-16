@@ -118,6 +118,13 @@ SIMILARITY_TOP_K_CANDIDATES = 5
 SEARCH_RESULT_CACHE_MAX_ENTRIES = 64
 MIN_SENTENCE_LENGTH_CHARS = 20
 HEAVY_EXCLUSION_RATIO_THRESHOLD = 0.6
+PLAGIARISM_REPORT_VERSION = "v2.2"
+
+
+def _build_report_stamp() -> tuple[str, str]:
+    return datetime.now(timezone.utc).isoformat(), PLAGIARISM_REPORT_VERSION
+
+
 DUCKDUCKGO_BREAKER_FAILURE_THRESHOLD = 5
 DUCKDUCKGO_BREAKER_COOLDOWN_SECONDS = 90.0
 DUCKDUCKGO_BREAKER_OPEN_LOG_INTERVAL_SECONDS = 30.0
@@ -3816,6 +3823,7 @@ async def check_plagiarism(
     if not sentences:
         quota_info = get_quota_info(user_key=resolved_user_key)
         ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+        report_generated_at, report_version = _build_report_stamp()
         return PlagiarismCheckResponse(
             overall_score=0,
             plagiarism_percentage=0,
@@ -3832,6 +3840,8 @@ async def check_plagiarism(
             quota_mode=quota_info.get("quota_mode"),
             ai_detection_score=ai_detection_score,
             ai_detection_confidence=ai_detection_confidence,
+            report_generated_at=report_generated_at,
+            report_version=report_version,
             report_v2=_build_report_v2(
                 [],
                 metadata_overrides=exclusion_metadata,
@@ -3961,6 +3971,7 @@ async def check_plagiarism(
         )
 
     ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+    report_generated_at, report_version = _build_report_stamp()
 
     return PlagiarismCheckResponse(
         overall_score=overall_score,
@@ -3978,6 +3989,8 @@ async def check_plagiarism(
         quota_mode=quota_info.get("quota_mode"),
         ai_detection_score=ai_detection_score,
         ai_detection_confidence=ai_detection_confidence,
+        report_generated_at=report_generated_at,
+        report_version=report_version,
         report_v2=_build_report_v2(
             filtered_results,
             metadata_overrides=exclusion_metadata,
@@ -4018,6 +4031,7 @@ async def check_plagiarism_streaming(
     if not sentences:
         quota_info = get_quota_info(user_key=resolved_user_key)
         ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+        report_generated_at, report_version = _build_report_stamp()
         yield {
             "progress": 100,
             "current": 0,
@@ -4041,6 +4055,8 @@ async def check_plagiarism_streaming(
             quota_mode=quota_info.get("quota_mode"),
             ai_detection_score=ai_detection_score,
             ai_detection_confidence=ai_detection_confidence,
+            report_generated_at=report_generated_at,
+            report_version=report_version,
             report_v2=_build_report_v2(
                 [],
                 metadata_overrides=exclusion_metadata,
@@ -4211,6 +4227,7 @@ async def check_plagiarism_streaming(
         )
 
     ai_detection_score, ai_detection_confidence = _detect_ai_text(request.text)
+    report_generated_at, report_version = _build_report_stamp()
 
     yield {
         "progress": 95,
@@ -4236,6 +4253,8 @@ async def check_plagiarism_streaming(
         quota_mode=quota_info.get("quota_mode"),
         ai_detection_score=ai_detection_score,
         ai_detection_confidence=ai_detection_confidence,
+        report_generated_at=report_generated_at,
+        report_version=report_version,
         report_v2=_build_report_v2(
             filtered_results,
             metadata_overrides=exclusion_metadata,

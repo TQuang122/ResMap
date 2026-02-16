@@ -19,6 +19,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for fast dependency mana
     ```bash
     cd backend
     uv sync
+    uv run playwright install chromium
     ```
 
 3.  **Run Development Server**:
@@ -51,6 +52,9 @@ This project uses [uv](https://github.com/astral-sh/uv) for fast dependency mana
 - `GET /api/tools/plagiarism-check/quota`
     - Returns semantic AI quota usage (`used`, `limit`, `remaining`, `usage_percent`, `reset_at`)
     - Adds optional `quota_mode`
+- `POST /api/tools/plagiarism-check/report-pdf`
+    - Runs plagiarism check and returns `application/pdf`
+    - Includes `Content-Disposition: attachment` header for direct download
 
 ## Environment Variables
 Create a `.env` file in `backend/` (optional for now as logic is mocked):
@@ -89,6 +93,9 @@ PLAGIARISM_SOURCE_TIMEOUT_SECONDS=10
 # CORE auth mode
 PLAGIARISM_SOURCE_CORE_AUTH_MODE=bearer   # bearer | query
 CORE_API_KEY=
+
+# Server-side PDF rendering
+PDF_RENDERER_TIMEOUT_MS=30000
 
 # PubMed request identity (recommended by NCBI)
 NCBI_TOOL=resmap

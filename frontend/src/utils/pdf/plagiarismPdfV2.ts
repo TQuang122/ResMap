@@ -1,5 +1,6 @@
 import type { jsPDF } from 'jspdf';
-import { buildPdfViewModel, type PlagiarismResponse } from './plagiarismPdfViewModel';
+import type { PlagiarismResponse } from '../../types/plagiarism';
+import { buildPdfViewModel } from './plagiarismPdfViewModel';
 import { formatDateVi, similarityLabel } from './format';
 import { ensureVietnameseFont, FONT_FAMILY } from './fonts';
 
@@ -64,7 +65,8 @@ export const exportPlagiarismPdfV2 = async (result: PlagiarismResponse): Promise
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   await ensureVietnameseFont(doc);
 
-  const vm = buildPdfViewModel(result);
+  const evidenceLimit = result.total_sentences > 120 ? 8 : 10;
+  const vm = buildPdfViewModel(result, { evidenceLimit });
   const marginX = 16;
   const marginTop = 14;
   const marginBottom = 14;
@@ -208,6 +210,18 @@ export const exportPlagiarismPdfV2 = async (result: PlagiarismResponse): Promise
       headStyles: { fillColor: [220, 38, 38] },
       head: [['Caveats']],
       body: vm.caveatRows.map((item) => [item]),
+    });
+    y = ((doc as JsPdfWithAutoTable).lastAutoTable?.finalY ?? y) + 6;
+  }
+
+  if (vm.warnings.length > 0) {
+    autoTable(doc, {
+      startY: y,
+      margin: { left: marginX, right: marginX },
+      styles: { font: FONT_FAMILY, fontSize: 8.5, cellPadding: 2 },
+      headStyles: { fillColor: [217, 119, 6] },
+      head: [['PDF Warnings']],
+      body: vm.warnings.map((item) => [item]),
     });
     y = ((doc as JsPdfWithAutoTable).lastAutoTable?.finalY ?? y) + 6;
   }

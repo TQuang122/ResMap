@@ -6,7 +6,7 @@ import asyncio
 import base64
 import json
 from fastapi import APIRouter, HTTPException, Request, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 
 from app.schemas.plagiarism import (
     PlagiarismCheckRequest,
@@ -18,11 +18,37 @@ from app.services.plagiarism import (
     check_plagiarism_streaming,
     extract_text_from_file,
 )
+from app.services.plagiarism_pdf import (
+    PDFRendererUnavailableError,
+    render_plagiarism_report_pdf,
+)
 from app.services.semantic_similarity import get_quota_info, resolve_quota_user_key
 from app.core.limiter import limiter
 from app.api.deps import get_current_user
 
 router = APIRouter()
+
+
+def _resolve_payload_text(payload: PlagiarismCheckRequest) -> str:
+    text = payload.text or ""
+
+    if payload.file_content and payload.file_name:
+        try:
+            file_bytes = base64.b64decode(payload.file_content)
+            extracted_text = extract_text_from_file(file_bytes, payload.file_name)
+            if extracted_text and len(extracted_text) >= 50:
+                text = extracted_text
+        except Exception:
+            pass
+
+    if not text or len(text) < 50:
+        raise HTTPException(
+            status_code=422,
+            detail="Text content must be at least 50 characters. Please provide text or upload a valid file.",
+        )
+
+    payload.text = text
+    return text
 
 
 @router.post(
@@ -60,24 +86,7 @@ async def plagiarism_check(
     - **max_sentences**: Maximum number of sentences to check (1-50, default 20)
     """
     try:
-        text = payload.text or ""
-
-        if payload.file_content and payload.file_name:
-            try:
-                file_bytes = base64.b64decode(payload.file_content)
-                extracted_text = extract_text_from_file(file_bytes, payload.file_name)
-                if extracted_text and len(extracted_text) >= 50:
-                    text = extracted_text
-            except Exception:
-                pass
-
-        if not text or len(text) < 50:
-            raise HTTPException(
-                status_code=422,
-                detail="Text content must be at least 50 characters. Please provide text or upload a valid file.",
-            )
-
-        payload.text = text
+        _resolve_payload_text(payload)
 
         anon_seed = request.client.host if request.client else None
         user_key = resolve_quota_user_key(
@@ -104,24 +113,7 @@ async def plagiarism_check_stream(
     payload: PlagiarismCheckRequest,
     current_user: dict = Depends(get_current_user),
 ) -> StreamingResponse:
-    text = payload.text or ""
-
-    if payload.file_content and payload.file_name:
-        try:
-            file_bytes = base64.b64decode(payload.file_content)
-            extracted_text = extract_text_from_file(file_bytes, payload.file_name)
-            if extracted_text and len(extracted_text) >= 50:
-                text = extracted_text
-        except Exception:
-            pass
-
-    if not text or len(text) < 50:
-        raise HTTPException(
-            status_code=422,
-            detail="Text content must be at least 50 characters. Please provide text or upload a valid file.",
-        )
-
-    payload.text = text
+    _resolve_payload_text(payload)
     anon_seed = request.client.host if request.client else None
     user_key = resolve_quota_user_key(current_user=current_user, anon_seed=anon_seed)
 
@@ -145,6 +137,52 @@ async def plagiarism_check_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post(
+    "/plagiarism-check/report-pdf",
+    summary="Generate plagiarism report PDF",
+    description="Runs plagiarism analysis and returns a server-rendered PDF report.",
+)
+@limiter.limit("2/minute")
+async def plagiarism_check_report_pdf(
+    request: Request,
+    payload: PlagiarismCheckRequest,
+    current_user: dict = Depends(get_current_user),
+) -> Response:
+    try:
+        _resolve_payload_text(payload)
+        anon_seed = request.client.host if request.client else None
+        user_key = resolve_quota_user_key(
+            current_user=current_user, anon_seed=anon_seed
+        )
+        result = await check_plagiarism(payload, user_key=user_key)
+
+        pdf_bytes = await render_plagiarism_report_pdf(result)
+        filename = "ResMap_Similarity_Report_Server.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-store",
+            },
+        )
+    except HTTPException:
+        raise
+    except PDFRendererUnavailableError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "PDF renderer is temporarily unavailable. "
+                "Please try client-side export or retry later."
+            ),
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate plagiarism PDF: {exc}",
+        ) from exc
 
 
 @router.get(

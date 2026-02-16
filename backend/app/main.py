@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.limiter import limiter
 from app.api import health
 from app.api.endpoints import topic, citation, plagiarism, writing, papers
+from app.services.plagiarism_pdf import shutdown_plagiarism_pdf_renderer
 
 app = FastAPI(title=settings.PROJECT_NAME)
 app.state.limiter = limiter
@@ -32,6 +33,11 @@ app.include_router(papers.router, prefix="/api/papers", tags=["papers"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to FPTU ResMap API. Visit /docs for Swagger UI."}
+
+
+@app.on_event("shutdown")
+async def shutdown_pdf_renderer():
+    await shutdown_plagiarism_pdf_renderer()
 
 
 if __name__ == "__main__":

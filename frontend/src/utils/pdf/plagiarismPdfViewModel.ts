@@ -1,72 +1,8 @@
 import { clipText, confidenceLabel, matchGroupLabel, safeHostname } from './format';
+import type { PlagiarismResponse } from '../../types/plagiarism';
 
-export interface Source {
-  url: string;
-  similarity: number;
-  passage_matches?: PassageMatch[];
-  confidence_score?: string;
-  match_type?: string;
-}
-
-export interface PassageMatch {
-  text1: string;
-  text2: string;
-  start1: number;
-  end1: number;
-  start2: number;
-  end2: number;
-  similarity: number;
-}
-
-export interface SentenceResult {
-  sentence: string;
-  similarity: number;
-  sources: Source[];
-  is_plagiarized: boolean;
-}
-
-interface MatchGroup {
-  group_type: string;
-  count: number;
-  percentage: number;
-  sample_sentences: string[];
-}
-
-interface ReportV2SourceSpan {
-  sentence_index: number;
-  start_char: number;
-  end_char: number;
-  similarity: number;
-}
-
-interface ReportV2SourceGroup {
-  source_id: string;
-  source_type: string;
-  canonical_url: string;
-  spans: ReportV2SourceSpan[];
-}
-
-interface ReportV2Caveat {
-  code: string;
-  message: string;
-}
-
-interface ReportV2 {
-  source_groups: ReportV2SourceGroup[];
-  match_groups: MatchGroup[];
-  caveats: ReportV2Caveat[];
-  metadata?: Record<string, string>;
-}
-
-export interface PlagiarismResponse {
-  overall_score: number;
-  plagiarism_percentage: number;
-  total_sentences: number;
-  plagiarized_sentences: number;
-  results: SentenceResult[];
-  ai_detection_score?: number;
-  ai_detection_confidence?: string;
-  report_v2?: ReportV2;
+export interface PdfViewModelOptions {
+  evidenceLimit?: number;
 }
 
 export interface CitationRow {
@@ -110,9 +46,12 @@ export interface PdfViewModel {
   evidenceRows: EvidenceRow[];
   caveatRows: string[];
   methodRows: Array<[string, string]>;
+  warnings: string[];
 }
 
 const roundPercent = (value: number): number => Math.round(value * 10) / 10;
+const DEFAULT_EVIDENCE_LIMIT = 10;
+const MAX_EVIDENCE_LIMIT = 20;
 
 const buildSourceRows = (result: PlagiarismResponse): SourceRow[] => {
   const sourceGroups = result.report_v2?.source_groups ?? [];
@@ -176,7 +115,10 @@ const confidenceRank = (value: string | undefined): number => {
   return 0;
 };
 
-const buildEvidenceRows = (result: PlagiarismResponse, limit = 10): EvidenceRow[] => {
+const buildEvidenceRows = (
+  result: PlagiarismResponse,
+  limit = DEFAULT_EVIDENCE_LIMIT
+): { rows: EvidenceRow[]; totalCandidates: number } => {
   const rows: EvidenceRow[] = [];
 
   for (const sentence of result.results) {
@@ -197,7 +139,7 @@ const buildEvidenceRows = (result: PlagiarismResponse, limit = 10): EvidenceRow[
     }
   }
 
-  return rows
+  const sortedRows = rows
     .sort((a, b) => {
       if (b.similarity !== a.similarity) return b.similarity - a.similarity;
       const rankDiff = confidenceRank(b.confidence) - confidenceRank(a.confidence);
@@ -205,9 +147,19 @@ const buildEvidenceRows = (result: PlagiarismResponse, limit = 10): EvidenceRow[
       return b.passageSnippet.length - a.passageSnippet.length;
     })
     .slice(0, limit);
+
+  return {
+    rows: sortedRows,
+    totalCandidates: rows.length,
+  };
 };
 
-export const buildPdfViewModel = (result: PlagiarismResponse): PdfViewModel => {
+export const buildPdfViewModel = (
+  result: PlagiarismResponse,
+  options: PdfViewModelOptions = {}
+): PdfViewModel => {
+  const requestedLimit = options.evidenceLimit ?? DEFAULT_EVIDENCE_LIMIT;
+  const safeEvidenceLimit = Math.max(1, Math.min(MAX_EVIDENCE_LIMIT, requestedLimit));
   const sourceRows = buildSourceRows(result);
   const citationRows = (result.report_v2?.match_groups ?? []).map((group) => ({
     group: matchGroupLabel(group.group_type),
@@ -230,6 +182,24 @@ export const buildPdfViewModel = (result: PlagiarismResponse): PdfViewModel => {
     ['Excluded Characters Ratio', metadata.excluded_characters_ratio ?? '0'],
   ];
 
+  const evidenceResult = buildEvidenceRows(result, safeEvidenceLimit);
+  const warnings: string[] = [];
+
+  if (evidenceResult.totalCandidates > safeEvidenceLimit) {
+    warnings.push(
+      `PDF evidence section is truncated: showing top ${safeEvidenceLimit}/${evidenceResult.totalCandidates} matches to keep report readable.`
+    );
+  }
+
+  if (result.total_sentences >= 120) {
+    warnings.push(
+      `Large submission detected (${result.total_sentences} sentences). PDF generation may take longer than usual.`
+    );
+  }
+
+  methodRows.push(['PDF Evidence Limit', `${safeEvidenceLimit}`]);
+  methodRows.push(['PDF Evidence Candidates', `${evidenceResult.totalCandidates}`]);
+
   return {
     summary: {
       overallScore: result.overall_score,
@@ -241,8 +211,9 @@ export const buildPdfViewModel = (result: PlagiarismResponse): PdfViewModel => {
     },
     citationRows,
     sourceRows,
-    evidenceRows: buildEvidenceRows(result, 10),
+    evidenceRows: evidenceResult.rows,
     caveatRows: (result.report_v2?.caveats ?? []).map((caveat) => `${caveat.code}: ${caveat.message}`),
     methodRows,
+    warnings,
   };
 };

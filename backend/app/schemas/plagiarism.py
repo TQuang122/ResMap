@@ -5,7 +5,6 @@ Ported from: https://github.com/cu-sanjay/Free-Turnitin-Plagiarism-Checker
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from io import BytesIO
 
 
 class PlagiarismCheckRequest(BaseModel):
@@ -294,6 +293,14 @@ class PlagiarismCheckResponse(BaseModel):
     ai_detection_confidence: Optional[str] = Field(
         default=None,
         description="AI detection confidence: high, medium, or low",
+    )
+    report_generated_at: Optional[str] = Field(
+        default=None,
+        description="UTC timestamp when report payload was generated",
+    )
+    report_version: Optional[str] = Field(
+        default=None,
+        description="Version identifier for report contract",
     )
     report_v2: Optional[ReportV2] = Field(
         default=None,
