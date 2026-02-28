@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, FileText, Table, Users, ClipboardCheck, ListTodo, ShieldCheck } from 'lucide-react';
+import { X, FileText, Table, ShieldCheck } from 'lucide-react';
 
 interface StarterKitModalProps {
   isOpen: boolean;
@@ -66,7 +66,7 @@ const StarterKitModal: React.FC<StarterKitModalProps> = ({ isOpen, onClose, item
                   {item.description}
                 </p>
 
-                <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                <div className="bg-slate-50 rounded-xl p-4">
                   <h4 className="font-bold text-slate-800 text-sm mb-3">Nội dung bao gồm:</h4>
                   <ul className="space-y-2 text-sm text-slate-600">
                     <li className="flex items-center gap-2">
@@ -86,21 +86,6 @@ const StarterKitModal: React.FC<StarterKitModalProps> = ({ isOpen, onClose, item
                       Hướng dẫn chi tiết từng phần
                     </li>
                   </ul>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#F36F21] text-white font-bold rounded-xl hover:bg-orange-600 transition-colors"
-                  >
-                    <Download size={18} />
-                    Tải về
-                  </button>
-                  <button
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                  >
-                    <FileText size={18} />
-                    Xem trước
-                  </button>
                 </div>
               </div>
             </div>

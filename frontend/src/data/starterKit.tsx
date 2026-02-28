@@ -10,6 +10,6 @@ export interface StarterKitItem {
 export const STARTER_KIT_ITEMS: StarterKitItem[] = [
   { icon: <FileText />, label: "Template Đồ án (Capstone)", url: "https://drive.google.com/drive/folders/1wWIpcvmRZeOeQRnE59cuU5eTw5qX-S_2?usp=sharing" },
   { icon: <ListChecks />, label: "Mẫu báo cáo NCKH (ResFes)", url: "https://drive.google.com/drive/folders/1Fnp4bxiCK0J5XYSHyRfUVfsnws4t2j6D?usp=sharing" },
-  { icon: <LinkIcon />, label: "HD trích dẫn APA 7" },
+  { icon: <LinkIcon />, label: "HD trích dẫn APA 7", url: "https://drive.google.com/uc?export=download&id=1z-YgGNrXwn0jMcJ0PrhnK9wYw8ULZLkb" },
   { icon: <GraduationCap />, label: "Tips bảo vệ (Defense)" },
 ];
