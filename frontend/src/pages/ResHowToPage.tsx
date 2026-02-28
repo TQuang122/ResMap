@@ -27,14 +27,26 @@ const TopicCard: React.FC<{ icon: React.ReactNode; title: string; onClick: () =>
     .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/^-|$/g, '');
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       data-testid={`topic-card-${slug}`}
-      className="cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 lg:gap-4 h-32 md:h-40 lg:h-48 relative"
+      className="cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-xl hover:-translate-y-1 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 lg:gap-4 h-32 md:h-40 lg:h-48 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21] focus-visible:ring-offset-2"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      aria-label={`Chọn ${title}`}
     >
       <div className="text-[#F36F21] transition-transform group-hover:scale-110 duration-200">{icon}</div>
       <h3 className="font-bold text-xs md:text-base text-gray-800">{title}</h3>

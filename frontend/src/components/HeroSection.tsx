@@ -48,17 +48,24 @@ const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => {
     mouseY.set(y);
   };
 
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
   };
 
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="group cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-2xl hover:-translate-y-2 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48 relative overflow-hidden"
+      className="cursor-pointer p-6 md:p-6 lg:p-10 rounded-2xl border border-gray-200 hover:border-[#F36F21] transition-all duration-200 hover:shadow-2xl hover:-translate-y-2 bg-white text-center flex flex-col items-center justify-center gap-4 md:gap-4 h-32 md:h-40 lg:h-48 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21] focus-visible:ring-offset-2"
       whileHover={!shouldReduceMotion ? { scale: 1.12 } : undefined}
       transition={{ type: 'spring', stiffness: 520, damping: 18 }}
       whileTap={{ scale: 0.98 }}
@@ -67,6 +74,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ icon, title, onClick }) => {
         rotateY: smoothRotateY,
         transformStyle: 'preserve-3d',
       } : undefined}
+      aria-label={`Chọn ${title}`}
     >
       {!shouldReduceMotion && (
         <motion.div
@@ -123,6 +131,15 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
           <div className="overflow-x-auto no-scrollbar">
             <div className="flex gap-4 md:gap-3 pb-2 md:pb-0">
               {STEPS_DATA.map((step) => (
+                <motion.div
+                  key={step.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedStep({ stepNumber: step.stepNumber, title: step.title, description: step.description })}
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelectedStep({ stepNumber: step.stepNumber, title: step.title, description: step.description })}
+                  className="min-w-[240px] md:min-w-0 md:flex-1 bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:bg-white hover:shadow-lg hover:border-orange-200 transition-all duration-300 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21] focus-visible:ring-offset-2"
+                  aria-label={`Xem ${step.title}`}
+                >
                 <div
                   key={step.id}
                   onClick={() => setSelectedStep({ stepNumber: step.stepNumber, title: step.title, description: step.description })}
@@ -142,8 +159,7 @@ const HeroSection: React.FC<{ selectedTopic: string | null; setSelectedTopic: (t
                   <h3 className="font-black text-base md:text-sm lg:text-base text-slate-900 mb-2 group-hover:text-[#F36F21] transition-colors">
                     {step.title}
                   </h3>
-                </div>
-              ))}
+                </motion.div>
             </div>
           </div>
         </motion.div>

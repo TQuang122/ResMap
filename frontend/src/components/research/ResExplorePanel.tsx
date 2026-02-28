@@ -19,12 +19,27 @@ const ResExplorePanel: React.FC<ResExplorePanelProps> = ({
   onToggle, 
   onToggleInterest 
 }) => {
+  const panelId = `panel-${lecturer.email.replace(/[^a-zA-Z0-9]/g, '')}`;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle();
+    }
+  };
+
   return (
     <div
       className={`border border-slate-200 rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
         isExpanded ? 'shadow-lg ring-2 ring-blue-500/20' : 'hover:shadow-md hover:border-blue-300'
       }`}
       onClick={onToggle}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isExpanded}
+      aria-controls={panelId}
+      aria-label={`${isExpanded ? 'Đóng' : 'Mở'} thông tin ${lecturer.fullName}`}
     >
       <div className="p-4 bg-white">
         <div className="flex items-start justify-between gap-4">
@@ -73,7 +88,7 @@ const ResExplorePanel: React.FC<ResExplorePanelProps> = ({
       </div>
 
       {isExpanded && (
-        <div className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100 animate-fadeIn">
+        <div id={panelId} className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100 animate-fadeIn" role="region" aria-label={`Thông tin chi tiết của ${lecturer.fullName}`}>
           <div className="pt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               {lecturer.phone && (
