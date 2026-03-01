@@ -3,6 +3,7 @@ import { LecturerData } from '../../types';
 import { supabase } from '../../lib/supabase';
 import LanguagesResExploreSidebar from './LanguagesResExploreSidebar';
 import LanguagesResExplorePanel from './LanguagesResExplorePanel';
+import { useToastActions } from '../ui/Toast';
 
 interface LanguagesResExploreModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ const LanguagesResExploreModal: React.FC<LanguagesResExploreModalProps> = ({ isO
   const [interestedIds, setInterestedIds] = useState<Set<string>>(new Set());
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const toast = useToastActions();
 
   useEffect(() => {
     if (isOpen) {
@@ -128,7 +130,7 @@ const LanguagesResExploreModal: React.FC<LanguagesResExploreModalProps> = ({ isO
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user?.id;
     if (!userId) {
-      alert('Vui lòng đăng nhập để lưu giảng viên quan tâm.');
+      toast.info('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để lưu giảng viên quan tâm.');
       return;
     }
 

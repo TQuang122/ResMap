@@ -3,6 +3,7 @@ import { LecturerData } from '../../types';
 import { supabase } from '../../lib/supabase';
 import LawResExploreSidebar from './LawResExploreSidebar';
 import LawResExplorePanel from './LawResExplorePanel';
+import { useToastActions } from '../ui/Toast';
 
 interface LawResExploreModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ const LawResExploreModal: React.FC<LawResExploreModalProps> = ({ isOpen, onClose
   const [interestedIds, setInterestedIds] = useState<Set<string>>(new Set());
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const toast = useToastActions();
 
   useEffect(() => {
     if (isOpen) {
@@ -128,7 +130,7 @@ const LawResExploreModal: React.FC<LawResExploreModalProps> = ({ isOpen, onClose
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user?.id;
     if (!userId) {
-      alert('Vui lòng đăng nhập để lưu giảng viên quan tâm.');
+      toast.info('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để lưu giảng viên quan tâm.');
       return;
     }
 

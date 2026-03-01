@@ -140,6 +140,9 @@ const Step0ExerciseModal: React.FC<Step0ExerciseModalProps> = ({
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="step0-modal-title"
       data-testid={STEP0_TEST_IDS.MODAL}
     >
       <div 
@@ -150,14 +153,14 @@ const Step0ExerciseModal: React.FC<Step0ExerciseModalProps> = ({
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Lộ trình Bước 0</h2>
+            <h2 id="step0-modal-title" className="text-lg font-bold text-gray-900">Lộ trình Bước 0</h2>
             <p className="text-sm text-gray-500">Slide {currentSlide}/4</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F36F21]"
             data-testid={STEP0_TEST_IDS.CLOSE_BTN}
-            aria-label="Đóng"
+            aria-label="Đóng modal bài tập"
           >
             <X size={20} className="text-gray-500" />
           </button>

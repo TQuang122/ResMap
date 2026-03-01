@@ -6,6 +6,7 @@ import PaperScorecard from './PaperScorecard';
 import QueryAssistant from './QueryAssistant';
 import { Paper, ScoreResponse } from '../../../types';
 import { useResearch } from '../../../context/ResearchContext';
+import { useToastActions } from '../../ui/Toast';
 
 interface PaperHunterModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
   const [yearEnd, setYearEnd] = useState(2025);
 
   const { topic, addSavedPaper } = useResearch();
+  const toast = useToastActions();
 
   // Auto-fill RQ from Context
   useEffect(() => {
@@ -51,7 +53,7 @@ const PaperHunterModal: React.FC<PaperHunterModalProps> = ({
 
   const handleScorePaper = (paper: Paper) => {
     if (!rq.trim()) {
-      alert('Vui lòng nhập câu hỏi nghiên cứu (Topic) trước khi đánh giá');
+      toast.warning('Cần nhập Topic', 'Vui lòng nhập câu hỏi nghiên cứu (Topic) trước khi đánh giá');
       return;
     }
     setScoringPaper(paper);

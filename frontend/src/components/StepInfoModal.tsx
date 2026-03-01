@@ -68,6 +68,16 @@ const StepInfoModal: React.FC<StepInfoModalProps> = ({ isOpen, onClose, step }) 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="stepinfo-modal-title"
+          >
+          <motion.div
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden z-10"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             {/* Close button */}
             <button
@@ -91,7 +101,7 @@ const StepInfoModal: React.FC<StepInfoModalProps> = ({ isOpen, onClose, step }) 
               </div>
 
               {/* Title */}
-              <h3 className={`text-2xl font-black mb-4 leading-tight ${colors.text}`}>
+              <h3 id="stepinfo-modal-title" className={`text-2xl font-black mb-4 leading-tight ${colors.text}`}>
                 {step.title}
               </h3>
 

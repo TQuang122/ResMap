@@ -41,21 +41,24 @@ const StarterKitModal: React.FC<StarterKitModalProps> = ({ isOpen, onClose, item
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="starterkit-modal-title"
           >
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full pointer-events-auto overflow-hidden">
               <div className="relative bg-gradient-to-br from-[#F36F21] to-[#FF8C42] p-6 text-white">
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                  aria-label="Đóng modal"
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#F36F21]"
                 >
-                  <X size={20} />
                 </button>
                 <div className="flex items-center gap-4">
                   <div className="p-4 bg-white/20 rounded-2xl">
                     {item.icon}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">{item.title}</h3>
+                    <h3 id="starterkit-modal-title" className="text-xl font-bold">{item.title}</h3>
                     <p className="text-white/80 text-sm">Template chuẩn FPTU</p>
                   </div>
                 </div>

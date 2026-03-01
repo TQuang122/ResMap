@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useToastActions } from '../ui/Toast';
 
 interface CleanupButtonProps {
   onCleanupComplete?: (result: { logs: number; topics: number; lecturers: number }) => void;
@@ -10,7 +11,7 @@ const CleanupButton: React.FC<CleanupButtonProps> = ({ onCleanupComplete }) => {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [result, setResult] = useState<{ logs: number; topics: number; lecturers: number } | null>(null);
-
+  const toast = useToastActions();
   const handleCleanup = async () => {
     if (!supabase) return;
 
@@ -20,7 +21,7 @@ const CleanupButton: React.FC<CleanupButtonProps> = ({ onCleanupComplete }) => {
 
       if (error) {
         console.error('Cleanup error:', error);
-        alert('Có lỗi xảy ra khi dọn dẹp dữ liệu.');
+        toast.error('Lỗi dọn dẹp', 'Có lỗi xảy ra khi dọn dẹp dữ liệu.');
       } else if (data) {
         setResult({
           logs: data.logs_deleted || 0,
@@ -36,7 +37,7 @@ const CleanupButton: React.FC<CleanupButtonProps> = ({ onCleanupComplete }) => {
       }
     } catch (err) {
       console.error('Cleanup exception:', err);
-      alert('Có lỗi xảy ra khi dọn dẹp dữ liệu.');
+      toast.error('Lỗi dọn dẹp', 'Có lỗi xảy ra khi dọn dẹp dữ liệu.');
     } finally {
       setLoading(false);
     }

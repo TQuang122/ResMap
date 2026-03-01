@@ -60,7 +60,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -90,7 +90,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                 <Lightbulb size={32} className="text-white fill-white" />
               </div>
 
-              <h2 className="text-2xl font-bold text-slate-900">Góp ý cho ResMap</h2>
+              <h2 id="feedback-modal-title" className="text-2xl font-bold text-slate-900">Góp ý cho ResMap</h2>
               <p className="text-slate-500 mt-2 text-sm max-w-xs mx-auto">
                 Chia sẻ ý kiến để giúp ResMap ngày càng tốt hơn
               </p>

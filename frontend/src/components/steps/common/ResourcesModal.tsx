@@ -57,7 +57,7 @@ const ResourcesModal: React.FC<ResourcesModalProps> = ({ isOpen, onClose, data, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="resources-modal-title">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fadeIn"
         onClick={onClose}
@@ -71,7 +71,7 @@ const ResourcesModal: React.FC<ResourcesModalProps> = ({ isOpen, onClose, data, 
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Tài liệu tham khảo</h2>
+              <h2 id="resources-modal-title" className="text-xl font-bold text-slate-900">Tài liệu tham khảo</h2>
               <p className="text-sm text-slate-500 mt-0.5">
                 {stepTitle || 'Videos và Blogs hướng dẫn'}
               </p>
@@ -90,7 +90,8 @@ const ResourcesModal: React.FC<ResourcesModalProps> = ({ isOpen, onClose, data, 
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-orange-100 rounded-lg transition-colors"
+              aria-label="Đóng modal tài liệu"
+              className="p-2 hover:bg-orange-100 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
             >
               <X className="w-5 h-5 text-slate-500" />
             </button>
