@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Be Vietnam Pro', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'gradient-slow': 'gradientShift 8s ease infinite',
